@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 
 @Getter
 @Setter
-public class DebtListItem {
+public class DebtListItemResponse {
     private Long id;
     private String lenderName;
     private BigDecimal totalPrincipal;

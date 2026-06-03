@@ -2,6 +2,9 @@ package com.tuan.debtwizard.features.payment.model;
 
 import com.tuan.debtwizard.features.debt.model.Debt;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -25,6 +28,15 @@ public class Payment {
     private LocalDate paymentDate;
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal amount;
+
+    @Column(nullable = false, precision = 15, scale = 2)
+    private BigDecimal principalPaid = BigDecimal.ZERO;
+
+    @Column(nullable = false, precision = 15, scale = 2)
+    private BigDecimal interestPaid = BigDecimal.ZERO;
+
+    @Column(nullable = false, precision = 15, scale = 2)
+    private BigDecimal lateFeePaid = BigDecimal.ZERO;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -15,6 +15,10 @@ public class PaymentResponse {
     private String lenderName;
     private LocalDate paymentDate;
     private BigDecimal amount;
+    private BigDecimal principalPaid;
+    private BigDecimal interestPaid;
+    private BigDecimal lateFeePaid;
+
     private String note;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

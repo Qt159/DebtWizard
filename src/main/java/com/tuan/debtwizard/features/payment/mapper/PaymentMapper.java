@@ -1,16 +1,19 @@
 package com.tuan.debtwizard.features.payment.mapper;
 
 import com.tuan.debtwizard.features.debt.model.Debt;
+import com.tuan.debtwizard.features.payment.dto.PaymentAllocationResult;
 import com.tuan.debtwizard.features.payment.dto.PaymentListItem;
 import com.tuan.debtwizard.features.payment.dto.PaymentRequest;
 import com.tuan.debtwizard.features.payment.dto.PaymentResponse;
 import com.tuan.debtwizard.features.payment.model.Payment;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+
 @Component
 public class PaymentMapper {
 
-    public Payment toEntity(PaymentRequest paymentRequest, Debt debt) {
+    public Payment toEntity(PaymentRequest paymentRequest, Debt debt, PaymentAllocationResult allocation) {
 
         Payment payment = new Payment();
         payment.setDebt(debt);
@@ -18,6 +21,9 @@ public class PaymentMapper {
         payment.setPaymentDate(paymentRequest.getPaymentDate());
         payment.setPaymentMethod(paymentRequest.getPaymentMethod());
         payment.setNote(paymentRequest.getNote());
+        payment.setPrincipalPaid(allocation.getPrincipalPaid());
+        payment.setInterestPaid(allocation.getInterestPaid());
+        payment.setLateFeePaid(BigDecimal.ZERO);
         return payment;
     }
 
@@ -30,6 +36,9 @@ public class PaymentMapper {
         response.setAmount(payment.getAmount());
         response.setPaymentMethod(payment.getPaymentMethod());
         response.setPaymentDate(payment.getPaymentDate());
+        response.setLateFeePaid(payment.getLateFeePaid());
+        response.setInterestPaid(payment.getInterestPaid());
+        response.setPrincipalPaid(payment.getPrincipalPaid());
         response.setCreatedAt(payment.getCreatedAt());
         response.setUpdatedAt(payment.getUpdatedAt());
         return response;
@@ -41,6 +50,7 @@ public class PaymentMapper {
         item.setAmount(payment.getAmount());
         item.setPaymentMethod(payment.getPaymentMethod());
         item.setNote(payment.getNote());
+        item.setDebtId(payment.getDebt().getId());
         item.setPaymentDate(payment.getPaymentDate());
         return item;
     }

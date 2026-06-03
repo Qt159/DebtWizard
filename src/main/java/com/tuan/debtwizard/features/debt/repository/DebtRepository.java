@@ -7,7 +7,9 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.awt.print.Pageable;
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -54,4 +56,24 @@ public interface DebtRepository extends JpaRepository<Debt, Long> {
             @Param("userId") Long userId,
             @Param("status") DebtStatus status
     );
+
+    List<Debt> findByDeletedFalseAndStatusNot(DebtStatus debtStatus);
+
+
+    @Query("""
+    SELECT SUM(d.accruedInterest)
+    FROM Debt d
+    WHERE d.user.id = :userId
+    and d.deleted = false
+""")
+    BigDecimal getTotalAccruedInterest(@Param ("userId")Long userId);
+
+
+    @Query("""
+    SELECT SUM(d.remainingPrincipal)
+    FROM Debt d
+    WHERE d.user.id = :userId
+    and d.deleted = false
+""")
+    BigDecimal getTotalRemainingDebt(@Param("userId")Long userId);
 }

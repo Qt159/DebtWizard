@@ -2,6 +2,8 @@ package com.tuan.debtwizard.features.debt.dto;
 
 import com.tuan.debtwizard.features.debt.model.DebtStatus;
 import com.tuan.debtwizard.features.debt.model.DebtType;
+import com.tuan.debtwizard.features.interest.model.InterestCalculationMethod;
+import com.tuan.debtwizard.features.interest.model.InterestRatePeriod;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -16,13 +18,19 @@ public class DebtResponse {
     private String lenderName;
     private BigDecimal totalPrincipal;
     private BigDecimal remainingPrincipal;
-    private BigDecimal interestRate;
-    private BigDecimal monthlyPayment;
+
+    private BigDecimal expectedMonthlyPayment;
+    private BigDecimal accruedInterest;
+    private BigDecimal totalOutstanding;//phần nợ còn+ lãi
+
     private Integer termMonths;
     private LocalDate startDate;
-    private LocalDate dueDay;
+    private Integer dueDay;
     private DebtStatus status;
     private DebtType debtType;
+    private BigDecimal interestRate;
+    private InterestCalculationMethod interestCalculationMethod;
+    private InterestRatePeriod interestRatePeriod;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-}
+    }

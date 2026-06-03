@@ -31,11 +31,5 @@ public class PaymentController {
             @PathVariable Long id){
         return paymentService.getPayment(userDetails,id);
     }
-    @GetMapping()
-    public List<PaymentListItem> getPayments(
-        @AuthenticationPrincipal UserDetails userDetails,
-        @RequestParam Long debtId
-    ){
-        return paymentService.getPayments(userDetails, debtId);
-    }
+
 }

@@ -36,7 +36,9 @@ public enum ErrorCode {
 
     UNAUTHORIZED_ACCESS(HttpStatus.UNAUTHORIZED,"Không có quyền truy cập" ),
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "Tên đăng nhập hoặc mật khẩu không đúng"),
-    INVALID_PAYMENT_AMOUNT(HttpStatus.BAD_REQUEST, "Dữ liệu không hợp lệ" );
+    INVALID_PAYMENT_AMOUNT(HttpStatus.BAD_REQUEST, "Dữ liệu không hợp lệ" ),
+    DEBT_NOT_ACTIVE(HttpStatus.BAD_REQUEST,"Nợ không active" ),
+    INVALID_PAYMENT_RULE(HttpStatus.BAD_REQUEST,"PaymentApplicationRule is invalid" ),;
 
     private final HttpStatus status;
     private final String message;
