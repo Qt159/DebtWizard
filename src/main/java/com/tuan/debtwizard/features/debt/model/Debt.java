@@ -1,6 +1,7 @@
 package com.tuan.debtwizard.features.debt.model;
 
 import com.tuan.debtwizard.features.auth.model.User;
+import com.tuan.debtwizard.features.interest.model.InterestConfig;
 import com.tuan.debtwizard.features.payment.model.Payment;
 import jakarta.persistence.*;
 
@@ -27,7 +28,7 @@ public class Debt {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @OneToMany(mappedBy = "debt")
+    @OneToMany(mappedBy = "debt", fetch = FetchType.LAZY)
     private List<Payment> payments;
 
     @Column(nullable = false)
@@ -36,21 +37,24 @@ public class Debt {
     private BigDecimal totalPrincipal;//số tiền gốc ban đầu
     @Column(nullable = false,precision = 15, scale = 2)
     private BigDecimal remainingPrincipal;//số tiền gốc còn lại
-    @Column(nullable = false, precision = 5, scale = 2)
-    private BigDecimal interestRate; // %/year (ví dụ: 10 = 10%)
+
     @Column(nullable = false, precision = 15, scale = 2)
-    private BigDecimal monthlyPayment;
+    private BigDecimal expectedMonthlyPayment;
     @Column(nullable = false)
     private Integer termMonths;
     @Column(nullable = false)
     private LocalDate startDate;
     @Column(nullable = false)
-    private LocalDate dueDay;
+    private Integer dueDay;
 
+    @OneToOne(mappedBy ="debt", cascade = CascadeType.ALL) // save thực thể cha sẽ save con
+    private InterestConfig interestConfig;
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private DebtStatus status;
 
+    @Column(nullable = false, precision = 15, scale = 2)
+    private BigDecimal accruedInterest = BigDecimal.ZERO; // lãi phats sinh
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private DebtType debtType;
@@ -69,4 +73,10 @@ public class Debt {
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
+
+    @Transient //Ko lưu field này vô db
+    public BigDecimal getTotalOutstanding() {
+        return remainingPrincipal.add(accruedInterest);
+    }
+
 }

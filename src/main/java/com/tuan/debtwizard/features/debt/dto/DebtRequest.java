@@ -12,35 +12,25 @@ import java.time.LocalDate;
 @Setter
 public class DebtRequest {
 
-    @NotBlank(message = "Tên người cho vay không được để trống")
+    @NotBlank
+    @Size(max = 100)
     private String lenderName;
-
-    @NotNull(message = "Số tiền vay không được để trống")
-    @Positive(message = "Số tiền vay phải lớn hơn 0")
+    @NotNull
+    @Positive
     private BigDecimal totalPrincipal;
 
-    @NotNull(message = "Ngày bắt đầu vay không được để trống")
+    @NotNull
     private LocalDate startDate;
 
-    @NotNull(message = "Loại khoản nợ không được để trống")
-    private DebtType debtType;
-
-    @NotNull(message = "Số tiền thanh toán hàng tháng không được để trống")
-    @Positive(message = "Số tiền thanh toán hàng tháng phải lớn hơn 0")
-    private BigDecimal monthlyPayment;
-
-    @NotNull(message = "Lãi suất năm không được để trống")
-    @PositiveOrZero
-    @DecimalMin(value = "0.0")
-    @DecimalMax(value = "100.0")
-    private BigDecimal interestRate;
-
-    @NotNull(message = "Thời hạn vay không được để trống")
-    @Positive(message = "Thời hạn vay phải lớn hơn 0")
+    @NotNull
+    @Positive
     private Integer termMonths;
 
-    @NotNull(message = "Ngày hạn thanh toán hàng tháng không được để trống")
-    @Min(value = 1, message = "Ngày hạn thanh toán thấp nhất là ngày 1")
-    @Max(value = 28, message = "Ngày hạn thanh toán cao nhất là ngày 28")
-    private LocalDate dueDay;
+    @NotNull
+    @Min(1)
+    @Max(28)
+    private Integer dueDay;
+
+    @NotNull
+    private DebtType debtType;
 }

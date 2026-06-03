@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
@@ -20,4 +21,6 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     WHERE p.debt.user.id = :userId
 """)
     BigDecimal getTotalPaid(@Param("userId") Long userId);
+
+    Optional<Payment> findByIdAndDebtUserId(Long id, Long id1);
 }

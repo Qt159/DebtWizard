@@ -1,8 +1,6 @@
 package com.tuan.debtwizard.features.auth.dto;
 
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -29,5 +27,7 @@ public class RegisterRequest {
     @Email(message = "Định dạng email không hợp lệ")
     private String email;
 
+    @NotNull
+    @PositiveOrZero
     private BigDecimal monthlyIncome = BigDecimal.ZERO;
 }

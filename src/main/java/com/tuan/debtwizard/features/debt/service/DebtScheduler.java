@@ -1,6 +1,7 @@
 package com.tuan.debtwizard.features.debt.service;
 
 import com.tuan.debtwizard.features.debt.model.Debt;
+import com.tuan.debtwizard.features.debt.model.DebtStatus;
 import com.tuan.debtwizard.features.debt.repository.DebtRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -20,7 +21,7 @@ public class DebtScheduler {
     @Transactional
         @Scheduled(cron = "0 0 0 * * *")
         public void refreshOverdueDebts() {
-            List<Debt> debts = debtRepository.findAll();
+            List<Debt> debts = debtRepository.findByDeletedFalseAndStatusNot(DebtStatus.PAID_OFF);
             for (Debt debt : debts) {
                 debtStateService.refreshDebtStatus(debt);
                 debtRepository.save(debt);

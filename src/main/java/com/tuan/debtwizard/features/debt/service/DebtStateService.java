@@ -14,11 +14,22 @@ public class DebtStateService {
             debt.setStatus(DebtStatus.PAID_OFF);
             return;
         }
-        if(LocalDate.now().isAfter(debt.getDueDay())){
+        LocalDate today = LocalDate.now();
+        LocalDate firstDueDate = calculateFirstDueDate(debt);
+        if (today.isAfter(firstDueDate)) {
             debt.setStatus(DebtStatus.OVERDUE);
             return;
         }
         debt.setStatus(DebtStatus.ACTIVE);
+    }
+
+    private LocalDate calculateFirstDueDate(Debt debt) {
+        LocalDate start = debt.getStartDate();
+        if (start.getDayOfMonth() <= debt.getDueDay()) {
+            return start.withDayOfMonth(debt.getDueDay());
+        }
+        return start.plusMonths(1)
+                .withDayOfMonth(debt.getDueDay());
     }
 
 }

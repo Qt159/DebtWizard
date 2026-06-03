@@ -1,6 +1,8 @@
 package com.tuan.debtwizard.features.interest.model;
 
 import com.tuan.debtwizard.features.debt.model.Debt;
+import com.tuan.debtwizard.features.payment.model.PaymentAllocationStrategy;
+import com.tuan.debtwizard.features.payment.model.PaymentApplicationRule;
 import jakarta.persistence.*;
 import lombok.Data;
 import java.math.BigDecimal;
@@ -14,7 +16,7 @@ public class InterestConfig {
     private Long id;
 
     @OneToOne
-    @JoinColumn(name = "debt_id", nullable = false)
+    @JoinColumn(name = "debt_id")
     private Debt debt;
 
     @Enumerated(EnumType.STRING)
@@ -25,16 +27,21 @@ public class InterestConfig {
     @Column(nullable = false, updatable = false)
     private InterestRatePeriod interestRatePeriod;
 
-    @Column(nullable = false, updatable = false, precision = 8, scale = 2)
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    private PaymentApplicationRule paymentApplicationRule;
+
+    @Column(nullable = false, precision = 8, scale = 2)
     private BigDecimal interestRate;
 
+    private Integer gracePeriodDays = 0;// Khoảng thời gian được miễn lãi hoặc miễn phạt sau ngày đến hạn.
 
-    private Boolean interestEnabled = true;
-
-    private Integer gracePeriodDays = 0;
-
+    @Column(precision = 8, scale = 2)
     private BigDecimal monthlyServiceFee;
+    @Column(precision = 8, scale = 2)
     private BigDecimal insuranceFee;
+    @Column(precision = 8, scale = 2)
     private BigDecimal overdueInterestRate;
+    @Column(precision = 8, scale = 2)
     private BigDecimal lateFee;
 }
