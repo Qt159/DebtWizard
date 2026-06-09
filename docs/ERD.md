@@ -1,6 +1,6 @@
 # **Sơ đồ quan hệ thực thể (ERD)**
 
-![ERD](docs/images/erd.png)
+![ERD](images/erd.png)
 
 ## Quan hệ giữa các bảng
 
