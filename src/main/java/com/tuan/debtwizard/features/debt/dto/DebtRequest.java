@@ -28,7 +28,7 @@ public class DebtRequest {
 
     @NotNull
     @Min(1)
-    @Max(28)
+    @Max(31)
     private Integer dueDay;
 
     @NotNull

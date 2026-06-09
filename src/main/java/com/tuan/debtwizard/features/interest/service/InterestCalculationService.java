@@ -1,44 +1,89 @@
 package com.tuan.debtwizard.features.interest.service;
 
 import com.tuan.debtwizard.features.debt.model.Debt;
+import com.tuan.debtwizard.features.interest.model.InterestCalculationMethod;
 import com.tuan.debtwizard.features.interest.model.InterestConfig;
-import com.tuan.debtwizard.features.interest.model.InterestRatePeriod;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 
 @Service
 public class InterestCalculationService {
-    public BigDecimal calculateInterest(Debt debt) {
 
-        switch (debt.getInterestConfig().getInterestCalculationMethod()) {
-            case FLAT:
-                return calculateFlatInterest(debt);
-            case REDUCING_BALANCE:
-                return calculateReducingBalanceInterest(debt);
-            default:
-                throw new IllegalArgumentException("Unsupported method");
+    public BigDecimal calculateInterest(
+            Debt debt,
+            LocalDate fromDate,
+            LocalDate toDate) {
+
+        if (debt == null || fromDate == null || toDate == null || !toDate.isAfter(fromDate)) {
+            return BigDecimal.ZERO;
         }
-    }
-    private BigDecimal calculateFlatInterest(Debt debt) {
+
         InterestConfig config = debt.getInterestConfig();
-        BigDecimal rate = config.getInterestRate();
-        if (config.getInterestRatePeriod() == InterestRatePeriod.ANNUALLY){
-            rate = rate.divide(BigDecimal.valueOf(12),2, RoundingMode.HALF_UP);
+        if (config == null) {return BigDecimal.ZERO;}
+
+        InterestCalculationMethod method =
+                config.getInterestCalculationMethod();
+
+        return switch (method) {
+            case FLAT ->
+                    calculateFlatInterest(debt, config, fromDate, toDate);
+            case REDUCING_BALANCE ->
+                    calculateReducingBalanceInterest(debt, config, fromDate, toDate);
+        };
+    }
+
+    private BigDecimal calculateFlatInterest(
+            Debt debt,
+            InterestConfig config,
+            LocalDate fromDate,
+            LocalDate toDate) {
+
+        BigDecimal principal = debt.getTotalPrincipal();
+
+        if (principal == null || principal.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
         }
-        return debt.getTotalPrincipal()
-                .multiply(rate)
+
+        return principal
+                .multiply(calculateRateForPeriod(config, fromDate, toDate))
+                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+    }
+    private BigDecimal calculateReducingBalanceInterest(
+            Debt debt,
+            InterestConfig config,
+            LocalDate fromDate,
+            LocalDate toDate) {
+        BigDecimal principal = debt.getRemainingPrincipal();
+        if (principal == null || principal.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+        return principal
+                .multiply(calculateRateForPeriod(config, fromDate, toDate))
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
     }
 
-    private BigDecimal calculateReducingBalanceInterest(Debt debt) {
-        InterestConfig config = debt.getInterestConfig();
+    private BigDecimal calculateRateForPeriod(
+            InterestConfig config,
+            LocalDate fromDate,
+            LocalDate toDate) {
+        long days = ChronoUnit.DAYS.between(fromDate, toDate);
         BigDecimal rate = config.getInterestRate();
-        if (config.getInterestRatePeriod() == InterestRatePeriod.ANNUALLY){
-            rate = rate.divide(BigDecimal.valueOf(12),2, RoundingMode.HALF_UP);
+        if (rate == null || rate.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
         }
-        return debt.getRemainingPrincipal().multiply(rate)
-                .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        return switch (config.getInterestRatePeriod()) {
+            case DAILY ->
+                    rate.multiply(BigDecimal.valueOf(days));
+            case MONTHLY ->
+                    rate.divide(BigDecimal.valueOf(30), 10, RoundingMode.HALF_UP)
+                            .multiply(BigDecimal.valueOf(days));
+            case ANNUALLY ->
+                    rate.divide(BigDecimal.valueOf(365), 10, RoundingMode.HALF_UP)
+                            .multiply(BigDecimal.valueOf(days));
+        };
     }
 }

@@ -39,6 +39,8 @@ public class DebtMapper {
         response.setExpectedMonthlyPayment(debt.getExpectedMonthlyPayment());
         response.setTermMonths(debt.getTermMonths());
         response.setStartDate(debt.getStartDate());
+        response.setNextDueDate(debt.getNextDueDate());
+        response.setLastPaymentDate(debt.getLastPaymentDate());
         response.setDueDay(debt.getDueDay());
         response.setStatus(debt.getStatus());
         response.setDebtType(debt.getDebtType());

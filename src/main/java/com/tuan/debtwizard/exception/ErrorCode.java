@@ -38,7 +38,9 @@ public enum ErrorCode {
     INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "Tên đăng nhập hoặc mật khẩu không đúng"),
     INVALID_PAYMENT_AMOUNT(HttpStatus.BAD_REQUEST, "Dữ liệu không hợp lệ" ),
     DEBT_NOT_ACTIVE(HttpStatus.BAD_REQUEST,"Nợ không active" ),
-    INVALID_PAYMENT_RULE(HttpStatus.BAD_REQUEST,"PaymentApplicationRule is invalid" ),;
+    INVALID_PAYMENT_RULE(HttpStatus.BAD_REQUEST,"PaymentApplicationRule is invalid" ),
+    INVALID_PAYMENT_STRATEGY(HttpStatus.BAD_REQUEST,"PaymentStrategy is invalid" ),
+    INVALID_PAYMENT_DATE(HttpStatus.BAD_REQUEST,"PaymentDate is invalid" ),;
 
     private final HttpStatus status;
     private final String message;

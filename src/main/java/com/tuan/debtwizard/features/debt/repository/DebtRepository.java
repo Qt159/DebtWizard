@@ -76,4 +76,13 @@ public interface DebtRepository extends JpaRepository<Debt, Long> {
     and d.deleted = false
 """)
     BigDecimal getTotalRemainingDebt(@Param("userId")Long userId);
+
+    @Query("""
+    SELECT SUM(d.expectedMonthlyPayment)
+    FROM Debt d 
+    WHERE d.user.id = :userId
+    and d.deleted = false
+    and d.status = com.tuan.debtwizard.features.debt.model.DebtStatus.ACTIVE
+""")
+    BigDecimal getTotalActiveExpectedMonthlyPayment(@Param("userId") Long userId);
 }
