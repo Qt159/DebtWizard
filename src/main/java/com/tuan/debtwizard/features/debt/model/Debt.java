@@ -1,10 +1,10 @@
 package com.tuan.debtwizard.features.debt.model;
 
 import com.tuan.debtwizard.features.auth.model.User;
+import com.tuan.debtwizard.features.debt.service.DebtStateService;
 import com.tuan.debtwizard.features.interest.model.InterestConfig;
 import com.tuan.debtwizard.features.payment.model.Payment;
 import jakarta.persistence.*;
-
 import lombok.Getter;
 import lombok.Setter;
 
@@ -17,9 +17,11 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "debts")
-
 public class Debt {
-    public Debt(){}
+
+    public Debt() {
+    }
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -33,50 +35,91 @@ public class Debt {
 
     @Column(nullable = false)
     private String lenderName;
-    @Column(nullable = false,precision = 15, scale = 2)// 2 chữ số tphan
-    private BigDecimal totalPrincipal;//số tiền gốc ban đầu
-    @Column(nullable = false,precision = 15, scale = 2)
-    private BigDecimal remainingPrincipal;//số tiền gốc còn lại
+
+    @Column(nullable = false, precision = 15, scale = 2)
+    private BigDecimal totalPrincipal;
+
+    @Column(nullable = false, precision = 15, scale = 2)
+    private BigDecimal remainingPrincipal;
 
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal expectedMonthlyPayment;
+
     @Column(nullable = false)
     private Integer termMonths;
+
     @Column(nullable = false)
     private LocalDate startDate;
+
     @Column(nullable = false)
     private Integer dueDay;
 
-    @OneToOne(mappedBy ="debt", cascade = CascadeType.ALL) // save thực thể cha sẽ save con
+    @Column(nullable = false)
+    private LocalDate nextDueDate;
+
+    private LocalDate lastPaymentDate;
+
+    // Ngày cuối đã tính lãi
+    @Column(nullable = false)
+    private LocalDate lastInterestAccruedDate;
+
+    @OneToOne(mappedBy = "debt", cascade = CascadeType.ALL)
     private InterestConfig interestConfig;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private DebtStatus status;
 
+    // Lãi đã phát sinh
     @Column(nullable = false, precision = 15, scale = 2)
-    private BigDecimal accruedInterest = BigDecimal.ZERO; // lãi phats sinh
+    private BigDecimal accruedInterest = BigDecimal.ZERO;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private DebtType debtType;
+
     @Column(nullable = false)
     private boolean deleted = false;
+
+
+    private LocalDateTime paidOffAt;
+
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
+
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+
     @PrePersist
     protected void onCreate() {
-        this.createdAt = LocalDateTime.now();
-        this.updatedAt = LocalDateTime.now();
+
+        LocalDateTime now = LocalDateTime.now();
+
+        this.createdAt = now;
+        this.updatedAt = now;
+        if (remainingPrincipal == null) {
+            remainingPrincipal = totalPrincipal;
+        }
+
+        if (accruedInterest == null) {
+            accruedInterest = BigDecimal.ZERO;
+        }
+        if (lastInterestAccruedDate == null) {
+            lastInterestAccruedDate = startDate;
+        }
+
     }
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
-
-    @Transient //Ko lưu field này vô db
+    @Transient//ko lưu vô db
     public BigDecimal getTotalOutstanding() {
-        return remainingPrincipal.add(accruedInterest);
-    }
+        BigDecimal principal =
+                remainingPrincipal == null ? BigDecimal.ZERO : remainingPrincipal;
+        BigDecimal interest =
+                accruedInterest == null ? BigDecimal.ZERO : accruedInterest;
+        return principal.add(interest);
 
+    }
 }

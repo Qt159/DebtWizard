@@ -1,11 +1,11 @@
-package com.tuan.debtwizard.features.analystics;
+package com.tuan.debtwizard.features.analysis;
 
 import lombok.Getter;
 
 @Getter
 public enum FinanceHealth {
-    EXCELLENT("An toàn", "Tình hình tài chính rất tốt."),
-    CAUTION("Cảnh báo", "Nợ bắt đầu cao, hãy cẩn thận chi tiêu."),
+    GOOD ("An toàn", "Tình hình tài chính rất tốt."),
+    WARNING("Cảnh báo", "Nợ bắt đầu cao, hãy cẩn thận chi tiêu."),
     CRITICAL("Nguy hiểm", "BÁO ĐỘNG! Nợ quá lớn so với thu nhập.");
 
     private final String label;

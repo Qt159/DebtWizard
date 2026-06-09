@@ -25,6 +25,8 @@ public class DebtResponse {
 
     private Integer termMonths;
     private LocalDate startDate;
+    private LocalDate nextDueDate;
+    private LocalDate lastPaymentDate;
     private Integer dueDay;
     private DebtStatus status;
     private DebtType debtType;

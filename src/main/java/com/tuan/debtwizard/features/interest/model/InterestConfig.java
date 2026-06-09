@@ -5,11 +5,15 @@ import com.tuan.debtwizard.features.payment.model.PaymentAllocationStrategy;
 import com.tuan.debtwizard.features.payment.model.PaymentApplicationRule;
 import jakarta.persistence.*;
 import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "interest_configs")
 @Data
+
 public class InterestConfig {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -44,4 +48,6 @@ public class InterestConfig {
     private BigDecimal overdueInterestRate;
     @Column(precision = 8, scale = 2)
     private BigDecimal lateFee;
+
+
 }
