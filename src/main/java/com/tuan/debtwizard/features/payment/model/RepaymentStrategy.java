@@ -1,6 +1,6 @@
 package com.tuan.debtwizard.features.payment.model;
 
-public enum PaymentAllocationStrategy {
+public enum RepaymentStrategy {
     SNOWBALL,
     AVALANCHE
 }

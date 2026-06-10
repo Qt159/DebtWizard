@@ -1,4 +1,4 @@
-package com.tuan.debtwizard.features.interest;
+package com.tuan.debtwizard.features.interest.repository;
 
 import com.tuan.debtwizard.features.interest.model.InterestConfig;
 import org.springframework.data.jpa.repository.JpaRepository;

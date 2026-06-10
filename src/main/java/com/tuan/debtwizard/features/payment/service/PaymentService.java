@@ -58,9 +58,7 @@ public class PaymentService {
     public PaymentResponse createPayment(
             PaymentRequest request,
             UserDetails userDetails) {
-
         User user = getUserByUsername(userDetails.getUsername());
-
         Debt debt = debtRepository
                 .findByIdAndUserIdAndDeletedFalse(request.getDebtId(), user.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.DEBT_NOT_FOUND));
