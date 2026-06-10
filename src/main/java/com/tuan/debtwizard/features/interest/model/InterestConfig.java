@@ -1,12 +1,9 @@
 package com.tuan.debtwizard.features.interest.model;
 
 import com.tuan.debtwizard.features.debt.model.Debt;
-import com.tuan.debtwizard.features.payment.model.PaymentAllocationStrategy;
 import com.tuan.debtwizard.features.payment.model.PaymentApplicationRule;
 import jakarta.persistence.*;
 import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.math.BigDecimal;
 

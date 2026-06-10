@@ -3,10 +3,9 @@ package com.tuan.debtwizard.features.payment.mapper;
 import com.tuan.debtwizard.features.debt.dto.DebtRecommendationItem;
 import com.tuan.debtwizard.features.debt.dto.DebtRecommendationResponse;
 import com.tuan.debtwizard.features.debt.model.Debt;
-import com.tuan.debtwizard.features.payment.model.PaymentAllocationStrategy;
+import com.tuan.debtwizard.features.payment.model.RepaymentStrategy;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
 import java.util.List;
 
 @Component
@@ -20,8 +19,8 @@ public class DebtRecommendationMapper {
         debtRecommendationItem.setInterestRate(debt.getInterestConfig().getInterestRate());
         return debtRecommendationItem;
     }
-    public DebtRecommendationResponse toResponse(PaymentAllocationStrategy paymentAllocationStrategy,
+    public DebtRecommendationResponse toResponse(RepaymentStrategy repaymentStrategy,
                                                  List<DebtRecommendationItem> debtRecommendationItems) {
-        return new DebtRecommendationResponse(paymentAllocationStrategy, debtRecommendationItems);
+        return new DebtRecommendationResponse(repaymentStrategy, debtRecommendationItems);
     }
 }
