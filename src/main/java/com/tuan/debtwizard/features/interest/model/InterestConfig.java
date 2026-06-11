@@ -1,7 +1,7 @@
 package com.tuan.debtwizard.features.interest.model;
 
 import com.tuan.debtwizard.features.debt.model.Debt;
-import com.tuan.debtwizard.features.payment.model.PaymentApplicationRule;
+import com.tuan.debtwizard.features.payment.model.PaymentAllocationRule;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -30,7 +30,7 @@ public class InterestConfig {
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
-    private PaymentApplicationRule paymentApplicationRule;
+    private PaymentAllocationRule paymentAllocationRule;
 
     @Column(nullable = false, precision = 8, scale = 2)
     private BigDecimal interestRate;
