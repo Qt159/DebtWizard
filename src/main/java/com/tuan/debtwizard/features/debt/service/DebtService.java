@@ -50,6 +50,7 @@ public class DebtService {
     }
 
     // CREATE
+    @Transactional
     public DebtResponse createDebt(CreateDebtRequest createDebtRequest,
                                    UserDetails userDetails) {
         User currentUser = findUserOrThrow(userDetails);

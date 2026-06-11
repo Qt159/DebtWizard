@@ -46,10 +46,8 @@ public class AnalysisService {
                 .multiply(BigDecimal.valueOf(100))
                 .doubleValue();
 
-        FinanceHealth health;
-        if (ratio <= 30) health = FinanceHealth.GOOD;
-        else if (ratio <= 50) health = FinanceHealth.WARNING;
-        else health = FinanceHealth.CRITICAL;
+        FinanceHealth health = FinanceClassifier.byRatio(ratio, 30, 50);
         return new DtiResponse(income, monthlyPayment, ratio,health,  health.getDefaultAdvice());
     }
+
 }

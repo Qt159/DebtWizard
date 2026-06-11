@@ -1,6 +1,6 @@
-package com.tuan.debtwizard.features.debt.dto;
+package com.tuan.debtwizard.features.recommendation.dto;
 
-import com.tuan.debtwizard.features.payment.model.RepaymentStrategy;
+import com.tuan.debtwizard.features.recommendation.model.RepaymentStrategy;
 import lombok.Getter;
 import lombok.Setter;
 import java.util.List;

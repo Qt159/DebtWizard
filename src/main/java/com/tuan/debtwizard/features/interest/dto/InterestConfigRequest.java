@@ -2,7 +2,7 @@ package com.tuan.debtwizard.features.interest.dto;
 
 import com.tuan.debtwizard.features.interest.model.InterestCalculationMethod;
 import com.tuan.debtwizard.features.interest.model.InterestRatePeriod;
-import com.tuan.debtwizard.features.payment.model.PaymentApplicationRule;
+import com.tuan.debtwizard.features.payment.model.PaymentAllocationRule;
 import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,7 +24,7 @@ public class InterestConfigRequest {
     private BigDecimal interestRate;
 
     @NotNull
-    private PaymentApplicationRule paymentApplicationRule;
+    private PaymentAllocationRule paymentAllocationRule;
 
     @PositiveOrZero
     @Max(365)
