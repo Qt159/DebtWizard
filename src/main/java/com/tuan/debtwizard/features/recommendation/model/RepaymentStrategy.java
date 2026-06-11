@@ -1,4 +1,4 @@
-package com.tuan.debtwizard.features.payment.model;
+package com.tuan.debtwizard.features.recommendation.model;
 
 public enum RepaymentStrategy {
     SNOWBALL,

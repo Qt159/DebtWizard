@@ -1,6 +1,6 @@
-package com.tuan.debtwizard.features.interest.model;
+    package com.tuan.debtwizard.features.interest.model;
 
-public enum InterestCalculationMethod {
-    FLAT,
-    REDUCING_BALANCE
-}
+    public enum InterestCalculationMethod {
+        FLAT,
+        REDUCING_BALANCE
+    }

@@ -1,18 +1,16 @@
-package com.tuan.debtwizard.features.payment.service;
+package com.tuan.debtwizard.features.recommendation.service;
 
 import com.tuan.debtwizard.exception.AppException;
 import com.tuan.debtwizard.exception.ErrorCode;
 import com.tuan.debtwizard.features.auth.model.User;
 import com.tuan.debtwizard.features.auth.repository.UserRepository;
-import com.tuan.debtwizard.features.debt.dto.DebtRecommendationItem;
-import com.tuan.debtwizard.features.debt.dto.DebtRecommendationResponse;
 import com.tuan.debtwizard.features.debt.model.Debt;
 import com.tuan.debtwizard.features.debt.model.DebtStatus;
 import com.tuan.debtwizard.features.debt.repository.DebtRepository;
-import com.tuan.debtwizard.features.payment.mapper.DebtRecommendationMapper;
-import com.tuan.debtwizard.features.payment.model.RepaymentStrategy;
-import com.tuan.debtwizard.features.payment.sorting.RepaymentSortingStrategy;
-import com.tuan.debtwizard.features.payment.sorting.RepaymentSortingStrategyFactory;
+import com.tuan.debtwizard.features.recommendation.model.RepaymentStrategy;
+import com.tuan.debtwizard.features.recommendation.dto.DebtRecommendationItem;
+import com.tuan.debtwizard.features.recommendation.dto.DebtRecommendationResponse;
+import com.tuan.debtwizard.features.recommendation.mapper.DebtRecommendationMapper;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -54,7 +52,7 @@ public class DebtRecommendationService {
         List<DebtRecommendationItem> items = new ArrayList<>();
         int priority = 1;
         for (Debt debt : sortedDebts) {
-            items.add(debtRecommendationMapper.toItem(debt, priority));
+            items.add(debtRecommendationMapper.toItem(debt, priority, repaymentStrategy));
             priority++;
         }
         return new DebtRecommendationResponse(repaymentStrategy, items);

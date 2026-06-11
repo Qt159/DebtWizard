@@ -1,7 +1,5 @@
-package com.tuan.debtwizard.features.debt.dto;
+package com.tuan.debtwizard.features.recommendation.dto;
 
-import com.tuan.debtwizard.features.debt.model.DebtStatus;
-import com.tuan.debtwizard.features.debt.model.DebtType;
 import lombok.Getter;
 import lombok.Setter;
 

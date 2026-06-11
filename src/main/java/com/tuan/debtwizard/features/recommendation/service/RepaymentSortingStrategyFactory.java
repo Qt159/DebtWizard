@@ -1,8 +1,8 @@
-package com.tuan.debtwizard.features.payment.sorting;
+package com.tuan.debtwizard.features.recommendation.service;
 
 import com.tuan.debtwizard.exception.AppException;
 import com.tuan.debtwizard.exception.ErrorCode;
-import com.tuan.debtwizard.features.payment.model.RepaymentStrategy;
+import com.tuan.debtwizard.features.recommendation.model.RepaymentStrategy;
 import org.springframework.stereotype.Service;
 
 @Service

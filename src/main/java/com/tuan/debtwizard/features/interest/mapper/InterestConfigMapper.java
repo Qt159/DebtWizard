@@ -13,7 +13,7 @@ public class InterestConfigMapper {
         ic.setInterestRate(request.getInterestRate());
         ic.setInterestCalculationMethod(request.getInterestCalculationMethod());
         ic.setInterestRatePeriod(request.getInterestRatePeriod());
-        ic.setPaymentApplicationRule(request.getPaymentApplicationRule());
+        ic.setPaymentAllocationRule(request.getPaymentAllocationRule());
         ic.setGracePeriodDays(request.getGracePeriodDays());
         ic.setLateFee(request.getLateFee());
         return ic;
