@@ -1,10 +1,11 @@
-package com.tuan.debtwizard.features.payment.service;
+package com.tuan.debtwizard.features.payment.sorting;
 
 import com.tuan.debtwizard.features.debt.model.Debt;
+import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
 import java.util.List;
-
+@Service
 public class ApplyAvalanche implements RepaymentSortingStrategy {
     @Override
     public List<Debt> sort(List<Debt> debts) {
