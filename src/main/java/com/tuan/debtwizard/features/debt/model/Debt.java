@@ -1,7 +1,6 @@
 package com.tuan.debtwizard.features.debt.model;
 
-import com.tuan.debtwizard.features.auth.model.User;
-import com.tuan.debtwizard.features.debt.service.DebtStateService;
+import com.tuan.debtwizard.features.user.model.User;
 import com.tuan.debtwizard.features.interest.model.InterestConfig;
 import com.tuan.debtwizard.features.payment.model.Payment;
 import jakarta.persistence.*;

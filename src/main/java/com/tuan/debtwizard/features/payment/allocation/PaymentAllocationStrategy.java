@@ -6,5 +6,7 @@ import com.tuan.debtwizard.features.payment.dto.PaymentAllocationResult;
 import java.math.BigDecimal;
 
 public interface PaymentAllocationStrategy {
-    PaymentAllocationResult allocate(Debt debt, BigDecimal amount);
+    PaymentAllocationResult allocate( BigDecimal principal,
+                                      BigDecimal interest,
+                                      BigDecimal amount);
 }

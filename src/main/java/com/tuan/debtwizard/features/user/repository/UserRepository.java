@@ -1,6 +1,6 @@
-package com.tuan.debtwizard.features.auth.repository;
+package com.tuan.debtwizard.features.user.repository;
 
-import com.tuan.debtwizard.features.auth.model.User;
+import com.tuan.debtwizard.features.user.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import java.util.Optional;

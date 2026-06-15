@@ -27,6 +27,7 @@ public class DebtScheduler {
         this.interestAccrualService = interestAccrualService;
     }
 
+
     @Transactional
     @Scheduled(cron = "0 0 0 * * *")
     public void refreshDebts() {

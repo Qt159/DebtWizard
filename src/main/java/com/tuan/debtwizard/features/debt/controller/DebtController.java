@@ -1,5 +1,6 @@
 package com.tuan.debtwizard.features.debt.controller;
 
+import com.tuan.debtwizard.dto.ApiResponse;
 import com.tuan.debtwizard.features.debt.dto.CreateDebtRequest;
 import com.tuan.debtwizard.features.debt.dto.DebtListItemResponse;
 import com.tuan.debtwizard.features.debt.dto.DebtResponse;
@@ -30,47 +31,45 @@ public class DebtController {
         this.paymentService = paymentService;
     }
     @PostMapping
-    public DebtResponse createDebt(@Valid @RequestBody CreateDebtRequest createDebtRequest,
-                                   @AuthenticationPrincipal UserDetails userDetails) {
-
-        return debtService.createDebt(createDebtRequest, userDetails);
+    public ApiResponse<DebtResponse> createDebt(@Valid @RequestBody CreateDebtRequest createDebtRequest,
+                                                @AuthenticationPrincipal UserDetails userDetails) {
+        return ApiResponse.success(debtService.createDebt(createDebtRequest, userDetails));
     }
     @GetMapping
-    public List<DebtListItemResponse> getListDebts(
+    public ApiResponse<List<DebtListItemResponse>> getListDebts(
             @RequestParam(required = false) DebtStatus debtStatus,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
-
-        return debtService.getDebts(userDetails, debtStatus);
+        return ApiResponse.success(debtService.getDebts(userDetails, debtStatus));
     }
     @GetMapping("/{id}")
-    public DebtResponse getDebtById(
+    public ApiResponse<DebtResponse> getDebtById(
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetails userDetails
     ) {
 
-        return debtService.getDebtById(id,userDetails);
+        return ApiResponse.success(debtService.getDebtById(id, userDetails));
     }
     @PutMapping("/{id}")
-    public DebtResponse updateDebt(
+    public ApiResponse<DebtResponse> updateDebt(
             @PathVariable Long id,
             @Valid @RequestBody DebtRequest debtRequest,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        return debtService.updateDebt(id, debtRequest, userDetails);
+        return ApiResponse.success(debtService.updateDebt(id, debtRequest, userDetails));
     }
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteDebt(
+    public ApiResponse<Void> deleteDebt(
             @PathVariable Long id,
             @AuthenticationPrincipal UserDetails userDetails){
             debtService.deleteDebt(id, userDetails);
-            return ResponseEntity.noContent().build();
+            return ApiResponse.success();
     }
     @GetMapping("/{debtId}/payments")
-    public List<PaymentListItem> getPayments(
+    public ApiResponse<List<PaymentListItem>> getPayments(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long debtId
     ){
-        return paymentService.getPayments(userDetails, debtId);
+        return ApiResponse.success(paymentService.getPayments(userDetails, debtId));
     }
 }

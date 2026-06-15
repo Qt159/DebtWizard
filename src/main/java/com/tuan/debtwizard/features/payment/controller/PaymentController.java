@@ -1,6 +1,7 @@
 package com.tuan.debtwizard.features.payment.controller;
 
 
+import com.tuan.debtwizard.dto.ApiResponse;
 import com.tuan.debtwizard.features.payment.service.PaymentService;
 import com.tuan.debtwizard.features.payment.dto.PaymentListItem;
 import com.tuan.debtwizard.features.payment.dto.PaymentRequest;
@@ -20,16 +21,16 @@ public class PaymentController {
         this.paymentService = paymentService;
     }
     @PostMapping
-    public PaymentResponse createPayment(
+    public ApiResponse<PaymentResponse> createPayment(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody PaymentRequest paymentRequest) {
-        return  paymentService.createPayment(paymentRequest, userDetails);
+        return ApiResponse.success(paymentService.createPayment(paymentRequest, userDetails));
     }
     @GetMapping("/{id}")
-    public PaymentResponse getPayment(
+    public ApiResponse<PaymentResponse> getPayment(
             @AuthenticationPrincipal UserDetails userDetails,
             @PathVariable Long id){
-        return paymentService.getPayment(userDetails,id);
+        return ApiResponse.success(paymentService.getPayment(userDetails, id));
     }
 
 }

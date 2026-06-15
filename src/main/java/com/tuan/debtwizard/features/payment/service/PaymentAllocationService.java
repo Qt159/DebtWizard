@@ -28,12 +28,11 @@ public class PaymentAllocationService {
             throw new AppException(ErrorCode.INVALID_PAYMENT_RULE);
         }
         PaymentAllocationStrategy strategy = factory.get(rule);
-        PaymentAllocationResult result = strategy.allocate(debt, amount);
+        PaymentAllocationResult result = strategy.allocate(debt.getRemainingPrincipal(), debt.getAccruedInterest(), amount);
 
-        if (debt.getRemainingPrincipal().compareTo(BigDecimal.ZERO) == 0
-                && debt.getAccruedInterest().compareTo(BigDecimal.ZERO) == 0) {
-            debt.setStatus(DebtStatus.PAID_OFF);
-        }
+        // Cập nhật lại trong db
+        debt.setRemainingPrincipal(result.getRemainingPrincipal());
+        debt.setAccruedInterest(result.getRemainingInterest());
 
         return result;
     }

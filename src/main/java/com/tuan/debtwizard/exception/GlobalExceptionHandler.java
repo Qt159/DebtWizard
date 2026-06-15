@@ -1,6 +1,6 @@
 package com.tuan.debtwizard.exception;
 
-import com.tuan.debtwizard.dto.ErrorResponse;
+import com.tuan.debtwizard.dto.ApiResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -16,43 +16,43 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-
-    private static final Logger logger =
-            LoggerFactory.getLogger(GlobalExceptionHandler.class);
-
-    // 1. AppException (Lỗi logic nghiệp vụ đã định nghĩa)
+    private static final Logger logger = LoggerFactory.getLogger(GlobalExceptionHandler.class);
+    // 1. Xử lý AppException
     @ExceptionHandler(AppException.class)
-    public ResponseEntity<ErrorResponse> handleAppException(AppException ex) {
+    public ResponseEntity<ApiResponse<?>> handleAppException(AppException ex) {
         ErrorCode errorCode = ex.getErrorCode();
         return ResponseEntity
                 .status(errorCode.getStatus())
-                .body(new ErrorResponse(errorCode));
+                .body(ApiResponse.builder()
+                        .message(errorCode.getMessage())
+                        .build());
     }
 
-    // 2. Login fail (Sai username/password)
+    // 2. Login thất bại
     @ExceptionHandler(BadCredentialsException.class)
-    public ResponseEntity<ErrorResponse> handleBadCredentials(BadCredentialsException ex) {
+    public ResponseEntity<ApiResponse<?>> handleBadCredentials(BadCredentialsException ex) {
         logger.warn("Authentication failed: {}", ex.getMessage());
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
-                .body(new ErrorResponse(ErrorCode.INVALID_PASSWORD));
+                .body(ApiResponse.builder()
+                        .message(ErrorCode.INVALID_CREDENTIALS.getMessage())
+                        .build());
     }
 
-    // 3. Unauthorized access (Chưa đăng nhập hoặc token không hợp lệ)
-    // FIX BUG: Bắt riêng lỗi này để không rơi vào 'Unexpected error'
+    // 3. Unauthorized access (Chưa đăng nhập hoặc token hết hạn/không hợp lệ)
     @ExceptionHandler(InsufficientAuthenticationException.class)
-    public ResponseEntity<ErrorResponse> handleInsufficientAuthentication(InsufficientAuthenticationException ex) {
+    public ResponseEntity<ApiResponse<?>> handleInsufficientAuthentication(InsufficientAuthenticationException ex) {
         logger.warn("Unauthorized access attempt: {}", ex.getMessage());
-
-        // Bạn nên thêm ErrorCode.UNAUTHENTICATED (401) vào enum ErrorCode của bạn
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
-                .body(new ErrorResponse(ErrorCode.UNAUTHENTICATED));
+                .body(ApiResponse.builder()
+                        .message(ErrorCode.UNAUTHENTICATED.getMessage())
+                        .build());
     }
 
-    // 4. Validation error (@Valid)
+    // 4. Lỗi Validation (@Valid)
     @ExceptionHandler(MethodArgumentNotValidException.class)
-    public ResponseEntity<ErrorResponse> handleValidationException(MethodArgumentNotValidException ex) {
+    public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationException(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
         ex.getBindingResult().getFieldErrors()
                 .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
@@ -61,17 +61,20 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(new ErrorResponse(ErrorCode.INVALID_INPUT, errors));
+                .body(ApiResponse.<Map<String, String>>builder()
+                        .message("Dữ liệu không hợp lệ")
+                        .result(errors)
+                        .build());
     }
 
-    // 5. Fallback (Lỗi hệ thống không xác định)
+    // 5. Lỗi hệ thống không xác định (Fallback)
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<ErrorResponse> handleException(Exception ex) {
-        // Log error chỉ dành cho những lỗi thực sự nghiêm trọng/chưa biết
+    public ResponseEntity<ApiResponse<?>> handleException(Exception ex) {
         logger.error("Unexpected error occurred: ", ex);
-
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ErrorResponse(ErrorCode.INTERNAL_SERVER_ERROR));
+                .body(ApiResponse.builder()
+                        .message(ErrorCode.INTERNAL_SERVER_ERROR.getMessage())
+                        .build());
     }
 }

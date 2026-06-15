@@ -9,6 +9,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerExceptionResolver;
 
 @Component
+//xử lý các lỗi 401 Unauthorized của Spring Security
+// chuyển chúng về GlobalExceptionHandler để trả JSON thống nhất
 public class RestAuthenticationEntryPoint implements AuthenticationEntryPoint {
 
     private final HandlerExceptionResolver resolver;

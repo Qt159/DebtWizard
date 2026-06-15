@@ -9,7 +9,10 @@ import java.time.Period;
 @Setter
 public class RepaymentTimeResponse {
     private int totalDebts;
-    private Period averageRepaymentTime;
-    private FinanceHealth financeHealth;
+    private int repaymentMonths;       // số tháng cần để trả hết
     private String recommendation;
+    public RepaymentTimeResponse(int totalDebts, int repaymentMonths) {
+        this.totalDebts = totalDebts;
+        this.repaymentMonths = repaymentMonths;
+    }
 }
