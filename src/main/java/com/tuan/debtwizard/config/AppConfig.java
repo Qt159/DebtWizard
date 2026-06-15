@@ -17,26 +17,21 @@ public class AppConfig {
 
     private final UserDetailsService customUserDetailsService;
 
-    // 1. Cấu hình Provider kết nối giữa Service và PasswordEncoder
+    // Provider chịu trách nhiệm xác thực username/password từ database
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-
         authProvider.setUserDetailsService(customUserDetailsService);
-
-        // Phải có cái này thì Spring mới biết dùng BCrypt để so sánh pass
         authProvider.setPasswordEncoder(passwordEncoder());
-
         return authProvider;
     }
 
-    // 2. Bean quản lý xác thực chính (dùng trong AuthService.login)
+    // quản lý xác thực chính
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
     }
 
-    // 3. Cơ chế mã hóa mật khẩu
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();

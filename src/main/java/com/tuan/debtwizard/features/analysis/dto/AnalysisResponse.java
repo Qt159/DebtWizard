@@ -10,4 +10,12 @@ public class AnalysisResponse {
     private InterestRatioResponse interestRatio;
     private OverdueRatioResponse overdue;
     private RepaymentTimeResponse repaymentTime;
+
+    public AnalysisResponse(DtiResponse dti, InterestRatioResponse interestRatio,
+                            OverdueRatioResponse overdueRatio, RepaymentTimeResponse repaymentTime) {
+        this.dti = dti;
+        this.interestRatio = interestRatio;
+        this.overdue = overdueRatio;
+        this.repaymentTime = repaymentTime;
+    }
 }

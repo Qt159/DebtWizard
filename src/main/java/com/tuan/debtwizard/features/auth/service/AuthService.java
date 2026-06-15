@@ -1,10 +1,9 @@
 package com.tuan.debtwizard.features.auth.service;
-import com.tuan.debtwizard.features.auth.model.User;
-import com.tuan.debtwizard.features.auth.repository.UserRepository;
-import com.tuan.debtwizard.features.auth.dto.UserResponse;
-import org.springframework.security.core.context.SecurityContextHolder;
+import com.tuan.debtwizard.features.auth.model.RefreshToken;
+import com.tuan.debtwizard.features.user.model.User;
+import com.tuan.debtwizard.features.auth.repository.RefreshTokenRepository;
+import com.tuan.debtwizard.features.user.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 
 import com.tuan.debtwizard.features.auth.dto.LoginRequest;
 import com.tuan.debtwizard.features.auth.dto.LoginResponse;
@@ -12,7 +11,6 @@ import com.tuan.debtwizard.features.auth.dto.RegisterRequest;
 import com.tuan.debtwizard.features.auth.dto.RegisterResponse;
 import com.tuan.debtwizard.exception.AppException;
 import com.tuan.debtwizard.exception.ErrorCode;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -22,6 +20,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Duration;
+import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +31,8 @@ public class AuthService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final CustomUserDetailsService userDetailsService;
+    private final JwtService jwtService;
+    private final RefreshTokenRepository refreshTokenRepository;
 
     @Transactional
     public RegisterResponse register(RegisterRequest request) {
@@ -48,9 +50,7 @@ public class AuthService {
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setMonthlyIncome(request.getMonthlyIncome() != null
-                ? request.getMonthlyIncome()
-                : BigDecimal.ZERO);
+        user.setMonthlyIncome(request.getMonthlyIncome() != null ? request.getMonthlyIncome() : BigDecimal.ZERO);
         User savedUser = userRepository.save(user);
 
         return new RegisterResponse(
@@ -60,103 +60,49 @@ public class AuthService {
         );
     }
 
-    public LoginResponse login(
-            LoginRequest request,
-            HttpServletRequest httpRequest
-    ) {
-        try {
-            Authentication authentication =
-                    authenticationManager.authenticate(
+    public LoginResponse login(LoginRequest request) {
+            Authentication authentication = authenticationManager.authenticate(
                             new UsernamePasswordAuthenticationToken(
                                     request.getUsername(),
-                                    request.getPassword()
-                            )
-                    );
-            saveAuthentication(authentication, httpRequest);
-            User user = userRepository.findByUsername(
-                    request.getUsername()
-            ).orElseThrow(() ->
-                    new AppException(ErrorCode.USER_NOT_FOUND)
-            );
-
-            return new LoginResponse(
-                    user.getId(),
-                    user.getUsername(),
-                    user.getFullName(),
-                    user.getEmail());
-
-        } catch (org.springframework.security.core.AuthenticationException e) {
-            throw new AppException(ErrorCode.INVALID_CREDENTIALS);
-        }
+                                    request.getPassword()));
+            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
+            User user = userRepository.findByUsername(userDetails.getUsername())
+                    .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+            // xóa cais cũ của user nếu có để tránh rác
+            refreshTokenRepository.deleteByUser(user);
+            String accessToken = jwtService.generateAccessToken(userDetails);
+            String refreshToken = jwtService.generateRefreshToken(userDetails);
+            RefreshToken rt = new RefreshToken();
+            rt.setToken(refreshToken);
+            rt.setUser(user);
+            rt.setExpiryDate(Instant.now().plus(Duration.ofDays(7)));
+            refreshTokenRepository.save(rt);
+            return new LoginResponse(accessToken, refreshToken);
     }
-
     @Transactional
-    public void processGoogleLogin(
-            OAuth2User oAuth2User,
-            HttpServletRequest request
-    ) {
+    public LoginResponse refresh(String refreshToken) {
+        RefreshToken tokenEntity = refreshTokenRepository.findByToken(refreshToken)
+                .orElseThrow(() -> new AppException(ErrorCode.INVALID_TOKEN));
 
-        String email = oAuth2User.getAttribute("email");
-        String name = oAuth2User.getAttribute("name");
-
-        if (email == null) {
-            throw new AppException(ErrorCode.INVALID_OAUTH2_USER);
+        // check token đã hết hạn chưa
+        if (tokenEntity.getExpiryDate().isBefore(Instant.now())) {
+            refreshTokenRepository.delete(tokenEntity);
+            throw new AppException(ErrorCode.TOKEN_EXPIRED);
         }
-        User user = userRepository.findByEmail(email)
-                .orElseGet(() -> {
-                    User newUser = new User();
-                    newUser.setUsername(email);
-                    newUser.setEmail(email);
-                    newUser.setFullName(name);
 
-                    newUser.setPassword(
-                            passwordEncoder.encode("google_default_pass")
-                    );
-                    newUser.setMonthlyIncome(BigDecimal.ZERO);
-                    return userRepository.save(newUser);
-                });
-
-        UserDetails userDetails =
-                userDetailsService.loadUserByUsername(
-                        user.getUsername()
-                );
-
-        Authentication authentication =
-                new UsernamePasswordAuthenticationToken(
-                        userDetails,
-                        null,
-                        userDetails.getAuthorities()
-                );
-
-        saveAuthentication(authentication, request);
+        // Tạo cặp token mới
+        User user = tokenEntity.getUser();
+        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
+        String newAccessToken = jwtService.generateAccessToken(userDetails);
+        String newRefreshToken = jwtService.generateRefreshToken(userDetails);
+        //  Xóa cái cũ, lưu cái mới
+        refreshTokenRepository.delete(tokenEntity);
+        RefreshToken newRt = new RefreshToken();
+        newRt.setToken(newRefreshToken);
+        newRt.setUser(user);
+        newRt.setExpiryDate(Instant.now().plus(Duration.ofDays(7)));
+        refreshTokenRepository.save(newRt);
+        return new LoginResponse(newAccessToken, newRefreshToken);
     }
 
-    private void saveAuthentication(
-            Authentication authentication,
-            HttpServletRequest request
-    ) {
-
-        SecurityContextHolder.getContext()
-                .setAuthentication(authentication);
-
-        request.getSession(true)
-                .setAttribute(
-                        "SPRING_SECURITY_CONTEXT",
-                        SecurityContextHolder.getContext()
-                );
-    }
-    public UserResponse getCurrentUser(UserDetails userDetails){
-        if (userDetails == null) {
-            throw new AppException(ErrorCode.UNAUTHORIZED);
-        }
-        String userName = userDetails.getUsername();
-        User user = userRepository.findByUsername(userName)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        return new UserResponse(
-                user.getId(),
-                user.getUsername(),
-                user.getFullName(),
-                user.getEmail(),
-                user.getMonthlyIncome());
-    }
 }

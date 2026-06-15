@@ -2,8 +2,8 @@ package com.tuan.debtwizard.features.payment.service;
 
 import com.tuan.debtwizard.exception.AppException;
 import com.tuan.debtwizard.exception.ErrorCode;
-import com.tuan.debtwizard.features.auth.model.User;
-import com.tuan.debtwizard.features.auth.repository.UserRepository;
+import com.tuan.debtwizard.features.user.model.User;
+import com.tuan.debtwizard.features.user.repository.UserRepository;
 import com.tuan.debtwizard.features.debt.model.Debt;
 import com.tuan.debtwizard.features.debt.model.DebtStatus;
 import com.tuan.debtwizard.features.debt.repository.DebtRepository;

@@ -1,4 +1,4 @@
-package com.tuan.debtwizard.features.auth.dto;
+package com.tuan.debtwizard.features.user.dto;
 
 import lombok.Getter;
 import lombok.Setter;

@@ -1,5 +1,6 @@
 package com.tuan.debtwizard.features.summary.controller;
 
+import com.tuan.debtwizard.dto.ApiResponse;
 import com.tuan.debtwizard.features.summary.dto.SummaryResponse;
 import com.tuan.debtwizard.features.summary.service.SummaryService;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -17,7 +18,7 @@ public class SummaryController {
         this.summaryService = summaryService;
     }
     @GetMapping("/overview")
-    public SummaryResponse getOverviewSummary(@AuthenticationPrincipal UserDetails userDetails) {
-        return summaryService.getSummary(userDetails);
+    public ApiResponse<SummaryResponse> getOverviewSummary(@AuthenticationPrincipal UserDetails userDetails) {
+        return ApiResponse.success(summaryService.getSummary(userDetails));
     }
 }

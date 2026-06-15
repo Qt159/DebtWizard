@@ -1,4 +1,4 @@
-package com.tuan.debtwizard.features.auth.model;
+package com.tuan.debtwizard.features.user.model;
 
 import com.tuan.debtwizard.features.debt.model.Debt;
 import jakarta.persistence.*;

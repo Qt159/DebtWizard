@@ -1,6 +1,6 @@
 package com.tuan.debtwizard.features.auth.service;
 
-import com.tuan.debtwizard.features.auth.repository.UserRepository;
+import com.tuan.debtwizard.features.user.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.*;
 import org.springframework.stereotype.Service;

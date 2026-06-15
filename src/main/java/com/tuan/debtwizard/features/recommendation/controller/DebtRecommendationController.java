@@ -1,5 +1,6 @@
 package com.tuan.debtwizard.features.recommendation.controller;
 
+import com.tuan.debtwizard.dto.ApiResponse;
 import com.tuan.debtwizard.features.recommendation.dto.DebtRecommendationResponse;
 import com.tuan.debtwizard.features.recommendation.model.RepaymentStrategy;
 import com.tuan.debtwizard.features.recommendation.service.DebtRecommendationService;
@@ -19,10 +20,10 @@ public class DebtRecommendationController {
         this.recommendationService = recommendationService;
     }
     @GetMapping
-    public DebtRecommendationResponse getRecommendations(
+    public ApiResponse<DebtRecommendationResponse> getRecommendations(
             @AuthenticationPrincipal UserDetails userDetails,
             @RequestParam(defaultValue = "SNOWBALL") RepaymentStrategy strategy) {
-        return recommendationService.recommendDebts(userDetails, strategy);
+        return ApiResponse.success(recommendationService.recommendDebts(userDetails, strategy));
     }
 
 }

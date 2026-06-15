@@ -12,4 +12,13 @@ public class OverdueRatioResponse {
     private double overdueRatio;
     private FinanceHealth financeHealth;
     private String recommendation;
+
+    public OverdueRatioResponse(int totalActiveDebts, int overdueDebts, double ratio,
+                                FinanceHealth health, String defaultAdvice) {
+        this.totalActiveDebts = totalActiveDebts;
+        this.overdueDebts = overdueDebts;
+        this.overdueRatio = ratio;
+        this.financeHealth = health;
+        this.recommendation = defaultAdvice;
+    }
 }
