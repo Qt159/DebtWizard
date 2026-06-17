@@ -25,22 +25,26 @@ public class AnalysisService {
         this.userRepo = userRepo;
         this.debtRepository = debtRepository;
     }
-    public AnalysisResponse calculateAllAnalysis(Long userId){
-        DtiResponse dti = calculateCurrentDti(userId);
-        InterestRatioResponse interestRatio = calculateInterestRatio(userId);
-        OverdueRatioResponse overdueRatio = calculateOverdueRatio(userId);
-        RepaymentTimeResponse repaymentTime = calculateRepaymentTime(userId);
+    public AnalysisResponse calculateAllAnalysis(String username){
+        User user = userRepo.findByUsername(username)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+
+        DtiResponse dti = calculateCurrentDti(user);
+        InterestRatioResponse interestRatio = calculateInterestRatio(user);
+        OverdueRatioResponse overdueRatio = calculateOverdueRatio(user);
+        RepaymentTimeResponse repaymentTime = calculateRepaymentTime(user);
         return new AnalysisResponse(dti, interestRatio, overdueRatio, repaymentTime);
     }
     //monthlyPayment / income
-    private DtiResponse calculateCurrentDti(Long userId) {
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    private DtiResponse calculateCurrentDti(User user) {
+        Long userId = user.getId();
         BigDecimal income = user.getMonthlyIncome();
         if (income == null || income.compareTo(BigDecimal.ZERO) <= 0) {
             return new DtiResponse(BigDecimal.ZERO,
-                    BigDecimal.ZERO, 0.0,
-                    FinanceHealth.CRITICAL, "Vui lòng cập nhật thu nhập để tính toán DTI");
+                    BigDecimal.ZERO,
+                    0.0,
+                    FinanceHealth.CRITICAL,
+                    "Vui lòng cập nhật thu nhập để tính toán DTI");
         }
         BigDecimal monthlyPayment = debtRepository.getTotalActiveExpectedMonthlyPayment(userId);
         if (monthlyPayment == null) monthlyPayment = BigDecimal.ZERO;
@@ -53,17 +57,25 @@ public class AnalysisService {
     }
     // ratio = income / totalInterest
     // thu nhập hơn tiền lãi bao nhiêu lần -> đánh giá xem có đủ chi trả
-    private InterestRatioResponse calculateInterestRatio(Long userId){
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    private InterestRatioResponse calculateInterestRatio(User user){
+        Long userId = user.getId();
+        BigDecimal income = user.getMonthlyIncome();
         BigDecimal totalInterest = debtRepository.getTotalAccruedInterest(userId);
         BigDecimal totalPrincipal = debtRepository.getTotalDebt(userId);
-        BigDecimal income = user.getMonthlyIncome();
 
         if (income == null || income.compareTo(BigDecimal.ZERO) <= 0) {
             return new InterestRatioResponse(BigDecimal.ZERO,
                     BigDecimal.ZERO, 0.0,
                     FinanceHealth.CRITICAL, "Vui lòng cập nhật thu nhập để tính toán !");
+        }
+        if (totalInterest == null || totalInterest.compareTo(BigDecimal.ZERO) <= 0) {
+            return new InterestRatioResponse(
+                    totalPrincipal == null ? BigDecimal.ZERO : totalPrincipal,
+                    BigDecimal.ZERO,
+                    0.0,
+                    FinanceHealth.GOOD,
+                    "Không có tiền lãi phải trả"
+            );
         }
         double ratio =income.divide(totalInterest, 4, RoundingMode.HALF_UP)
                 .doubleValue();
@@ -71,28 +83,46 @@ public class AnalysisService {
         return new InterestRatioResponse(totalPrincipal, totalInterest, ratio, health, health.getDefaultAdvice());
     }
     // overdueDebts/ totalActiveDebt
-    private OverdueRatioResponse calculateOverdueRatio(Long userId){
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
-        int totalActiveDebts = debtRepository.countDebtByStatus(userId, DebtStatus.ACTIVE);
-        int overdueDebts = debtRepository.countDebtByStatus(userId, DebtStatus.OVERDUE);
+    private OverdueRatioResponse calculateOverdueRatio(User user){
+        int totalActiveDebts = debtRepository.countDebtByStatus(user.getId(), DebtStatus.ACTIVE);
+        int overdueDebts = debtRepository.countDebtByStatus(user.getId(), DebtStatus.OVERDUE);
+        if (totalActiveDebts == 0) {
+            return new OverdueRatioResponse(
+                    0,
+                    0,
+                    0.0,
+                    FinanceHealth.GOOD,
+                    "Không có khoản nợ đang hoạt động"
+            );
+        }
         double ratio = (double) overdueDebts / totalActiveDebts;
         FinanceHealth health = FinanceClassifier.byRatio(ratio, 0.3, 0.5, false);
         return new OverdueRatioResponse(totalActiveDebts, overdueDebts, ratio, health, health.getDefaultAdvice());
     }
-    private RepaymentTimeResponse calculateRepaymentTime(Long userId){
-        User user = userRepo.findById(userId)
-                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+    private RepaymentTimeResponse calculateRepaymentTime(User user) {
+        Long userId = user.getId();
+        int activeDebtCount = debtRepository.countDebtByStatus(userId, DebtStatus.ACTIVE);
+
+        if (activeDebtCount == 0) {
+            return new RepaymentTimeResponse(0, 0);}
         BigDecimal totalRemaining = debtRepository.getTotalRemainingDebt(userId);
-        BigDecimal monthlyExpectPayment = debtRepository.getTotalActiveExpectedMonthlyPayment(userId);
-        int repaymentMonths = 0;
-        if (totalRemaining != null && monthlyExpectPayment != null) {
-            repaymentMonths = totalRemaining.divide(monthlyExpectPayment, 0, RoundingMode.CEILING).intValue();
+        if (totalRemaining == null) {
+            totalRemaining = BigDecimal.ZERO;}
+
+        if (totalRemaining.compareTo(BigDecimal.ZERO) <= 0) {
+            return new RepaymentTimeResponse(activeDebtCount, 0);}
+
+        BigDecimal monthlyPayment = debtRepository.getTotalActiveExpectedMonthlyPayment(userId);
+        if (monthlyPayment == null
+                || monthlyPayment.compareTo(BigDecimal.ZERO) <= 0) {
+            // không có khoản thanh toán hàng tháng
+            return new RepaymentTimeResponse(activeDebtCount, -1);
         }
-        // làm tròn lên
-        return new RepaymentTimeResponse(debtRepository.countDebt(userId), repaymentMonths);
 
-
+        int estimatedMonths = totalRemaining
+                .divide(monthlyPayment, 0, RoundingMode.CEILING)
+                .intValue();
+        return new RepaymentTimeResponse(activeDebtCount, estimatedMonths);
     }
 
 

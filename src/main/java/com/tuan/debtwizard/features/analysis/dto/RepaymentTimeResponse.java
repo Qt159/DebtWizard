@@ -8,11 +8,11 @@ import java.time.Period;
 @Getter
 @Setter
 public class RepaymentTimeResponse {
-    private int totalDebts;
+    private int totalActiveDebts;
     private int repaymentMonths;       // số tháng cần để trả hết
     private String recommendation;
-    public RepaymentTimeResponse(int totalDebts, int repaymentMonths) {
-        this.totalDebts = totalDebts;
+    public RepaymentTimeResponse(int totalActiveDebts, int repaymentMonths) {
+        this.totalActiveDebts = totalActiveDebts;
         this.repaymentMonths = repaymentMonths;
     }
 }
