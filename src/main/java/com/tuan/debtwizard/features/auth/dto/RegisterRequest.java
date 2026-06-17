@@ -27,7 +27,7 @@ public class RegisterRequest {
     @Email(message = "Định dạng email không hợp lệ")
     private String email;
 
-    @NotNull
-    @PositiveOrZero
-    private BigDecimal monthlyIncome = BigDecimal.ZERO;
+    @NotNull(message = "Thu nhập không được để trống")
+    @PositiveOrZero(message = "Thu nhập không được âm")
+    private BigDecimal monthlyIncome;
 }

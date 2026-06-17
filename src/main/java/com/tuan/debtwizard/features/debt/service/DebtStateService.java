@@ -30,8 +30,8 @@ public class DebtStateService {
     }
 
     //dùng khi tạo khoản nợ.
-    //Nếu tạo TRƯỚC ngày due của tháng đó -> Hạn trả là ngày due tháng đó.
-    //Nếu tạo BẰNG hoặc SAU ngày due của tháng đó -> Hạn trả dời sang ngày due tháng sau.
+    //Nếu tạo trước ngày due của tháng đó -> Hạn trả là ngày due tháng đó.
+    //Nếu tạo bằng hoặc sau ngày due của tháng đó -> Hạn trả dời sang ngày due tháng sau.
     public LocalDate calculateFirstDueDate(Debt debt) {
         LocalDate start = debt.getStartDate();
         if (start == null) {
