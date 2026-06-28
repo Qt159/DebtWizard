@@ -12,8 +12,6 @@ import com.tuan.debtwizard.features.debt.mapper.DebtMapper;
 import com.tuan.debtwizard.features.debt.model.Debt;
 import com.tuan.debtwizard.features.debt.model.DebtStatus;
 import com.tuan.debtwizard.features.debt.repository.DebtRepository;
-import com.tuan.debtwizard.features.interest.mapper.InterestConfigMapper;
-import com.tuan.debtwizard.features.interest.model.InterestConfig;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -29,18 +27,15 @@ public class DebtService {
     private final DebtRepository debtRepository;
     private final DebtMapper debtMapper;
     private final UserRepository userRepository;
-    private final InterestConfigMapper interestConfigMapper;
     private final DebtStateService debtStateService;
     public DebtService(
             DebtRepository debtRepository,
             DebtMapper debtMapper,
             UserRepository userRepository,
-            InterestConfigMapper interestConfigMapper,
             DebtStateService debtStateService) {
         this.debtRepository = debtRepository;
         this.debtMapper = debtMapper;
         this.userRepository = userRepository;
-        this.interestConfigMapper = interestConfigMapper;
         this.debtStateService = debtStateService;
     }
 
@@ -54,7 +49,9 @@ public class DebtService {
     public DebtResponse createDebt(CreateDebtRequest createDebtRequest,
                                    UserDetails userDetails) {
         User currentUser = findUserOrThrow(userDetails);
-        Debt debt = debtMapper.toEntity(createDebtRequest.getDebt());
+        Debt debt = debtMapper.toEntity(
+                createDebtRequest.getDebt(),
+                createDebtRequest.getInterestSettings());
         debt.setUser(currentUser);
         debt.setStatus(DebtStatus.ACTIVE);
         debt.setNextDueDate(debtStateService.calculateFirstDueDate(debt));
@@ -63,15 +60,7 @@ public class DebtService {
                         debt.getTotalPrincipal(),
                         debt.getTermMonths()));
 
-        InterestConfig interestConfig =
-                interestConfigMapper.toEntity(
-                        createDebtRequest.getInterestConfig(),
-                        debt);
-
-        debt.setInterestConfig(interestConfig);
-
         Debt savedDebt = debtRepository.save(debt);
-
         return debtMapper.toResponse(savedDebt);
     }
 
@@ -99,30 +88,18 @@ public class DebtService {
 
     // GET DETAIL
     @Transactional(readOnly = true)
-    public DebtResponse getDebtById(
-            Long id,
-            UserDetails userDetails) {
+    public DebtResponse getDebtById(Long id, UserDetails userDetails) {
 
         User currentUser = findUserOrThrow(userDetails);
-        Debt debt = debtRepository
-                .findByIdAndUserIdAndDeletedFalse(
-                        id,
-                        currentUser.getId())
-                .orElseThrow(() ->
-                        new AppException(ErrorCode.DEBT_NOT_FOUND));
+        Debt debt = debtRepository.findByIdAndUserIdAndDeletedFalse(id, currentUser.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.DEBT_NOT_FOUND));
         return debtMapper.toResponse(debt);
     }
 
     // UPDATE
-    public DebtResponse updateDebt(
-            Long id,
-            DebtRequest req,
-            UserDetails userDetails) {
+    public DebtResponse updateDebt(Long id, DebtRequest req, UserDetails userDetails) {
         User currentUser = findUserOrThrow(userDetails);
-        Debt debt = debtRepository
-                .findByIdAndUserIdAndDeletedFalse(
-                        id,
-                        currentUser.getId())
+        Debt debt = debtRepository.findByIdAndUserIdAndDeletedFalse(id, currentUser.getId())
                 .orElseThrow(() ->
                         new AppException(ErrorCode.DEBT_NOT_FOUND));
 
@@ -134,36 +111,24 @@ public class DebtService {
     }
 
     // DELETE
-    public void deleteDebt(
-            Long id,
-            UserDetails userDetails) {
+    public void deleteDebt(Long id, UserDetails userDetails) {
+
         User currentUser = findUserOrThrow(userDetails);
-        Debt debt = debtRepository
-                .findByIdAndUserIdAndDeletedFalse(
-                        id,
-                        currentUser.getId())
-                .orElseThrow(() ->
-                        new AppException(ErrorCode.DEBT_NOT_FOUND));
+        Debt debt = debtRepository.findByIdAndUserIdAndDeletedFalse(id, currentUser.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.DEBT_NOT_FOUND));
 
         debt.setDeleted(true);
         debtRepository.save(debt);
     }
 
-    public BigDecimal calculateExpectedMonthlyPayment(
-            BigDecimal principal,
-            Integer termMonths) {
+    public BigDecimal calculateExpectedMonthlyPayment(BigDecimal principal, Integer termMonths) {
 
         if (principal == null || principal.compareTo(BigDecimal.ZERO) <= 0) {
-            return BigDecimal.ZERO;
-        }
-        if (termMonths == null || termMonths <= 0) {
-            throw new AppException(ErrorCode.INVALID_INPUT);
-        }
+            return BigDecimal.ZERO;}
 
-        return principal.divide(
-                BigDecimal.valueOf(termMonths),
-                2,
-                RoundingMode.HALF_UP
-        );
+        if (termMonths == null || termMonths <= 0) {
+            throw new AppException(ErrorCode.INVALID_INPUT);}
+
+        return principal.divide(BigDecimal.valueOf(termMonths), 2, RoundingMode.HALF_UP);
     }
 }

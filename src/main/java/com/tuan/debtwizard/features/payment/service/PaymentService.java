@@ -8,8 +8,7 @@ import com.tuan.debtwizard.features.debt.model.Debt;
 import com.tuan.debtwizard.features.debt.model.DebtStatus;
 import com.tuan.debtwizard.features.debt.repository.DebtRepository;
 import com.tuan.debtwizard.features.debt.service.DebtStateService;
-import com.tuan.debtwizard.features.interest.service.InterestAccrualService;
-import com.tuan.debtwizard.features.payment.dto.PaymentAllocationResult;
+import com.tuan.debtwizard.features.debt.service.interest.InterestAccrualService;
 import com.tuan.debtwizard.features.payment.dto.PaymentListItem;
 import com.tuan.debtwizard.features.payment.dto.PaymentRequest;
 import com.tuan.debtwizard.features.payment.dto.PaymentResponse;
@@ -20,6 +19,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -33,7 +33,6 @@ public class PaymentService {
     private final PaymentMapper paymentMapper;
     private final UserRepository userRepository;
     private final DebtStateService debtStateService;
-    private final PaymentAllocationService paymentAllocationService;
     private final InterestAccrualService interestAccrualService;
 
     public PaymentService(
@@ -42,7 +41,6 @@ public class PaymentService {
             PaymentMapper paymentMapper,
             UserRepository userRepository,
             DebtStateService debtStateService,
-            PaymentAllocationService paymentAllocationService,
             InterestAccrualService interestAccrualService) {
 
         this.paymentRepository = paymentRepository;
@@ -50,14 +48,11 @@ public class PaymentService {
         this.paymentMapper = paymentMapper;
         this.userRepository = userRepository;
         this.debtStateService = debtStateService;
-        this.paymentAllocationService = paymentAllocationService;
         this.interestAccrualService = interestAccrualService;
     }
 
     @Transactional
-    public PaymentResponse createPayment(
-            PaymentRequest request,
-            UserDetails userDetails) {
+    public PaymentResponse createPayment(PaymentRequest request, UserDetails userDetails) {
         User user = getUserByUsername(userDetails.getUsername());
         Debt debt = debtRepository
                 .findByIdAndUserIdAndDeletedFalse(request.getDebtId(), user.getId())
@@ -69,14 +64,23 @@ public class PaymentService {
 
         validatePaymentDate(request.getPaymentDate(), debt);
 
-        // Cập nhật lãi tới hiện tại
-        interestAccrualService.accrueInterest(debt,request.getPaymentDate());
+        // Cập nhật lãi tới ngày thanh toán
+        interestAccrualService.accrueInterest(debt, request.getPaymentDate());
 
-        // Phân bổ tiền
-        PaymentAllocationResult allocation =
-                paymentAllocationService.allocate(debt, request.getAmount());
+        // interest first
+        BigDecimal amount = request.getAmount();
+        BigDecimal interest = debt.getAccruedInterest();
+        BigDecimal principal = debt.getRemainingPrincipal();
 
-        // Cập nhật thông tin khoản vay
+        BigDecimal interestPaid = amount.min(interest);
+        BigDecimal remainingAfterInterest = amount.subtract(interestPaid);
+
+        BigDecimal principalPaid = remainingAfterInterest.min(principal);
+        BigDecimal lateFeePaid = BigDecimal.ZERO; // chưa tính Latefee
+
+        // Cập nhật Debt
+        debt.setAccruedInterest(interest.subtract(interestPaid));
+        debt.setRemainingPrincipal(principal.subtract(principalPaid));
         debt.setLastPaymentDate(request.getPaymentDate());
 
         debtStateService.moveNextDueDate(debt, request.getAmount());
@@ -86,17 +90,19 @@ public class PaymentService {
             debt.setPaidOffAt(LocalDateTime.now());
         }
         debtRepository.save(debt);
-        Payment payment =
-                paymentMapper.toEntity(request, debt, allocation);
+
+        // Tạo Payment entity
+        Payment payment = paymentMapper.toEntity(request, debt);
+        payment.setInterestPaid(interestPaid);
+        payment.setPrincipalPaid(principalPaid);
+        payment.setLateFeePaid(lateFeePaid);
 
         Payment saved = paymentRepository.save(payment);
         return paymentMapper.toResponse(saved);
     }
 
     @Transactional(readOnly = true)
-    public PaymentResponse getPayment(
-            UserDetails userDetails,
-            Long id) {
+    public PaymentResponse getPayment(UserDetails userDetails, Long id) {
         User user = getUserByUsername(userDetails.getUsername());
         Payment payment = paymentRepository
                 .findByIdAndDebtUserId(id, user.getId())
@@ -106,14 +112,11 @@ public class PaymentService {
     }
 
     @Transactional(readOnly = true)
-    public List<PaymentListItem> getPayments(
-            UserDetails userDetails,
-            Long debtId) {
+    public List<PaymentListItem> getPayments(UserDetails userDetails, Long debtId) {
         User user = getUserByUsername(userDetails.getUsername());
-        debtRepository.findByIdAndUserIdAndDeletedFalse(
-                        debtId,
-                        user.getId())
+        debtRepository.findByIdAndUserIdAndDeletedFalse(debtId, user.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.DEBT_NOT_FOUND));
+
         List<Payment> payments = paymentRepository.findByDebtId(debtId);
         List<PaymentListItem> items = new ArrayList<>();
         for (Payment payment : payments) {
@@ -122,10 +125,6 @@ public class PaymentService {
         return items;
     }
     private void validatePaymentDate(LocalDate paymentDate, Debt debt) {
-        /*Không cho thanh toán ở tương lai.
-        Không cho thanh toán trước khi khoản vay tồn tại.
-        Không cho thanh toán lùi thời gian.
-         */
         if (paymentDate.isAfter(LocalDate.now())
                 || paymentDate.isBefore(debt.getStartDate())
                 || (debt.getLastPaymentDate() != null
@@ -133,6 +132,7 @@ public class PaymentService {
             throw new AppException(ErrorCode.INVALID_PAYMENT_DATE);
         }
     }
+
     private User getUserByUsername(String username) {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));

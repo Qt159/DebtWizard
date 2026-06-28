@@ -3,25 +3,32 @@ package com.tuan.debtwizard.features.debt.mapper;
 import com.tuan.debtwizard.features.debt.dto.DebtListItemResponse;
 import com.tuan.debtwizard.features.debt.dto.DebtRequest;
 import com.tuan.debtwizard.features.debt.dto.DebtResponse;
+import com.tuan.debtwizard.features.debt.dto.InterestSettingsRequest;
 import com.tuan.debtwizard.features.debt.model.Debt;
-import com.tuan.debtwizard.features.debt.model.DebtStatus;
-import com.tuan.debtwizard.features.interest.dto.InterestConfigRequest;
-import com.tuan.debtwizard.features.interest.model.InterestConfig;
+import com.tuan.debtwizard.features.debt.model.InterestSettings;
 import org.springframework.stereotype.Component;
 
 @Component
 public class DebtMapper {
 
-    public Debt toEntity(DebtRequest debtRequest) {
+    public Debt toEntity(DebtRequest debtRequest, InterestSettingsRequest interestSettingsRequest) {
         Debt debt = new Debt();
         debt.setLenderName(debtRequest.getLenderName());
         debt.setTotalPrincipal(debtRequest.getTotalPrincipal());
-        // remaining= total (mới tạo)
         debt.setRemainingPrincipal(debtRequest.getTotalPrincipal());
         debt.setDebtType(debtRequest.getDebtType());
         debt.setTermMonths(debtRequest.getTermMonths());
         debt.setStartDate(debtRequest.getStartDate());
         debt.setDueDay(debtRequest.getDueDay());
+
+        // Map InterestSettings
+        InterestSettings settings = new InterestSettings();
+        settings.setInterestCalculationMethod(interestSettingsRequest.getInterestCalculationMethod());
+        settings.setInterestFrequency(interestSettingsRequest.getInterestFrequency());
+        settings.setInterestRate(interestSettingsRequest.getInterestRate());
+        settings.setLateFee(interestSettingsRequest.getLateFee());
+
+        debt.setInterestSettings(settings);
 
         return debt;
     }
@@ -30,12 +37,10 @@ public class DebtMapper {
         DebtResponse response = new DebtResponse();
         response.setId(debt.getId());
         response.setLenderName(debt.getLenderName());
-
         response.setTotalPrincipal(debt.getTotalPrincipal());
         response.setRemainingPrincipal(debt.getRemainingPrincipal());
         response.setAccruedInterest(debt.getAccruedInterest());
         response.setTotalOutstanding(debt.getTotalOutstanding());
-
         response.setExpectedMonthlyPayment(debt.getExpectedMonthlyPayment());
         response.setTermMonths(debt.getTermMonths());
         response.setStartDate(debt.getStartDate());
@@ -45,10 +50,12 @@ public class DebtMapper {
         response.setStatus(debt.getStatus());
         response.setDebtType(debt.getDebtType());
 
-        if (debt.getInterestConfig() != null) {
-            response.setInterestRate(debt.getInterestConfig().getInterestRate());
-            response.setInterestCalculationMethod(debt.getInterestConfig().getInterestCalculationMethod());
-            response.setInterestRatePeriod(debt.getInterestConfig().getInterestRatePeriod());
+        // Map InterestSettings
+        if (debt.getInterestSettings() != null) {
+            response.setInterestRate(debt.getInterestSettings().getInterestRate());
+            response.setInterestCalculationMethod(debt.getInterestSettings().getInterestCalculationMethod());
+            response.setInterestFrequency(debt.getInterestSettings().getInterestFrequency());
+            response.setLateFee(debt.getInterestSettings().getLateFee());
         }
 
         response.setCreatedAt(debt.getCreatedAt());
@@ -66,5 +73,4 @@ public class DebtMapper {
         item.setStatus(debt.getStatus());
         return item;
     }
-
 }

@@ -2,8 +2,8 @@ package com.tuan.debtwizard.features.debt.dto;
 
 import com.tuan.debtwizard.features.debt.model.DebtStatus;
 import com.tuan.debtwizard.features.debt.model.DebtType;
-import com.tuan.debtwizard.features.interest.model.InterestCalculationMethod;
-import com.tuan.debtwizard.features.interest.model.InterestRatePeriod;
+import com.tuan.debtwizard.features.debt.model.InterestCalculationMethod;
+import com.tuan.debtwizard.features.debt.model.InterestFrequency;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -30,9 +30,14 @@ public class DebtResponse {
     private Integer dueDay;
     private DebtStatus status;
     private DebtType debtType;
+
+    // Interest settings
     private BigDecimal interestRate;
     private InterestCalculationMethod interestCalculationMethod;
-    private InterestRatePeriod interestRatePeriod;
+    private InterestFrequency interestFrequency;
+    private BigDecimal lateFee;
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+
     }

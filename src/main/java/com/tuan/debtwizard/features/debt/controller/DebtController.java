@@ -7,11 +7,9 @@ import com.tuan.debtwizard.features.debt.dto.DebtResponse;
 import com.tuan.debtwizard.features.debt.dto.DebtRequest;
 import com.tuan.debtwizard.features.debt.model.DebtStatus;
 import com.tuan.debtwizard.features.debt.service.DebtService;
-import com.tuan.debtwizard.features.interest.dto.InterestConfigRequest;
 import com.tuan.debtwizard.features.payment.dto.PaymentListItem;
 import com.tuan.debtwizard.features.payment.service.PaymentService;
 import jakarta.validation.Valid;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -36,7 +34,7 @@ public class DebtController {
         return ApiResponse.success(debtService.createDebt(createDebtRequest, userDetails));
     }
     @GetMapping
-    public ApiResponse<List<DebtListItemResponse>> getListDebts(
+    public ApiResponse<List<DebtListItemResponse>> getDebts(
             @RequestParam(required = false) DebtStatus debtStatus,
             @AuthenticationPrincipal UserDetails userDetails
     ) {

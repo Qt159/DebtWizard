@@ -11,4 +11,5 @@ public class UpdateUserRequest {
     @NotBlank(message = "Full name cannot be blank")
     private String fullName;
     private BigDecimal monthlyIncome;
+    private BigDecimal monthlyExpense;
 }

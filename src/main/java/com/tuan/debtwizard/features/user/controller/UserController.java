@@ -31,7 +31,7 @@ public class UserController {
     public ApiResponse<UserResponse> me(@AuthenticationPrincipal UserDetails userDetails) {
         return ApiResponse.success(userService.getProfile(userDetails.getUsername()));
     }
-    @PostMapping("/update")
+    @PutMapping("/me")
     public ApiResponse<UserResponse> updateProfile(
             @AuthenticationPrincipal UserDetails userDetails,
             @Valid @RequestBody UpdateUserRequest request) {

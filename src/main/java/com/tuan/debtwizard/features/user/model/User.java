@@ -41,6 +41,8 @@ public class User implements UserDetails {
     @Column(precision = 15, scale = 2)
     private BigDecimal monthlyIncome = BigDecimal.ZERO;
 
+    @Column(precision = 15, scale = 2)
+    private BigDecimal expense = BigDecimal.ZERO;
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -65,12 +67,13 @@ public class User implements UserDetails {
         this.updatedAt = LocalDateTime.now();
     }
     public User() {}
-    public User(String username, String email, String password, String fullName, BigDecimal monthlyIncome) {
+    public User(String username, String email, String password, String fullName, BigDecimal monthlyIncome, BigDecimal expense) {
         this.username = username;
         this.email = email;
         this.password = password;
         this.fullName = fullName;
         this.monthlyIncome = monthlyIncome;
+        this.expense = expense;
     }
     @Override
     public String getUsername() {

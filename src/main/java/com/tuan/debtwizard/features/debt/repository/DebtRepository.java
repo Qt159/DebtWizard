@@ -86,4 +86,6 @@ public interface DebtRepository extends JpaRepository<Debt, Long> {
     and d.status = com.tuan.debtwizard.features.debt.model.DebtStatus.ACTIVE
 """)
     BigDecimal getTotalActiveExpectedMonthlyPayment(@Param("userId") Long userId);
+
+    List<Debt> findByUserIdAndStatusInAndDeletedFalse(Long id, List<DebtStatus> active);
 }

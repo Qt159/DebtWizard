@@ -1,6 +1,5 @@
 package com.tuan.debtwizard.features.debt.dto;
 
-import com.tuan.debtwizard.features.interest.dto.InterestConfigRequest;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
@@ -13,7 +12,8 @@ public class CreateDebtRequest {
     @Valid
     @NotNull
     private DebtRequest debt;
+
     @Valid
     @NotNull
-    private InterestConfigRequest interestConfig;
+    private InterestSettingsRequest interestSettings;
 }
