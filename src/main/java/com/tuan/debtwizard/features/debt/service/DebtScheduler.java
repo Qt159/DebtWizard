@@ -3,7 +3,7 @@ package com.tuan.debtwizard.features.debt.service;
 import com.tuan.debtwizard.features.debt.model.Debt;
 import com.tuan.debtwizard.features.debt.model.DebtStatus;
 import com.tuan.debtwizard.features.debt.repository.DebtRepository;
-import com.tuan.debtwizard.features.interest.service.InterestAccrualService;
+import com.tuan.debtwizard.features.debt.service.interest.InterestAccrualService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.scheduling.annotation.Scheduled;

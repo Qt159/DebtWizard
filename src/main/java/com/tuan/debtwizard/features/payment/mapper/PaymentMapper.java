@@ -1,7 +1,6 @@
 package com.tuan.debtwizard.features.payment.mapper;
 
 import com.tuan.debtwizard.features.debt.model.Debt;
-import com.tuan.debtwizard.features.payment.dto.PaymentAllocationResult;
 import com.tuan.debtwizard.features.payment.dto.PaymentListItem;
 import com.tuan.debtwizard.features.payment.dto.PaymentRequest;
 import com.tuan.debtwizard.features.payment.dto.PaymentResponse;
@@ -13,7 +12,7 @@ import java.math.BigDecimal;
 @Component
 public class PaymentMapper {
 
-    public Payment toEntity(PaymentRequest paymentRequest, Debt debt, PaymentAllocationResult allocation) {
+    public Payment toEntity(PaymentRequest paymentRequest, Debt debt) {
 
         Payment payment = new Payment();
         payment.setDebt(debt);
@@ -21,11 +20,9 @@ public class PaymentMapper {
         payment.setPaymentDate(paymentRequest.getPaymentDate());
         payment.setPaymentMethod(paymentRequest.getPaymentMethod());
         payment.setNote(paymentRequest.getNote());
-        payment.setPrincipalPaid(allocation.getPrincipalPaid());
-        payment.setInterestPaid(allocation.getInterestPaid());
-        payment.setLateFeePaid(BigDecimal.ZERO);
         return payment;
     }
+
 
     public PaymentResponse toResponse(Payment payment) {
         PaymentResponse response = new PaymentResponse();

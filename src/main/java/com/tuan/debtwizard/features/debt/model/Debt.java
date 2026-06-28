@@ -1,7 +1,6 @@
 package com.tuan.debtwizard.features.debt.model;
 
 import com.tuan.debtwizard.features.user.model.User;
-import com.tuan.debtwizard.features.interest.model.InterestConfig;
 import com.tuan.debtwizard.features.payment.model.Payment;
 import jakarta.persistence.*;
 import lombok.Getter;
@@ -18,8 +17,7 @@ import java.util.List;
 @Table(name = "debts")
 public class Debt {
 
-    public Debt() {
-    }
+    public Debt() {}
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -62,9 +60,6 @@ public class Debt {
     @Column(nullable = false)
     private LocalDate lastInterestAccruedDate;
 
-    @OneToOne(mappedBy = "debt", cascade = CascadeType.ALL)
-    private InterestConfig interestConfig;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private DebtStatus status;
@@ -77,9 +72,7 @@ public class Debt {
     @Column(nullable = false)
     private DebtType debtType;
 
-    @Column(nullable = false)
     private boolean deleted = false;
-
 
     private LocalDateTime paidOffAt;
 
@@ -88,6 +81,8 @@ public class Debt {
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;
+    @Embedded
+    private InterestSettings interestSettings;
 
     @PrePersist
     protected void onCreate() {
@@ -96,17 +91,10 @@ public class Debt {
 
         this.createdAt = now;
         this.updatedAt = now;
-        if (remainingPrincipal == null) {
-            remainingPrincipal = totalPrincipal;
-        }
+        if (remainingPrincipal == null) {remainingPrincipal = totalPrincipal;}
 
-        if (accruedInterest == null) {
-            accruedInterest = BigDecimal.ZERO;
-        }
-        if (lastInterestAccruedDate == null) {
-            lastInterestAccruedDate = startDate;
-        }
-
+        if (accruedInterest == null) {accruedInterest = BigDecimal.ZERO;}
+        if (lastInterestAccruedDate == null) {lastInterestAccruedDate = startDate;}
     }
     @PreUpdate
     protected void onUpdate() {

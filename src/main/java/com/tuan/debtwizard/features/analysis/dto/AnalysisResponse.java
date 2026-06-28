@@ -3,6 +3,8 @@ package com.tuan.debtwizard.features.analysis.dto;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.time.LocalDate;
+
 @Getter
 @Setter
 public class AnalysisResponse {
@@ -10,6 +12,7 @@ public class AnalysisResponse {
     private InterestRatioResponse interestRatio;
     private OverdueRatioResponse overdue;
     private RepaymentTimeResponse repaymentTime;
+    private LocalDate analysisDate;
 
     public AnalysisResponse(DtiResponse dti, InterestRatioResponse interestRatio,
                             OverdueRatioResponse overdueRatio, RepaymentTimeResponse repaymentTime) {
@@ -17,5 +20,6 @@ public class AnalysisResponse {
         this.interestRatio = interestRatio;
         this.overdue = overdueRatio;
         this.repaymentTime = repaymentTime;
+        this.analysisDate = LocalDate.now();
     }
 }

@@ -37,7 +37,6 @@ public class AnalysisService {
     }
     //monthlyPayment / income
     private DtiResponse calculateCurrentDti(User user) {
-        Long userId = user.getId();
         BigDecimal income = user.getMonthlyIncome();
         if (income == null || income.compareTo(BigDecimal.ZERO) <= 0) {
             return new DtiResponse(BigDecimal.ZERO,
@@ -46,40 +45,36 @@ public class AnalysisService {
                     FinanceHealth.CRITICAL,
                     "Vui lòng cập nhật thu nhập để tính toán DTI");
         }
-        BigDecimal monthlyPayment = debtRepository.getTotalActiveExpectedMonthlyPayment(userId);
+        BigDecimal monthlyPayment = debtRepository.getTotalActiveExpectedMonthlyPayment(user.getId());
         if (monthlyPayment == null) monthlyPayment = BigDecimal.ZERO;
-        double ratio = monthlyPayment.divide(income, 4, RoundingMode.HALF_UP)
-                .multiply(BigDecimal.valueOf(100))
-                .doubleValue();
 
-        FinanceHealth health = FinanceClassifier.byRatio(ratio, 30, 50, false);
+        double ratio = monthlyPayment.divide(income, 2, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100)).doubleValue();
+
+        FinanceHealth health = FinanceClassifier.byRatio(ratio, 30, 50);
         return new DtiResponse(income, monthlyPayment, ratio,health,  health.getDefaultAdvice());
     }
     // ratio = income / totalInterest
-    // thu nhập hơn tiền lãi bao nhiêu lần -> đánh giá xem có đủ chi trả
     private InterestRatioResponse calculateInterestRatio(User user){
-        Long userId = user.getId();
         BigDecimal income = user.getMonthlyIncome();
-        BigDecimal totalInterest = debtRepository.getTotalAccruedInterest(userId);
-        BigDecimal totalPrincipal = debtRepository.getTotalDebt(userId);
+        BigDecimal totalInterest = debtRepository.getTotalAccruedInterest(user.getId());
+        BigDecimal totalPrincipal = debtRepository.getTotalDebt(user.getId());
 
         if (income == null || income.compareTo(BigDecimal.ZERO) <= 0) {
             return new InterestRatioResponse(BigDecimal.ZERO,
                     BigDecimal.ZERO, 0.0,
-                    FinanceHealth.CRITICAL, "Vui lòng cập nhật thu nhập để tính toán !");
-        }
+                    FinanceHealth.CRITICAL, "Vui lòng cập nhật thu nhập để tính toán !");}
+
         if (totalInterest == null || totalInterest.compareTo(BigDecimal.ZERO) <= 0) {
             return new InterestRatioResponse(
                     totalPrincipal == null ? BigDecimal.ZERO : totalPrincipal,
-                    BigDecimal.ZERO,
-                    0.0,
-                    FinanceHealth.GOOD,
-                    "Không có tiền lãi phải trả"
-            );
-        }
-        double ratio =income.divide(totalInterest, 4, RoundingMode.HALF_UP)
-                .doubleValue();
-        FinanceHealth health = FinanceClassifier.byRatio(ratio, 3.0, 1.5, true);
+                    BigDecimal.ZERO, 0.0,
+                    FinanceHealth.GOOD, "Không có tiền lãi phải trả");}
+
+        double ratio = totalInterest.divide(income, 2, RoundingMode.HALF_UP)
+                .multiply(new BigDecimal("100")).doubleValue();
+        //lãi < 10% là GOOD, < 20% là WARNING, còn lại là CRITICAL
+        FinanceHealth health = FinanceClassifier.byRatio(ratio, 10.0, 20.0);
         return new InterestRatioResponse(totalPrincipal, totalInterest, ratio, health, health.getDefaultAdvice());
     }
     // overdueDebts/ totalActiveDebt
@@ -88,15 +83,11 @@ public class AnalysisService {
         int overdueDebts = debtRepository.countDebtByStatus(user.getId(), DebtStatus.OVERDUE);
         if (totalActiveDebts == 0) {
             return new OverdueRatioResponse(
-                    0,
-                    0,
-                    0.0,
-                    FinanceHealth.GOOD,
-                    "Không có khoản nợ đang hoạt động"
-            );
-        }
-        double ratio = (double) overdueDebts / totalActiveDebts;
-        FinanceHealth health = FinanceClassifier.byRatio(ratio, 0.3, 0.5, false);
+                    0, 0, 0.0,
+                    FinanceHealth.GOOD, "Không có khoản nợ đang hoạt động");}
+
+        double ratio = ((double) overdueDebts / totalActiveDebts) * 100;
+        FinanceHealth health = FinanceClassifier.byRatio(ratio, 30, 50 );
         return new OverdueRatioResponse(totalActiveDebts, overdueDebts, ratio, health, health.getDefaultAdvice());
     }
     private RepaymentTimeResponse calculateRepaymentTime(User user) {

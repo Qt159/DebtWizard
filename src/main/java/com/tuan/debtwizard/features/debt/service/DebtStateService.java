@@ -14,7 +14,7 @@ public class DebtStateService {
             debt.setStatus(DebtStatus.PAID_OFF);
             return;
         }
-        if(LocalDate.now().isAfter(debt.getNextDueDate())){
+        if (debt.getNextDueDate() != null && LocalDate.now().isAfter(debt.getNextDueDate())) {
             debt.setStatus(DebtStatus.OVERDUE);
             return;
         }

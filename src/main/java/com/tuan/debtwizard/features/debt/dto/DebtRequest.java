@@ -18,10 +18,8 @@ public class DebtRequest {
     @NotNull
     @Positive
     private BigDecimal totalPrincipal;
-
     @NotNull
     private LocalDate startDate;
-
     @NotNull
     @Positive
     private Integer termMonths;
