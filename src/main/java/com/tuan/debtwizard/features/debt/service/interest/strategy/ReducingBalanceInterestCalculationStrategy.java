@@ -37,8 +37,8 @@ public class ReducingBalanceInterestCalculationStrategy implements InterestCalcu
         // ANNUALLY → convert days thành years
         BigDecimal multiplier = switch (debt.getInterestSettings().getInterestFrequency()) {
             case DAILY -> BigDecimal.valueOf(days);
-            case MONTHLY -> BigDecimal.valueOf(ChronoUnit.MONTHS.between(fromDate, toDate));
-            case ANNUALLY -> BigDecimal.valueOf(ChronoUnit.YEARS.between(fromDate, toDate));
+            case MONTHLY -> BigDecimal.valueOf(days).divide(BigDecimal.valueOf(30), 10, RoundingMode.HALF_UP);
+            case ANNUALLY -> BigDecimal.valueOf(days).divide(BigDecimal.valueOf(365), 10, RoundingMode.HALF_UP);
         };
         return principal.multiply(periodRate).multiply(multiplier)
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);

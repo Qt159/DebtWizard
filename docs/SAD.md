@@ -197,7 +197,8 @@ User → RepaymentPlanController → RepaymentPlanService
 ├─> Plan Comparison
 ├─> Debt Payoff Opportunity Analysis
 │     ├─ Quick Win Score
-│     │      = Monthly Payment/ Remaining Balance
+│     │      = Monthly Payment Released × Expected Duration Reduction / Additional Payment Required
+│     │      (đo lợi ích dòng tiền trên mỗi đồng chi thêm — lợi ích / chi phí)
 │     │
 │     └─ Phát hiện các khoản nợ có thể tất toán sớm
 │        với chi phí thấp nhưng mang lại lợi ích dòng tiền.

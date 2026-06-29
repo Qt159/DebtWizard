@@ -10,6 +10,7 @@ import com.tuan.debtwizard.features.planning.model.DebtSnapshot;
 import com.tuan.debtwizard.features.planning.model.SimulationResult;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -29,10 +30,18 @@ public class PlanningService {
         List<Debt> debts = debtRepository.findAllById(request.getDebtIds());
         List<DebtSnapshot> snapshots = snapshotMapper.toSnapshots(debts);
 
-        SimulationResult first = simulationEngine.simulate(snapshots, request.getFirstStrategy(),
+        List<DebtSnapshot> snapshotsForFirst = new ArrayList<>();
+        for (DebtSnapshot s : snapshots) {
+            snapshotsForFirst.add(new DebtSnapshot(s));}
+
+        List<DebtSnapshot> snapshotsForSecond = new ArrayList<>();
+        for (DebtSnapshot s : snapshots) {
+            snapshotsForSecond.add(new DebtSnapshot(s));}
+
+        SimulationResult first = simulationEngine.simulate(snapshotsForFirst, request.getFirstStrategy(),
                 request.getMonthlyExtraPayment());
 
-        SimulationResult second = simulationEngine.simulate(snapshots, request.getSecondStrategy(),
+        SimulationResult second = simulationEngine.simulate(snapshotsForSecond, request.getSecondStrategy(),
                 request.getMonthlyExtraPayment());
         CompareResponse response = new CompareResponse();
         response.setFirstPlan(map(first));

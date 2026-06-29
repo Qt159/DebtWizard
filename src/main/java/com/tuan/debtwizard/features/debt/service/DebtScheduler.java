@@ -34,17 +34,21 @@ public class DebtScheduler {
 
     @Scheduled(cron = "0 0 0 * * *")
     public void refreshDebts() {
-        while (true){
+        int page = 0;
+        while (true) {
             Page<Debt> debtPage = debtRepository.findByDeletedFalseAndStatusNot(
                     DebtStatus.PAID_OFF,
-                    PageRequest.of(0, BATCH_SIZE)
+                    PageRequest.of(page, BATCH_SIZE)
             );
             if (debtPage.isEmpty()) {
-                break;}
+                break;
+            }
             processBatch(debtPage.getContent());
+            if (!debtPage.hasNext()) {
+                break;
+            }
+            page++;
         }
-
-
     }
     @Transactional
     // Transaction chỉ tồn tại cho 100 bản ghi
