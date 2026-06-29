@@ -1,12 +1,14 @@
 package com.tuan.debtwizard.features.planning.model;
 
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
 
 @Getter
 @Setter
+@NoArgsConstructor
 public class DebtSnapshot {
     private Long debtId;
     private String debtName;
@@ -30,5 +32,18 @@ public class DebtSnapshot {
         currentExtraPaid = BigDecimal.ZERO;
         currentPrincipalPaid = BigDecimal.ZERO;
         currentInterestPaid = BigDecimal.ZERO;
+    }
+
+    public DebtSnapshot(DebtSnapshot other) {
+        this.debtId = other.debtId;
+        this.debtName = other.debtName;
+        this.balance = other.balance;
+        this.interestRate = other.interestRate;
+        this.minimumPayment = other.minimumPayment;
+        this.currentMinimumPaid = other.currentMinimumPaid;
+        this.currentExtraPaid = other.currentExtraPaid;
+        this.currentPrincipalPaid = other.currentPrincipalPaid;
+        this.currentInterestPaid = other.currentInterestPaid;
+        this.paidOff = other.paidOff;
     }
 }

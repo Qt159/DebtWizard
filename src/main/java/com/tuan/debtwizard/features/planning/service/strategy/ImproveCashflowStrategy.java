@@ -9,16 +9,28 @@ import java.util.List;
 
 @Component
 public class ImproveCashflowStrategy implements DebtSelectionStrategy {
+
     @Override
-    public DebtSnapshot selectTargetDebt(List<DebtSnapshot> activeDebts) {
+    public DebtSnapshot selectTargetDebt(List<DebtSnapshot> activeDebts, BigDecimal extraPaymentAllocation) {
         DebtSnapshot target = null;
         BigDecimal bestScore = BigDecimal.valueOf(-1);
+
         for (DebtSnapshot debt : activeDebts) {
-            if (debt.getMinimumPayment().compareTo(BigDecimal.ZERO) <= 0) {
-                continue;}
+
+            BigDecimal totalMonthlyPayment = debt.getMinimumPayment().add(extraPaymentAllocation);
+            if (totalMonthlyPayment.compareTo(BigDecimal.ZERO) <= 0) {
+                continue;
+            }
+
             BigDecimal payoffMonths = debt.getBalance()
-                    .divide(debt.getMinimumPayment(), 2, RoundingMode.HALF_UP);
-            BigDecimal score = debt.getMinimumPayment()
+                    .divide(totalMonthlyPayment, 2, RoundingMode.HALF_UP);
+
+            if (payoffMonths.compareTo(BigDecimal.ZERO) <= 0) {
+                continue;
+            }
+
+            // PriorityScore = MonthlyPayment / EstimatedPayoffMonths
+            BigDecimal score = totalMonthlyPayment
                     .divide(payoffMonths, 2, RoundingMode.HALF_UP);
 
             if (target == null || score.compareTo(bestScore) > 0) {

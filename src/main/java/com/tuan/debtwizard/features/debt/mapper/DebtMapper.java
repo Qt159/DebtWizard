@@ -21,7 +21,6 @@ public class DebtMapper {
         debt.setStartDate(debtRequest.getStartDate());
         debt.setDueDay(debtRequest.getDueDay());
 
-        // Map InterestSettings
         InterestSettings settings = new InterestSettings();
         settings.setInterestCalculationMethod(interestSettingsRequest.getInterestCalculationMethod());
         settings.setInterestFrequency(interestSettingsRequest.getInterestFrequency());
@@ -50,7 +49,7 @@ public class DebtMapper {
         response.setStatus(debt.getStatus());
         response.setDebtType(debt.getDebtType());
 
-        // Map InterestSettings
+
         if (debt.getInterestSettings() != null) {
             response.setInterestRate(debt.getInterestSettings().getInterestRate());
             response.setInterestCalculationMethod(debt.getInterestSettings().getInterestCalculationMethod());

@@ -35,20 +35,31 @@ public class DashboardService {
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
         Long userId = user.getId();
+
+        List<Debt> activeDebts = debtRepository.findActiveDebtsByUserId(userId);
+
         DashboardResponse response = new DashboardResponse();
-        response.setTotalDebt(debtRepository.getTotalDebt(userId));
-        response.setTotalPaid(paymentRepository.getTotalPaid(userId));
-        response.setRemainingDebt(debtRepository.getTotalRemainingDebt(userId));
+        BigDecimal totalDebt = debtRepository.getTotalDebt(userId);
+        response.setTotalDebt(totalDebt != null ? totalDebt : BigDecimal.ZERO);
+
+        BigDecimal totalPaid = paymentRepository.getTotalPaid(userId);
+        response.setTotalPaid(totalPaid != null ? totalPaid : BigDecimal.ZERO);
+
+        BigDecimal remainingDebt = debtRepository.getTotalRemainingDebt(userId);
+        response.setRemainingDebt(remainingDebt != null ? remainingDebt : BigDecimal.ZERO);
 
         response.setActiveDebtCount(debtRepository.countDebtByStatus(userId, DebtStatus.ACTIVE));
         response.setPaidOffDebtCount(debtRepository.countDebtByStatus(userId, DebtStatus.PAID_OFF));
         response.setOverdueDebtCount(debtRepository.countDebtByStatus(userId, DebtStatus.OVERDUE));
 
-        response.setOverdueAmount(debtRepository.getTotalOverdue(userId));
-        response.setAccruedInterest(debtRepository.getTotalAccruedInterest(userId));
+        BigDecimal overdueAmount = debtRepository.getTotalOverdue(userId);
+        response.setOverdueAmount(overdueAmount != null ? overdueAmount : BigDecimal.ZERO);
 
-        response.setNextDueDebt(getNextDueDebt(user.getDebts()));
-        response.setUpcomingDebts(getUpcomingDebts(user.getDebts()));
+        BigDecimal accruedInterest = debtRepository.getTotalAccruedInterest(userId);
+        response.setAccruedInterest(accruedInterest != null ? accruedInterest : BigDecimal.ZERO);
+
+        response.setNextDueDebt(getNextDueDebt(activeDebts));
+        response.setUpcomingDebts(getUpcomingDebts(activeDebts));
         return response;
     }
 

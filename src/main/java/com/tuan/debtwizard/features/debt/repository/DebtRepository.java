@@ -60,7 +60,13 @@ public interface DebtRepository extends JpaRepository<Debt, Long> {
 
     Page<Debt> findByDeletedFalseAndStatusNot(DebtStatus debtStatus, Pageable pageable);
 
-
+    @Query("""
+    SELECT d FROM Debt d 
+    WHERE d.user.id = :userId 
+    AND d.status <> com.tuan.debtwizard.features.debt.model.DebtStatus.PAID_OFF
+    AND d.deleted = false
+""")
+    List<Debt> findActiveDebtsByUserId(@Param("userId") Long userId);
     @Query("""
     SELECT SUM(d.accruedInterest)
     FROM Debt d

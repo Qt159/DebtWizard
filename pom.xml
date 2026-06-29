@@ -100,10 +100,10 @@
             <artifactId>mapstruct</artifactId>
             <version>${mapstruct.version}</version>
         </dependency>
+        <!-- Bug fix: version pinned to 2.15.4 conflicts with Spring Boot 3.2.4 managed Jackson 2.16.x → NoSuchMethodError at runtime -->
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-csv</artifactId>
-            <version>2.15.4</version>
         </dependency>
 
         <!-- Test -->

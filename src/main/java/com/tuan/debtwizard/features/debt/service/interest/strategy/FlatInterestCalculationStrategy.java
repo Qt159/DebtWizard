@@ -32,13 +32,11 @@ public class FlatInterestCalculationStrategy implements InterestCalculationStrat
         BigDecimal periodRate = getPeriodRate(debt.getInterestSettings());
         BigDecimal principal = debt.getTotalPrincipal();
         if (principal == null || principal.compareTo(BigDecimal.ZERO) <= 0) return BigDecimal.ZERO;
-        // DAILY → nhân số ngày
-        // MONTHLY → convert days thành months
-        // ANNUALLY → convert days thành years
+
         BigDecimal multiplier = switch (debt.getInterestSettings().getInterestFrequency()) {
             case DAILY -> BigDecimal.valueOf(days);
-            case MONTHLY -> BigDecimal.valueOf(ChronoUnit.MONTHS.between(fromDate, toDate));
-            case ANNUALLY -> BigDecimal.valueOf(ChronoUnit.YEARS.between(fromDate, toDate));
+            case MONTHLY -> BigDecimal.valueOf(days).divide(BigDecimal.valueOf(30), 10, RoundingMode.HALF_UP);
+            case ANNUALLY -> BigDecimal.valueOf(days).divide(BigDecimal.valueOf(365), 10, RoundingMode.HALF_UP);
         };
         return principal.multiply(periodRate).multiply(multiplier)
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);

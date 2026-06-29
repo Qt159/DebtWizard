@@ -44,7 +44,6 @@ public class DebtService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
 
-    // CREATE
     @Transactional
     public DebtResponse createDebt(CreateDebtRequest createDebtRequest,
                                    UserDetails userDetails) {
@@ -64,7 +63,7 @@ public class DebtService {
         return debtMapper.toResponse(savedDebt);
     }
 
-    // GET LIST
+
     @Transactional(readOnly = true)
     public List<DebtListItemResponse> getDebts(
             UserDetails userDetails,
@@ -86,7 +85,7 @@ public class DebtService {
         return items;
     }
 
-    // GET DETAIL
+
     @Transactional(readOnly = true)
     public DebtResponse getDebtById(Long id, UserDetails userDetails) {
 
@@ -96,7 +95,7 @@ public class DebtService {
         return debtMapper.toResponse(debt);
     }
 
-    // UPDATE
+
     public DebtResponse updateDebt(Long id, DebtRequest req, UserDetails userDetails) {
         User currentUser = findUserOrThrow(userDetails);
         Debt debt = debtRepository.findByIdAndUserIdAndDeletedFalse(id, currentUser.getId())
@@ -110,7 +109,7 @@ public class DebtService {
         return debtMapper.toResponse(updatedDebt);
     }
 
-    // DELETE
+
     public void deleteDebt(Long id, UserDetails userDetails) {
 
         User currentUser = findUserOrThrow(userDetails);

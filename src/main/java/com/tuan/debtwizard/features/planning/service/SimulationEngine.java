@@ -43,13 +43,14 @@ public class SimulationEngine {
             List<DebtSnapshot> activeDebts = simulationHelper.getActiveDebts(snapshots);
 
             paymentHelper.resetMonthlyTracking(activeDebts);
+            BigDecimal interest = paymentHelper.applyMonthlyInterest(activeDebts);
+            totalInterest = totalInterest.add(interest);
+
             paymentHelper.applyMinimumPayments(activeDebts);
-            DebtSnapshot target = strategy.selectTargetDebt(activeDebts);
+            DebtSnapshot target = strategy.selectTargetDebt(activeDebts, monthlyExtraPayment);
             BigDecimal extraUsed = paymentHelper.applyExtraPayment(monthlyExtraPayment, target);
 
             monthlyExtraPayment = monthlyExtraPayment.subtract(extraUsed);
-            BigDecimal interest = paymentHelper.applyMonthlyInterest(activeDebts);
-            totalInterest = totalInterest.add(interest);
 
             BigDecimal released = paymentHelper.releaseCashflow(activeDebts);
             monthlyExtraPayment = monthlyExtraPayment.add(released);
@@ -70,6 +71,7 @@ public class SimulationEngine {
         result.setMonths(months);
         result.setPayoffDurationMonths(monthIndex);
         result.setTotalInterestPaid(totalInterest);
+        result.setStrategy(strategyType);
 
         return result;
     }

@@ -91,7 +91,6 @@ public class PaymentService {
         }
         debtRepository.save(debt);
 
-        // Tạo Payment entity
         Payment payment = paymentMapper.toEntity(request, debt);
         payment.setInterestPaid(interestPaid);
         payment.setPrincipalPaid(principalPaid);
