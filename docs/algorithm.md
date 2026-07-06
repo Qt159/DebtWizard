@@ -1,7 +1,5 @@
 # Algorithm — DebtWizard
 
----
-
 ## 1. Chiến lược chọn khoản nợ ưu tiên
 
 **MINIMIZE_INTEREST (Avalanche)**
@@ -13,10 +11,13 @@
   - `totalMonthlyPayment = minimumPayment + monthlyExtraPayment`
   - `estimatedPayoffMonths = balance / totalMonthlyPayment`
   - `priorityScore = totalMonthlyPayment / estimatedPayoffMonths`
+  **Giải thích:**
+Chiến lược này ưu tiên tất toán những khoản nợ có khả năng **giải phóng được khoản thanh toán tối thiểu (minimum payment) lớn trong thời gian ngắn**. Công thức trên cân bằng giữa hai yếu tố:
+- `totalMonthlyPayment` càng lớn → sau khi tất toán sẽ giải phóng được nhiều dòng tiền hàng tháng.
+- `estimatedPayoffMonths` càng nhỏ → khoản nợ có thể được tất toán sớm.
 - Chọn khoản nợ có `priorityScore` cao nhất.
 - Mục tiêu: tất toán nhanh các khoản nợ giải phóng nhiều cashflow nhất.
-
----
+- Giải thích: `priorityScore = totalMonthlyPayment / estimatedPayoffMonths` sẽ ưu tiên các khoản nợ vừa mang lại **cashflow release lớn**, vừa **có thể hoàn thành nhanh**, giúp số tiền trả thêm (`monthlyExtraPayment`) tăng dần theo cơ chế Cashflow Release ở các tháng tiếp theo.
 
 ## 2. Simulation
 
@@ -44,7 +45,6 @@
 8. Ghi `SimulationMonthDto` với toàn bộ per-debt breakdown.
 9. Lặp lại cho đến khi không còn active debt hoặc `monthIndex > 600`.
 
----
 
 ## 3. Interest Accrual (Scheduler hàng ngày)
 
@@ -55,10 +55,9 @@ interest = totalPrincipal × (interestRate / 100 / 365) × numberOfDays   [FLAT]
 interest = remainingPrincipal × (interestRate / 100 / 365) × numberOfDays [REDUCING_BALANCE]
 ```
 
-- `numberOfDays` = số ngày từ `lastInterestAccruedDate` đến ngày hiện tại.
-- Sau khi accrual: cập nhật `accruedInterest` và `lastInterestAccruedDate`.
+- numberOfDays = số ngày từ lastInterestAccruedDate đến ngày hiện tại.
+- Sau khi accrual: cập nhật accruedInterest và lastInterestAccruedDate.
 
----
 
 ## 4. Quick Win Detection *(Dự kiến phát triển)*
 

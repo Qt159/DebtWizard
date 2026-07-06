@@ -51,10 +51,8 @@ public class PlanningService {
         this.savedPlanMapper = savedPlanMapper;
     }
 
-    // -------------------------------------------------------------------------
-    // Compare — stateless, không lưu DB
-    // -------------------------------------------------------------------------
-
+    // Compare không lưu DB
+    
     public CompareResponse comparePlans(CompareRequest request, UserDetails userDetails) {
         List<Debt> debts = loadAndVerifyDebts(request.getDebtIds(), userDetails.getUsername());
         List<DebtSnapshot> snapshots = snapshotMapper.toSnapshots(debts);
@@ -72,10 +70,8 @@ public class PlanningService {
         return response;
     }
 
-    // -------------------------------------------------------------------------
+    
     // Save / Get / Delete
-    // -------------------------------------------------------------------------
-
     @Transactional
     public SavedPlanResponse savePlan(SavePlanRequest request, UserDetails userDetails) {
         User user = getUser(userDetails.getUsername());
@@ -83,8 +79,6 @@ public class PlanningService {
 
         PlanComparisonDto result = simulationEngine.simulate(
                 snapshotMapper.toSnapshots(debts), request.getStrategy(), request.getMonthlyExtraPayment());
-
-        // Xóa plan cũ nếu có — orphanRemoval cascade xuống schedules và debt_payments
         savedPlanRepository.findByUserId(user.getId()).ifPresent(savedPlanRepository::delete);
         savedPlanRepository.flush();
 
@@ -115,10 +109,6 @@ public class PlanningService {
                 .orElseThrow(() -> new AppException(ErrorCode.PLAN_NOT_FOUND));
         savedPlanRepository.delete(plan);
     }
-
-    // -------------------------------------------------------------------------
-    // Private helpers
-    // -------------------------------------------------------------------------
 
     private User getUser(String username) {
         return userRepository.findByUsername(username)

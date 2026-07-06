@@ -2,7 +2,8 @@
 
 ## Sơ đồ quan hệ thực thể (ERD)
 
-*(Sẽ bổ sung sau)*
+<img src="Erd.png" width="500" alt="Entity-Relationship diagram">
+
 
 ---
 

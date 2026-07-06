@@ -25,7 +25,6 @@ public class PlanDebtPayment {
     @JoinColumn(name = "debt_id", nullable = false)
     private Debt debt;
 
-    // Denormalized — giữ tên tại thời điểm save vì lenderName có thể bị update
     @Column(nullable = false)
     private String debtName;
 
