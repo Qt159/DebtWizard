@@ -9,7 +9,7 @@ DebtWizard là nền tảng quản lý nợ cá nhân trên nền tảng web, gi
 - **Tính lãi tự động**: hỗ trợ 2 phương pháp FLAT và REDUCING_BALANCE, accrual hàng ngày qua Scheduler.
 - **Dashboard**: tổng hợp thông tin tài chính tổng quan — danh sách khoản nợ, dư nợ gốc, lãi phát sinh, tổng số tiền phải trả.
 - **Phân tích tài chính**: đánh giá sức khỏe tài chính qua 4 chỉ số định lượng — DTI, tỷ lệ gánh nặng lãi vay, tỷ lệ nợ quá hạn, thời gian dự kiến trả hết nợ — kèm mức đánh giá và khuyến nghị.
-- **Lập kế hoạch trả nợ**: so sánh 2 chiến lược (Avalanche / Improve Cashflow), lưu kế hoạch đã chọn với lịch trình chi tiết từng tháng.
+- **Lập kế hoạch trả nợ**: so sánh 2 chiến lược (MinimizeInterest / Improve Cashflow), lưu kế hoạch đã chọn với lịch trình chi tiết từng tháng.
 - **Gamification** *(Dự kiến phát triển)*.
 
 ## Tech Stack
