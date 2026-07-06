@@ -37,6 +37,9 @@ public enum ErrorCode {
     INVALID_PAYMENT_STRATEGY(HttpStatus.BAD_REQUEST, "PaymentStrategy is invalid"),
     INVALID_PAYMENT_DATE(HttpStatus.BAD_REQUEST, "PaymentDate is invalid"),
 
+    // Planning
+    PLAN_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy kế hoạch đã lưu"),
+
     // General validation
     INVALID_INPUT(HttpStatus.BAD_REQUEST, "Dữ liệu không hợp lệ"),
     DATA_INTEGRITY_VIOLATION(HttpStatus.BAD_REQUEST, "Vi phạm ràng buộc dữ liệu"),

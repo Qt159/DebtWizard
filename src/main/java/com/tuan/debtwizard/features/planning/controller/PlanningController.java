@@ -3,6 +3,8 @@ package com.tuan.debtwizard.features.planning.controller;
 import com.tuan.debtwizard.dto.ApiResponse;
 import com.tuan.debtwizard.features.planning.dto.CompareRequest;
 import com.tuan.debtwizard.features.planning.dto.CompareResponse;
+import com.tuan.debtwizard.features.planning.dto.SavePlanRequest;
+import com.tuan.debtwizard.features.planning.dto.SavedPlanResponse;
 import com.tuan.debtwizard.features.planning.service.PlanningService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 public class PlanningController {
 
     private final PlanningService planningService;
+
     public PlanningController(PlanningService planningService) {
         this.planningService = planningService;
     }
@@ -24,5 +27,22 @@ public class PlanningController {
     public ApiResponse<CompareResponse> compare(@Valid @RequestBody CompareRequest request,
                                                 @AuthenticationPrincipal UserDetails userDetails) {
         return ApiResponse.success(planningService.comparePlans(request, userDetails));
+    }
+
+    @PostMapping("/save")
+    public ApiResponse<SavedPlanResponse> savePlan(@Valid @RequestBody SavePlanRequest request,
+                                                   @AuthenticationPrincipal UserDetails userDetails) {
+        return ApiResponse.success(planningService.savePlan(request, userDetails));
+    }
+
+    @GetMapping("/saved")
+    public ApiResponse<SavedPlanResponse> getSavedPlan(@AuthenticationPrincipal UserDetails userDetails) {
+        return ApiResponse.success(planningService.getSavedPlan(userDetails));
+    }
+
+    @DeleteMapping("/saved")
+    public ApiResponse<Void> deleteSavedPlan(@AuthenticationPrincipal UserDetails userDetails) {
+        planningService.deleteSavedPlan(userDetails);
+        return ApiResponse.success();
     }
 }
