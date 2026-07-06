@@ -15,7 +15,7 @@ Khoảng giá trị gợi ý cho extra payment:
 Nếu `extraPaymentMax ≤ 0` → user thực ra không có khả năng trả thêm, hệ thống nên cảnh báo.
 Hệ thống nên trả về `suggestedExtraRange` trong response của compare để frontend hiển thị gợi ý cho user.
 
-> **Lưu ý:** Income và expense trong profile là con số tĩnh do user tự khai báo — không phản ánh biến động thu chi thực tế từng tháng. User có trách nhiệm điều chỉnh `monthlyExtraPayment` phù hợp với khả năng thực tế của mình.
+> **Lưu ý:** Income và expense trong profile là con số tĩnh do user tự khai báo, không phản ánh biến động thu chi thực tế từng tháng. User có trách nhiệm điều chỉnh `monthlyExtraPayment` phù hợp với khả năng thực tế của mình.
 
 **BR03 – Interest First (thực tế thanh toán)**
 Khi ghi nhận thanh toán thực tế (`POST /api/payments`), tiền được phân bổ theo thứ tự interest-first:
