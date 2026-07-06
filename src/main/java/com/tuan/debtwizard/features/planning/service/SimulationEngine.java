@@ -5,6 +5,7 @@ import com.tuan.debtwizard.features.planning.helper.SimulationHelper;
 import com.tuan.debtwizard.features.planning.model.DebtSnapshot;
 import com.tuan.debtwizard.features.planning.model.RepaymentStrategy;
 import com.tuan.debtwizard.features.planning.model.SimulationMonth;
+import com.tuan.debtwizard.features.planning.model.SimulationPayment;
 import com.tuan.debtwizard.features.planning.model.SimulationResult;
 import com.tuan.debtwizard.features.planning.service.strategy.DebtSelectionStrategy;
 import com.tuan.debtwizard.features.planning.service.strategy.ImproveCashflowStrategy;
@@ -40,6 +41,9 @@ public class SimulationEngine {
         List<SimulationMonth> months = new ArrayList<>();
         while (simulationHelper.hasActiveDebt(snapshots)) {
             monthIndex++;
+            if(monthIndex>600){
+                break;
+            }
             List<DebtSnapshot> activeDebts = simulationHelper.getActiveDebts(snapshots);
 
             paymentHelper.resetMonthlyTracking(activeDebts);
@@ -62,7 +66,22 @@ public class SimulationEngine {
             month.setTotalPayment(totalPayment);
             month.setExtraPaymentUsed(extraUsed);
             month.setCashflowReleased(released);
-            month.setPayments(new ArrayList<>());
+
+            // payment detail từng tháng
+            List<SimulationPayment> payments = new ArrayList<>();
+            for (DebtSnapshot debt : activeDebts) {
+                SimulationPayment p = new SimulationPayment();
+                p.setDebtId(debt.getDebtId());
+                p.setDebtName(debt.getDebtName());
+                p.setMinimumPaid(debt.getCurrentMinimumPaid());
+                p.setExtraPaid(debt.getCurrentExtraPaid());
+                p.setPrincipalPaid(debt.getCurrentPrincipalPaid());
+                p.setInterestPaid(debt.getCurrentInterestPaid());
+                p.setRemainingBalance(debt.getBalance());
+                p.setPaidOff(debt.isPaidOff());
+                payments.add(p);
+            }
+            month.setPayments(payments);
 
             months.add(month);
         }

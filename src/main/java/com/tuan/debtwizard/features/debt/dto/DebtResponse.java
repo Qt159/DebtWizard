@@ -35,7 +35,6 @@ public class DebtResponse {
     private BigDecimal interestRate;
     private InterestCalculationMethod interestCalculationMethod;
     private InterestFrequency interestFrequency;
-    private BigDecimal lateFee;
 
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;

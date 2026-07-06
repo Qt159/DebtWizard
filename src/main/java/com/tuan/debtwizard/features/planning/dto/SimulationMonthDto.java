@@ -9,14 +9,11 @@ import java.util.List;
 
 @Getter
 @Setter
-public class RepaymentMonthDto {
+public class SimulationMonthDto {
     private int monthIndex;
     private LocalDate date;
-
     private BigDecimal totalPayment;
     private BigDecimal extraPaymentUsed;
     private BigDecimal cashflowReleased;
-
-    private List<DebtPaymentDto> debts;
-
+    private List<DebtPaymentDetailDto> payments;
 }

@@ -28,4 +28,19 @@ public class InterestCalculationService {
         return factory.get(settings.getInterestCalculationMethod())
                 .calculateInterest(debt, fromDate, toDate);
     }
+
+    public BigDecimal calculateMonthlyPayment(Debt debt) {
+        InterestSettings settings = debt.getInterestSettings();
+        if (settings == null) {
+            return debt.getTotalPrincipal()
+                    .divide(BigDecimal.valueOf(debt.getTermMonths()), 2, java.math.RoundingMode.HALF_UP);
+        }
+    
+        BigDecimal principal = switch (settings.getInterestCalculationMethod()) {
+            case FLAT -> debt.getTotalPrincipal();
+            case REDUCING_BALANCE -> debt.getRemainingPrincipal();
+        };
+        return factory.get(settings.getInterestCalculationMethod())
+                .calculateMonthlyPayment(principal, debt.getTermMonths(), settings.getInterestRate());
+    }
 }

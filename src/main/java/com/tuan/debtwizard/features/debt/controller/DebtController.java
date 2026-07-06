@@ -9,6 +9,7 @@ import com.tuan.debtwizard.features.debt.model.DebtStatus;
 import com.tuan.debtwizard.features.debt.service.DebtService;
 import com.tuan.debtwizard.features.payment.dto.PaymentListItem;
 import com.tuan.debtwizard.features.payment.service.PaymentService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,7 +20,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/api/debts")
-
+@SecurityRequirement(name = "Bearer Authentication")
 public class DebtController {
     private final DebtService debtService;
     private final PaymentService paymentService;

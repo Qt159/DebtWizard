@@ -63,7 +63,7 @@ public class AuthService {
         User user = userRepository.findByUsername(userDetails.getUsername())
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
-        // Xóa token cũ trước khi tạo token mới để tránh lỗi Unique Constraint
+        // Xóa token cũ trước khi tạo token mới để tránh lỗi
         refreshTokenRepository.deleteByUser(user);
 
         String accessToken = jwtService.generateAccessToken(userDetails);

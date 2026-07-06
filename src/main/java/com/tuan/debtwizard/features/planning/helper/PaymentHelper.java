@@ -45,7 +45,7 @@ public class PaymentHelper {
             if (!debt.hasBalance()) {
                 continue;}
             BigDecimal interest = debt.getBalance()
-                    .multiply(debt.getInterestRate())
+                    .multiply(debt.getInterestRate()).divide(BigDecimal.valueOf(100))
                     .divide(BigDecimal.valueOf(12), 2, RoundingMode.HALF_UP);
 
             debt.setBalance(debt.getBalance().add(interest));

@@ -35,10 +35,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;}
 
         try {
-            // Lấy JWT
             String jwt = authHeader.substring(7);
-
-            // Lấy username từ token
             String username = jwtService.extractUsername(jwt);
             // Check coi authenticate chưa
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {

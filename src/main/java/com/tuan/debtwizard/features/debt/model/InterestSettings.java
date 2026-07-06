@@ -21,7 +21,4 @@ public class InterestSettings {
 
     @Column(nullable = false, precision = 8, scale = 2)
     private BigDecimal interestRate;
-
-    @Column(precision = 8, scale = 2)
-    private BigDecimal lateFee;
 }

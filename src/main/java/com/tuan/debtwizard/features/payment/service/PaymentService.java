@@ -2,8 +2,6 @@ package com.tuan.debtwizard.features.payment.service;
 
 import com.tuan.debtwizard.exception.AppException;
 import com.tuan.debtwizard.exception.ErrorCode;
-import com.tuan.debtwizard.features.user.model.User;
-import com.tuan.debtwizard.features.user.repository.UserRepository;
 import com.tuan.debtwizard.features.debt.model.Debt;
 import com.tuan.debtwizard.features.debt.model.DebtStatus;
 import com.tuan.debtwizard.features.debt.repository.DebtRepository;
@@ -12,9 +10,12 @@ import com.tuan.debtwizard.features.debt.service.interest.InterestAccrualService
 import com.tuan.debtwizard.features.payment.dto.PaymentListItem;
 import com.tuan.debtwizard.features.payment.dto.PaymentRequest;
 import com.tuan.debtwizard.features.payment.dto.PaymentResponse;
+import com.tuan.debtwizard.features.payment.dto.UpdatePaymentRequest;
 import com.tuan.debtwizard.features.payment.mapper.PaymentMapper;
 import com.tuan.debtwizard.features.payment.model.Payment;
 import com.tuan.debtwizard.features.payment.repository.PaymentRepository;
+import com.tuan.debtwizard.features.user.model.User;
+import com.tuan.debtwizard.features.user.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,14 +36,12 @@ public class PaymentService {
     private final DebtStateService debtStateService;
     private final InterestAccrualService interestAccrualService;
 
-    public PaymentService(
-            PaymentRepository paymentRepository,
-            DebtRepository debtRepository,
-            PaymentMapper paymentMapper,
-            UserRepository userRepository,
-            DebtStateService debtStateService,
-            InterestAccrualService interestAccrualService) {
-
+    public PaymentService(PaymentRepository paymentRepository,
+                          DebtRepository debtRepository,
+                          PaymentMapper paymentMapper,
+                          UserRepository userRepository,
+                          DebtStateService debtStateService,
+                          InterestAccrualService interestAccrualService) {
         this.paymentRepository = paymentRepository;
         this.debtRepository = debtRepository;
         this.paymentMapper = paymentMapper;
@@ -64,21 +63,16 @@ public class PaymentService {
 
         validatePaymentDate(request.getPaymentDate(), debt);
 
-        // Cập nhật lãi tới ngày thanh toán
         interestAccrualService.accrueInterest(debt, request.getPaymentDate());
 
-        // interest first
         BigDecimal amount = request.getAmount();
         BigDecimal interest = debt.getAccruedInterest();
         BigDecimal principal = debt.getRemainingPrincipal();
 
         BigDecimal interestPaid = amount.min(interest);
         BigDecimal remainingAfterInterest = amount.subtract(interestPaid);
-
         BigDecimal principalPaid = remainingAfterInterest.min(principal);
-        BigDecimal lateFeePaid = BigDecimal.ZERO; // chưa tính Latefee
 
-        // Cập nhật Debt
         debt.setAccruedInterest(interest.subtract(interestPaid));
         debt.setRemainingPrincipal(principal.subtract(principalPaid));
         debt.setLastPaymentDate(request.getPaymentDate());
@@ -94,10 +88,8 @@ public class PaymentService {
         Payment payment = paymentMapper.toEntity(request, debt);
         payment.setInterestPaid(interestPaid);
         payment.setPrincipalPaid(principalPaid);
-        payment.setLateFeePaid(lateFeePaid);
 
-        Payment saved = paymentRepository.save(payment);
-        return paymentMapper.toResponse(saved);
+        return paymentMapper.toResponse(paymentRepository.save(payment));
     }
 
     @Transactional(readOnly = true)
@@ -106,7 +98,9 @@ public class PaymentService {
         Payment payment = paymentRepository
                 .findByIdAndDebtUserId(id, user.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_FOUND));
-
+        if (payment.isDeleted()) {
+            throw new AppException(ErrorCode.PAYMENT_NOT_FOUND);
+        }
         return paymentMapper.toResponse(payment);
     }
 
@@ -119,10 +113,57 @@ public class PaymentService {
         List<Payment> payments = paymentRepository.findByDebtId(debtId);
         List<PaymentListItem> items = new ArrayList<>();
         for (Payment payment : payments) {
+            if (!payment.isDeleted()) {
+                items.add(paymentMapper.toListItem(payment));
+            }
+        }
+        return items;
+    }
+
+    @Transactional(readOnly = true)
+    public List<PaymentListItem> getAllPayments(UserDetails userDetails) {
+        User user = getUserByUsername(userDetails.getUsername());
+        List<Payment> payments = paymentRepository.findAllByUserId(user.getId());
+        List<PaymentListItem> items = new ArrayList<>();
+        for (Payment payment : payments) {
             items.add(paymentMapper.toListItem(payment));
         }
         return items;
     }
+
+    
+    @Transactional
+    public PaymentResponse updatePayment(Long id, UpdatePaymentRequest request, UserDetails userDetails) {
+        User user = getUserByUsername(userDetails.getUsername());
+        Payment payment = paymentRepository
+                .findByIdAndDebtUserId(id, user.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_FOUND));
+        if (payment.isDeleted()) {
+            throw new AppException(ErrorCode.PAYMENT_NOT_FOUND);
+        }
+        if (request.getNote() != null) {
+            payment.setNote(request.getNote());
+        }
+        if (request.getPaymentDate() != null) {
+            payment.setPaymentDate(request.getPaymentDate());
+        }
+        return paymentMapper.toResponse(paymentRepository.save(payment));
+    }
+
+    
+    @Transactional
+    public void deletePayment(Long id, UserDetails userDetails) {
+        User user = getUserByUsername(userDetails.getUsername());
+        Payment payment = paymentRepository
+                .findByIdAndDebtUserId(id, user.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_FOUND));
+        if (payment.isDeleted()) {
+            throw new AppException(ErrorCode.PAYMENT_NOT_FOUND);
+        }
+        payment.setDeleted(true);
+        paymentRepository.save(payment);
+    }
+
     private void validatePaymentDate(LocalDate paymentDate, Debt debt) {
         if (paymentDate.isAfter(LocalDate.now())
                 || paymentDate.isBefore(debt.getStartDate())

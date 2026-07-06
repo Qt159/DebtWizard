@@ -4,5 +4,4 @@ public enum DebtStatus {
     ACTIVE,
     PAID_OFF,
     OVERDUE,
-
 }

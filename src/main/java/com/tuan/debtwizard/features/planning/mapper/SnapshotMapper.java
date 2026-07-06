@@ -21,7 +21,7 @@ public class SnapshotMapper {
         DebtSnapshot snapshot = new DebtSnapshot();
         snapshot.setDebtId(debt.getId());
         snapshot.setDebtName(debt.getLenderName());
-        snapshot.setBalance(debt.getRemainingPrincipal());
+        snapshot.setBalance(debt.getRemainingPrincipal().add(debt.getAccruedInterest()));
         snapshot.setInterestRate(debt.getInterestSettings().getInterestRate());
         snapshot.setMinimumPayment(debt.getExpectedMonthlyPayment());
         snapshot.setCurrentPrincipalPaid(BigDecimal.ZERO);

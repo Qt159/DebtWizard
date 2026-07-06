@@ -9,6 +9,7 @@ import com.tuan.debtwizard.features.user.dto.UserResponse;
 import com.tuan.debtwizard.features.user.model.User;
 import com.tuan.debtwizard.features.user.repository.UserRepository;
 import com.tuan.debtwizard.features.user.service.UserService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,13 +19,12 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/users")
+@SecurityRequirement(name = "Bearer Authentication")
 public class UserController {
     private final UserService userService;
-    private final UserRepository userRepository;
 
-    public UserController(UserService userService, UserRepository userRepository) {
+    public UserController(UserService userService) {
         this.userService = userService;
-        this.userRepository = userRepository;
     }
 
     @GetMapping("/me")

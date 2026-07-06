@@ -25,7 +25,6 @@ public class DebtMapper {
         settings.setInterestCalculationMethod(interestSettingsRequest.getInterestCalculationMethod());
         settings.setInterestFrequency(interestSettingsRequest.getInterestFrequency());
         settings.setInterestRate(interestSettingsRequest.getInterestRate());
-        settings.setLateFee(interestSettingsRequest.getLateFee());
 
         debt.setInterestSettings(settings);
 
@@ -54,7 +53,6 @@ public class DebtMapper {
             response.setInterestRate(debt.getInterestSettings().getInterestRate());
             response.setInterestCalculationMethod(debt.getInterestSettings().getInterestCalculationMethod());
             response.setInterestFrequency(debt.getInterestSettings().getInterestFrequency());
-            response.setLateFee(debt.getInterestSettings().getLateFee());
         }
 
         response.setCreatedAt(debt.getCreatedAt());

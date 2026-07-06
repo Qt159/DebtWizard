@@ -7,18 +7,14 @@ import java.math.BigDecimal;
 
 @Getter
 @Setter
-public class DebtPaymentDto {
+public class DebtPaymentDetailDto {
     private Long debtId;
     private String debtName;
-
     private BigDecimal minimumPaid;
     private BigDecimal extraPaid;
     private BigDecimal principalPaid;
     private BigDecimal interestPaid;
-
+    private BigDecimal totalPaid;
     private BigDecimal remainingBalance;
     private boolean paidOff;
-    public BigDecimal getPaymentThisMonth() {
-        return minimumPaid.add(extraPaid);
-    }
 }

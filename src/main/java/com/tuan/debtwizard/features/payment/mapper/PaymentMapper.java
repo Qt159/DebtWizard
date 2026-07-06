@@ -33,7 +33,6 @@ public class PaymentMapper {
         response.setAmount(payment.getAmount());
         response.setPaymentMethod(payment.getPaymentMethod());
         response.setPaymentDate(payment.getPaymentDate());
-        response.setLateFeePaid(payment.getLateFeePaid());
         response.setInterestPaid(payment.getInterestPaid());
         response.setPrincipalPaid(payment.getPrincipalPaid());
         response.setCreatedAt(payment.getCreatedAt());

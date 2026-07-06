@@ -8,7 +8,7 @@ import java.math.BigDecimal;
 
 @Data
 public class UpdateUserRequest {
-    @NotBlank(message = "Full name cannot be blank")
+    @NotBlank(message = "Tên không được để trống")
     private String fullName;
     private BigDecimal monthlyIncome;
     private BigDecimal monthlyExpense;

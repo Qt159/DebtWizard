@@ -15,6 +15,9 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
 
     List<Payment> findByDebtId(Long debtId);
 
+    @Query("SELECT p FROM Payment p WHERE p.debt.user.id = :userId AND p.deleted = false ORDER BY p.paymentDate DESC")
+    List<Payment> findAllByUserId(@Param("userId") Long userId);
+
     @Query("""
     SELECT SUM(p.amount)
     FROM Payment p

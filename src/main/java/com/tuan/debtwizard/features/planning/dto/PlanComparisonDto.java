@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Getter
 @Setter
@@ -13,4 +14,5 @@ public class PlanComparisonDto {
     private String planName;
     private BigDecimal totalInterestPaid;
     private int payoffDurationMonths;
+    private List<SimulationMonthDto> schedule;
 }

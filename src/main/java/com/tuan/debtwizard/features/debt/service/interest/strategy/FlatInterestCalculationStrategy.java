@@ -42,5 +42,18 @@ public class FlatInterestCalculationStrategy implements InterestCalculationStrat
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
     }
 
-
+    //MonthlyPayment = P/n + P × (annualRate/100/12)
+    @Override
+    public BigDecimal calculateMonthlyPayment(BigDecimal principal, int termMonths, BigDecimal annualRate) {
+        if (principal == null || principal.compareTo(BigDecimal.ZERO) <= 0) return BigDecimal.ZERO;
+        if (annualRate == null || annualRate.compareTo(BigDecimal.ZERO) <= 0) {
+            return principal.divide(BigDecimal.valueOf(termMonths), 2, RoundingMode.HALF_UP);
+        }
+        BigDecimal monthlyRate = annualRate
+                .divide(BigDecimal.valueOf(100), 10, RoundingMode.HALF_UP)
+                .divide(BigDecimal.valueOf(12), 10, RoundingMode.HALF_UP);
+        BigDecimal principalPart = principal.divide(BigDecimal.valueOf(termMonths), 10, RoundingMode.HALF_UP);
+        BigDecimal interestPart = principal.multiply(monthlyRate);
+        return principalPart.add(interestPart).setScale(2, RoundingMode.HALF_UP);
+    }
 }

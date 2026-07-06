@@ -21,8 +21,4 @@ public class InterestSettingsRequest {
     @DecimalMin("0.0")
     @DecimalMax("100.0")
     private BigDecimal interestRate;
-
-    @NotNull
-    @PositiveOrZero
-    private BigDecimal lateFee;
 }

@@ -1,58 +1,55 @@
 package com.tuan.debtwizard.features.planning.mapper;
 
-import com.tuan.debtwizard.features.planning.dto.DebtPaymentDto;
-import com.tuan.debtwizard.features.planning.dto.RepaymentMonthDto;
-import com.tuan.debtwizard.features.planning.model.DebtSnapshot;
+import com.tuan.debtwizard.features.planning.dto.DebtPaymentDetailDto;
+import com.tuan.debtwizard.features.planning.dto.SimulationMonthDto;
+import com.tuan.debtwizard.features.planning.model.SimulationMonth;
+import com.tuan.debtwizard.features.planning.model.SimulationPayment;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class RepaymentMapper {
 
-    public RepaymentMonthDto toRepaymentMonth(
-            int monthIndex,
-            LocalDate date,
-            BigDecimal totalPayment,
-            BigDecimal extraPaymentUsed,
-            BigDecimal cashflowReleased,
-            List<DebtPaymentDto> debtPayments
-    ) {
-        RepaymentMonthDto month = new RepaymentMonthDto();
-        month.setMonthIndex(monthIndex);
-        month.setDate(date);
-        month.setTotalPayment(totalPayment);
-        month.setExtraPaymentUsed(extraPaymentUsed);
-        month.setCashflowReleased(cashflowReleased);
-        month.setDebts(debtPayments);
-        return month;
-    }
-
-    public List<DebtPaymentDto> toDebtPaymentDtos(List<DebtSnapshot> snapshots) {
-        List<DebtPaymentDto> result = new ArrayList<>();
-        for (DebtSnapshot snapshot : snapshots) {
-            result.add(toDebtPaymentDto(snapshot));
+    public List<SimulationMonthDto> toSimulationMonthDtos(List<SimulationMonth> months) {
+        List<SimulationMonthDto> result = new ArrayList<>();
+        for (SimulationMonth month : months) {
+            result.add(toSimulationMonthDto(month));
         }
         return result;
     }
 
-    public DebtPaymentDto toDebtPaymentDto(DebtSnapshot snapshot) {
-        DebtPaymentDto dto = new DebtPaymentDto();
+    public SimulationMonthDto toSimulationMonthDto(SimulationMonth month) {
+        SimulationMonthDto dto = new SimulationMonthDto();
+        dto.setMonthIndex(month.getMonthIndex());
+        dto.setDate(month.getDate());
+        dto.setTotalPayment(month.getTotalPayment());
+        dto.setExtraPaymentUsed(month.getExtraPaymentUsed());
+        dto.setCashflowReleased(month.getCashflowReleased());
+        dto.setPayments(toDebtPaymentDetailDtos(month.getPayments()));
+        return dto;
+    }
 
-        dto.setDebtId(snapshot.getDebtId());
-        dto.setDebtName(snapshot.getDebtName());
+    public List<DebtPaymentDetailDto> toDebtPaymentDetailDtos(List<SimulationPayment> payments) {
+        List<DebtPaymentDetailDto> result = new ArrayList<>();
+        for (SimulationPayment payment : payments) {
+            result.add(toDebtPaymentDetailDto(payment));
+        }
+        return result;
+    }
 
-        dto.setMinimumPaid(snapshot.getCurrentMinimumPaid());
-        dto.setExtraPaid(snapshot.getCurrentExtraPaid());
-        dto.setPrincipalPaid(snapshot.getCurrentPrincipalPaid());
-        dto.setInterestPaid(snapshot.getCurrentInterestPaid());
-
-        dto.setRemainingBalance(snapshot.getBalance());
-        dto.setPaidOff(snapshot.isPaidOff());
-
+    public DebtPaymentDetailDto toDebtPaymentDetailDto(SimulationPayment payment) {
+        DebtPaymentDetailDto dto = new DebtPaymentDetailDto();
+        dto.setDebtId(payment.getDebtId());
+        dto.setDebtName(payment.getDebtName());
+        dto.setMinimumPaid(payment.getMinimumPaid());
+        dto.setExtraPaid(payment.getExtraPaid());
+        dto.setPrincipalPaid(payment.getPrincipalPaid());
+        dto.setInterestPaid(payment.getInterestPaid());
+        dto.setTotalPaid(payment.getPaymentThisMonth());
+        dto.setRemainingBalance(payment.getRemainingBalance());
+        dto.setPaidOff(payment.isPaidOff());
         return dto;
     }
 }

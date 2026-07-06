@@ -8,7 +8,7 @@ import java.util.List;
 
 @Component
 public class MinimizeInterestStrategy implements DebtSelectionStrategy {
-
+//target = debt có highest interest rate
     @Override
     public DebtSnapshot selectTargetDebt(List<DebtSnapshot> activeDebts, BigDecimal extraPaymentAllocation) {
         if (activeDebts.isEmpty()) {

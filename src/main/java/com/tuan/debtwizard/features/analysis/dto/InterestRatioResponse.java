@@ -16,11 +16,13 @@ public class InterestRatioResponse {
     private FinanceHealth financeHealth;
     private String recommendation;
     public InterestRatioResponse(BigDecimal totalPrincipal, BigDecimal totalInterest,
-                                 double ratio, FinanceHealth financeHealth, String recommendation){
+                            BigDecimal income, double ratio, FinanceHealth financeHealth, String recommendation){
         this.totalPrincipal = totalPrincipal;
         this.totalInterest = totalInterest;
+        this.income = income;
         this.ratio = ratio;
         this.financeHealth = financeHealth;
         this.recommendation = recommendation;
+        
     }
 }

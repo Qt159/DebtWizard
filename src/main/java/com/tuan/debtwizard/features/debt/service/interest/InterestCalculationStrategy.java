@@ -7,4 +7,5 @@ import java.time.LocalDate;
 
 public interface InterestCalculationStrategy {
     BigDecimal calculateInterest(Debt debt, LocalDate fromDate, LocalDate toDate);
+    BigDecimal calculateMonthlyPayment(BigDecimal principal, int termMonths, BigDecimal annualRate);
 }

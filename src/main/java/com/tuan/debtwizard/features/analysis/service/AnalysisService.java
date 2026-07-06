@@ -62,12 +62,14 @@ public class AnalysisService {
 
         if (income == null || income.compareTo(BigDecimal.ZERO) <= 0) {
             return new InterestRatioResponse(BigDecimal.ZERO,
+                    BigDecimal.ZERO,
                     BigDecimal.ZERO, 0.0,
                     FinanceHealth.CRITICAL, "Vui lòng cập nhật thu nhập để tính toán !");}
 
         if (totalInterest == null || totalInterest.compareTo(BigDecimal.ZERO) <= 0) {
             return new InterestRatioResponse(
                     totalPrincipal == null ? BigDecimal.ZERO : totalPrincipal,
+                    BigDecimal.ZERO,
                     BigDecimal.ZERO, 0.0,
                     FinanceHealth.GOOD, "Không có tiền lãi phải trả");}
 
@@ -75,20 +77,20 @@ public class AnalysisService {
                 .multiply(new BigDecimal("100")).doubleValue();
         //lãi < 10% là GOOD, < 20% là WARNING, còn lại là CRITICAL
         FinanceHealth health = FinanceClassifier.byRatio(ratio, 10.0, 20.0);
-        return new InterestRatioResponse(totalPrincipal, totalInterest, ratio, health, health.getDefaultAdvice());
+        return new InterestRatioResponse(totalPrincipal, totalInterest, income, ratio, health, health.getDefaultAdvice());
     }
-    // overdueDebts/ totalActiveDebt
+    // overdueDebts/ totalDebts
     private OverdueRatioResponse calculateOverdueRatio(User user){
-        int totalActiveDebts = debtRepository.countDebtByStatus(user.getId(), DebtStatus.ACTIVE);
         int overdueDebts = debtRepository.countDebtByStatus(user.getId(), DebtStatus.OVERDUE);
-        if (totalActiveDebts == 0) {
+        int totalDebts = debtRepository.countDebtByStatus(user.getId(), DebtStatus.ACTIVE) + overdueDebts;
+        if (totalDebts == 0) {
             return new OverdueRatioResponse(
                     0, 0, 0.0,
                     FinanceHealth.GOOD, "Không có khoản nợ đang hoạt động");}
 
-        double ratio = ((double) overdueDebts / totalActiveDebts) * 100;
+        double ratio = ((double) overdueDebts / totalDebts) * 100;
         FinanceHealth health = FinanceClassifier.byRatio(ratio, 30, 50 );
-        return new OverdueRatioResponse(totalActiveDebts, overdueDebts, ratio, health, health.getDefaultAdvice());
+        return new OverdueRatioResponse(totalDebts, overdueDebts, ratio, health, health.getDefaultAdvice());
     }
     private RepaymentTimeResponse calculateRepaymentTime(User user) {
         Long userId = user.getId();

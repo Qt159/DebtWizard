@@ -35,8 +35,8 @@ public class Payment {
     @Column(nullable = false, precision = 15, scale = 2)
     private BigDecimal interestPaid = BigDecimal.ZERO;
 
-    @Column(nullable = false, precision = 15, scale = 2)
-    private BigDecimal lateFeePaid = BigDecimal.ZERO;
+    @Column(nullable = false)
+    private boolean deleted = false;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

@@ -43,4 +43,25 @@ public class ReducingBalanceInterestCalculationStrategy implements InterestCalcu
         return principal.multiply(periodRate).multiply(multiplier)
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
     }
+
+    /*
+    M = P × [r(1+r)^n] / [(1+r)^n - 1]
+    r = annualRate / 100 / 12
+    n = termMonths
+     */
+    @Override
+    public BigDecimal calculateMonthlyPayment(BigDecimal principal, int termMonths, BigDecimal annualRate) {
+        if (principal == null || principal.compareTo(BigDecimal.ZERO) <= 0) return BigDecimal.ZERO;
+        if (annualRate == null || annualRate.compareTo(BigDecimal.ZERO) <= 0) {
+            return principal.divide(BigDecimal.valueOf(termMonths), 2, RoundingMode.HALF_UP);
+        }
+        java.math.MathContext mc = new java.math.MathContext(15, RoundingMode.HALF_UP);
+        BigDecimal r = annualRate
+                .divide(BigDecimal.valueOf(100), mc)
+                .divide(BigDecimal.valueOf(12), mc);
+        BigDecimal onePlusRPowN = BigDecimal.ONE.add(r).pow(termMonths, mc);
+        BigDecimal numerator = principal.multiply(r, mc).multiply(onePlusRPowN, mc);
+        BigDecimal denominator = onePlusRPowN.subtract(BigDecimal.ONE);
+        return numerator.divide(denominator, 2, RoundingMode.HALF_UP);
+    }
 }
