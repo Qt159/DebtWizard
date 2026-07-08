@@ -8,16 +8,11 @@
 
 **IMPROVE_CASHFLOW**
 - Với mỗi khoản nợ active, tính:
-  - `totalMonthlyPayment = minimumPayment + monthlyExtraPayment`
-  - `estimatedPayoffMonths = balance / totalMonthlyPayment`
-  - `priorityScore = totalMonthlyPayment / estimatedPayoffMonths`
-  **Giải thích:**
-Chiến lược này ưu tiên tất toán những khoản nợ có khả năng **giải phóng được khoản thanh toán tối thiểu (minimum payment) lớn trong thời gian ngắn**. Công thức trên cân bằng giữa hai yếu tố:
-- `totalMonthlyPayment` càng lớn → sau khi tất toán sẽ giải phóng được nhiều dòng tiền hàng tháng.
-- `estimatedPayoffMonths` càng nhỏ → khoản nợ có thể được tất toán sớm.
-- Chọn khoản nợ có `priorityScore` cao nhất.
-- Mục tiêu: tất toán nhanh các khoản nợ giải phóng nhiều cashflow nhất.
-- Giải thích: `priorityScore = totalMonthlyPayment / estimatedPayoffMonths` sẽ ưu tiên các khoản nợ vừa mang lại **cashflow release lớn**, vừa **có thể hoàn thành nhanh**, giúp số tiền trả thêm (`monthlyExtraPayment`) tăng dần theo cơ chế Cashflow Release ở các tháng tiếp theo.
+  - `estimatedPayoffMonths = balance / minimumPayment`
+  - `priorityScore = minimumPayment / estimatedPayoffMonths`
+- Chọn khoản nợ có `priorityScore` **cao nhất**.
+- **Giải thích:** Score = `minimumPayment² / balance` — ưu tiên các khoản nợ vừa có **minimum payment lớn** (giải phóng nhiều cashflow khi tất toán), vừa **gần trả hết** (tất toán sớm). Sau khi tất toán, minimum payment của khoản đó được cộng vào `snowballBonus` cho các tháng tiếp theo.
+- Mục tiêu: tối đa hóa dòng tiền được giải phóng trong thời gian ngắn nhất.
 
 ## 2. Simulation
 
@@ -33,15 +28,18 @@ Chiến lược này ưu tiên tất toán những khoản nợ có khả năng 
    Cộng `interest` vào `balance`, lưu vào `currentInterestPaid`.
 4. **Thanh toán minimum payment:** với mỗi active debt:
    `payment = min(minimumPayment, balance)`
-   Trừ `payment` khỏi `balance`, lưu vào `currentMinimumPaid` và `currentPrincipalPaid`.
+   - Phần trả lãi: `interestPortion = min(currentInterestPaid, payment)` → ghi đè `currentInterestPaid`
+   - Phần trả gốc: `principalPortion = payment - interestPortion` → cộng vào `currentPrincipalPaid`
+   - Trừ `payment` khỏi `balance`, lưu `payment` vào `currentMinimumPaid`.
 5. **Chọn target debt** theo `RepaymentStrategy`.
 6. **Phân bổ extra payment** vào target:
-   `extraUsed = min(monthlyExtraPayment, target.balance)`
+   `totalExtraThisMonth = monthlyExtraPayment (gốc từ user) + snowballBonus (tích lũy)`
+   `extraUsed = min(totalExtraThisMonth, target.balance)`
    Trừ `extraUsed` khỏi `target.balance`.
-   `monthlyExtraPayment -= extraUsed`
+   > `monthlyExtraPayment` gốc **không thay đổi** qua các tháng.
 7. **Cashflow release:** với mỗi debt vừa `balance ≤ 0`:
    `paidOff = true`
-   `monthlyExtraPayment += minimumPayment` của khoản đó
+   `snowballBonus += minimumPayment` của khoản đó (tích lũy vĩnh viễn từ tháng tiếp theo)
 8. Ghi `SimulationMonthDto` với toàn bộ per-debt breakdown.
 9. Lặp lại cho đến khi không còn active debt hoặc `monthIndex > 600`.
 

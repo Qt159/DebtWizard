@@ -10,28 +10,34 @@ import java.util.List;
 @Component
 public class ImproveCashflowStrategy implements DebtSelectionStrategy {
 
+    /**
+     * Chọn khoản nợ có thể trả hết nhanh nhất để giải phóng cashflow sớm nhất.
+     * Ưu tiên debt có balance / minimumPayment thấp nhất (payoff gần nhất).
+     * extraPaymentAllocation KHÔNG đưa vào công thức vì nó là tổng budget chung,
+     * chưa biết sẽ phân bổ bao nhiêu cho debt này.
+     */
     @Override
     public DebtSnapshot selectTargetDebt(List<DebtSnapshot> activeDebts, BigDecimal extraPaymentAllocation) {
         DebtSnapshot target = null;
         BigDecimal bestScore = BigDecimal.valueOf(-1);
 
         for (DebtSnapshot debt : activeDebts) {
-
-            BigDecimal totalMonthlyPayment = debt.getMinimumPayment().add(extraPaymentAllocation);
-            if (totalMonthlyPayment.compareTo(BigDecimal.ZERO) <= 0) {
+            if (debt.getMinimumPayment().compareTo(BigDecimal.ZERO) <= 0
+                    || debt.getBalance().compareTo(BigDecimal.ZERO) <= 0) {
                 continue;
             }
 
+            // estimatedPayoffMonths = balance / minimumPayment
             BigDecimal payoffMonths = debt.getBalance()
-                    .divide(totalMonthlyPayment, 2, RoundingMode.HALF_UP);
+                    .divide(debt.getMinimumPayment(), 4, RoundingMode.HALF_UP);
 
             if (payoffMonths.compareTo(BigDecimal.ZERO) <= 0) {
                 continue;
             }
 
-            // PriorityScore = MonthlyPayment / EstimatedPayoffMonths
-            BigDecimal score = totalMonthlyPayment
-                    .divide(payoffMonths, 2, RoundingMode.HALF_UP);
+            // score = minimumPayment / estimatedPayoffMonths
+            BigDecimal score = debt.getMinimumPayment()
+                    .divide(payoffMonths, 4, RoundingMode.HALF_UP);
 
             if (target == null || score.compareTo(bestScore) > 0) {
                 target = debt;

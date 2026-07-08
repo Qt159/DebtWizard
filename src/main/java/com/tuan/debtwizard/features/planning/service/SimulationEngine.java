@@ -36,8 +36,10 @@ public class SimulationEngine {
     }
 
     /**
-     * Chạy simulation và trả thẳng PlanComparisonDto — không cần
-     * intermediate SimulationResult/Month/Payment objects nữa.
+     * Chạy simulation và trả thẳng PlanComparisonDto.
+     *
+     * monthlyExtraPayment: số tiền trả thêm cố định mỗi tháng do user nhập.
+     * snowballBonus: tiền được giải phóng từ các khoản nợ đã trả hết, cộng dồn qua từng tháng.
      */
     public PlanComparisonDto simulate(List<DebtSnapshot> snapshots,
                                       RepaymentStrategy strategyType,
@@ -46,6 +48,7 @@ public class SimulationEngine {
 
         int monthIndex = 0;
         BigDecimal totalInterest = BigDecimal.ZERO;
+        BigDecimal snowballBonus = BigDecimal.ZERO; // tích lũy từ cashflow released
         List<SimulationMonthDto> schedule = new ArrayList<>();
 
         while (simulationHelper.hasActiveDebt(snapshots)) {
@@ -59,16 +62,18 @@ public class SimulationEngine {
 
             paymentHelper.applyMinimumPayments(activeDebts);
 
-            DebtSnapshot target = strategy.selectTargetDebt(activeDebts, monthlyExtraPayment);
-            BigDecimal extraUsed = paymentHelper.applyExtraPayment(monthlyExtraPayment, target);
-            monthlyExtraPayment = monthlyExtraPayment.subtract(extraUsed);
+            // Tổng extra tháng này = extra gốc của user + tích lũy snowball từ tháng trước
+            BigDecimal totalExtraThisMonth = monthlyExtraPayment.add(snowballBonus);
 
+            DebtSnapshot target = strategy.selectTargetDebt(activeDebts, totalExtraThisMonth);
+            BigDecimal extraUsed = paymentHelper.applyExtraPayment(totalExtraThisMonth, target);
+
+            // Khi một khoản nợ trả hết, minimumPayment của nó được giải phóng vào snowball
             BigDecimal released = paymentHelper.releaseCashflow(activeDebts);
-            monthlyExtraPayment = monthlyExtraPayment.add(released);
+            snowballBonus = snowballBonus.add(released);
 
             BigDecimal totalPayment = simulationHelper.calculateTotalPayment(activeDebts);
 
-            // Build per-debt breakdown trực tiếp vào DTO
             List<DebtPaymentDetailDto> payments = new ArrayList<>();
             for (DebtSnapshot debt : activeDebts) {
                 DebtPaymentDetailDto p = new DebtPaymentDetailDto();

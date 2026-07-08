@@ -20,11 +20,20 @@ public class PaymentHelper {
     public void applyMinimumPayments(List<DebtSnapshot> debts) {
         for (DebtSnapshot debt : debts) {
             if (!debt.hasBalance()) {
-                continue;}
+                continue;
+            }
             BigDecimal payment = debt.getMinimumPayment().min(debt.getBalance());
+
+            // Phần lãi đã được cộng vào balance ở bước applyMonthlyInterest trước đó.
+            // Minimum payment trả lãi trước, phần còn lại mới giảm principal.
+            BigDecimal interestPortion = debt.getCurrentInterestPaid().min(payment);
+            BigDecimal principalPortion = payment.subtract(interestPortion);
+
             debt.setBalance(debt.getBalance().subtract(payment));
             debt.setCurrentMinimumPaid(payment);
-            debt.setCurrentPrincipalPaid(debt.getCurrentPrincipalPaid().add(payment));
+            // Ghi đè interestPaid: đây là phần lãi thực sự đã thanh toán trong tháng
+            debt.setCurrentInterestPaid(interestPortion);
+            debt.setCurrentPrincipalPaid(debt.getCurrentPrincipalPaid().add(principalPortion));
         }
     }
     public BigDecimal applyExtraPayment(BigDecimal monthlyExtraBudget, DebtSnapshot targetDebt) {

@@ -1,0 +1,5 @@
+# pack-refs with: peeled fully-peeled sorted 
+a80bb1a5dd54dfe14c74166675f810a1b43cca6d refs/heads/main
+08d0a064f2111e54f833d659d8343d8143bad0d5 refs/heads/payment-allocation-strategy
+60a21ac0902a9717b48d5b069de1b4108a83a6d5 refs/heads/planning
+cc2b41b7a97b13cfed651b1250ee40c036d08ea4 refs/heads/refactor-auth-and-api_response

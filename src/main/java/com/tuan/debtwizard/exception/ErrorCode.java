@@ -39,6 +39,7 @@ public enum ErrorCode {
 
     // Planning
     PLAN_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy kế hoạch đã lưu"),
+    EXTRA_PAYMENT_EXCEEDS_MAX(HttpStatus.BAD_REQUEST, "Số tiền trả thêm vượt quá ngưỡng tối đa cho phép"),
 
     // General validation
     INVALID_INPUT(HttpStatus.BAD_REQUEST, "Dữ liệu không hợp lệ"),

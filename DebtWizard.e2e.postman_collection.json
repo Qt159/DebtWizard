@@ -1,74 +1,83 @@
 {
   "info": {
-    "_postman_id": "debtwizard-e2e-v1",
+    "_postman_id": "debtwizard-e2e-v2",
     "name": "DebtWizard E2E Test Flow",
-    "description": "End-to-end ordered flow. Run via Postman Runner. All variables (accessToken, debtId, paymentId) are auto-set between requests.",
+    "description": "End-to-end ordered flow. Run via Postman Runner. All dates and tokens are auto-set via pre-request scripts.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl",       "value": "http://localhost:8080" },
-    { "key": "accessToken",   "value": "" },
-    { "key": "refreshToken",  "value": "" },
-    { "key": "debtId",        "value": "" },
-    { "key": "paymentId",     "value": "" },
-    { "key": "testUsername",  "value": "e2euser" },
-    { "key": "testPassword",  "value": "password123" }
+    { "key": "baseUrl",        "value": "http://localhost:8080" },
+    { "key": "accessToken",    "value": "" },
+    { "key": "refreshToken",   "value": "" },
+    { "key": "debtId",         "value": "" },
+    { "key": "paymentId",      "value": "" },
+    { "key": "username",       "value": "e2euser" },
+    { "key": "password",       "value": "password123" },
+    { "key": "today",          "value": "" },
+    { "key": "debtStartDate",  "value": "" }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "const now = new Date();",
+          "const pad = n => String(n).padStart(2, '0');",
+          "const today = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;",
+          "pm.collectionVariables.set('today', today);",
+          "",
+          "const start = new Date(); start.setMonth(start.getMonth() - 3);",
+          "const debtStart = `${start.getFullYear()}-${pad(start.getMonth()+1)}-01`;",
+          "pm.collectionVariables.set('debtStartDate', debtStart);"
+        ]
+      }
+    }
   ],
   "item": [
     {
       "name": "Step 01 - Register",
-      "event": [
-        { "listen": "prerequest", "script": { "type": "text/javascript", "exec": [
-          "pm.collectionVariables.set('testUsername', 'e2euser' + Date.now());"
-        ]}},
-        { "listen": "test", "script": { "type": "text/javascript", "exec": [
-          "pm.test('[Register] Status 200', () => pm.response.to.have.status(200));",
-          "pm.test('[Register] Has username', () => {",
-          "  pm.expect(pm.response.json().result).to.have.property('username');",
-          "});"
-        ]}}
-      ],
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('[Register] Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('[Register] Has username', () => pm.expect(pm.response.json().result).to.have.property('username'));"
+      ]}}],
       "request": {
         "method": "POST",
         "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": { "mode": "raw", "raw": "{\n  \"username\": \"{{testUsername}}\",\n  \"password\": \"{{testPassword}}\",\n  \"fullName\": \"E2E Test User\",\n  \"email\": \"e2e@example.com\",\n  \"monthlyIncome\": 20000000\n}" },
+        "body": { "mode": "raw", "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\",\n  \"fullName\": \"E2E Test User\",\n  \"email\": \"e2e@example.com\",\n  \"monthlyIncome\": 20000000\n}" },
         "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api","auth","register"] }
       }
     },
     {
       "name": "Step 02 - Login",
-      "event": [
-        { "listen": "test", "script": { "type": "text/javascript", "exec": [
-          "pm.test('[Login] Status 200', () => pm.response.to.have.status(200));",
-          "pm.test('[Login] Tokens saved', () => {",
-          "  const r = pm.response.json().result;",
-          "  pm.expect(r).to.have.property('accessToken');",
-          "  pm.expect(r).to.have.property('refreshToken');",
-          "  pm.collectionVariables.set('accessToken', r.accessToken);",
-          "  pm.collectionVariables.set('refreshToken', r.refreshToken);",
-          "});"
-        ]}}
-      ],
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('[Login] Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('[Login] Tokens saved', () => {",
+        "  const r = pm.response.json().result;",
+        "  pm.expect(r).to.have.property('accessToken');",
+        "  pm.expect(r).to.have.property('refreshToken');",
+        "  pm.collectionVariables.set('accessToken', r.accessToken);",
+        "  pm.collectionVariables.set('refreshToken', r.refreshToken);",
+        "});"
+      ]}}],
       "request": {
         "method": "POST",
         "header": [{ "key": "Content-Type", "value": "application/json" }],
-        "body": { "mode": "raw", "raw": "{\n  \"username\": \"{{testUsername}}\",\n  \"password\": \"{{testPassword}}\"\n}" },
+        "body": { "mode": "raw", "raw": "{\n  \"username\": \"{{username}}\",\n  \"password\": \"{{password}}\"\n}" },
         "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api","auth","login"] }
       }
     },
     {
       "name": "Step 03 - Get My Profile",
-      "event": [
-        { "listen": "test", "script": { "type": "text/javascript", "exec": [
-          "pm.test('[Profile] Status 200', () => pm.response.to.have.status(200));",
-          "pm.test('[Profile] Has user fields', () => {",
-          "  const r = pm.response.json().result;",
-          "  pm.expect(r).to.have.property('id');",
-          "  pm.expect(r).to.have.property('username');",
-          "  pm.expect(r).to.have.property('email');",
-          "});"
-        ]}}
-      ],
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('[Profile] Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('[Profile] Has user fields', () => {",
+        "  const r = pm.response.json().result;",
+        "  pm.expect(r).to.have.property('id');",
+        "  pm.expect(r).to.have.property('username');",
+        "  pm.expect(r).to.have.property('email');",
+        "});"
+      ]}}],
       "request": {
         "method": "GET",
         "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
@@ -77,14 +86,10 @@
     },
     {
       "name": "Step 04 - Update Profile",
-      "event": [
-        { "listen": "test", "script": { "type": "text/javascript", "exec": [
-          "pm.test('[UpdateProfile] Status 200', () => pm.response.to.have.status(200));",
-          "pm.test('[UpdateProfile] fullName updated', () => {",
-          "  pm.expect(pm.response.json().result.fullName).to.eql('E2E Updated User');",
-          "});"
-        ]}}
-      ],
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('[UpdateProfile] Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('[UpdateProfile] fullName updated', () => pm.expect(pm.response.json().result.fullName).to.eql('E2E Updated User'));"
+      ]}}],
       "request": {
         "method": "PUT",
         "header": [
@@ -97,16 +102,14 @@
     },
     {
       "name": "Step 05 - Refresh Token",
-      "event": [
-        { "listen": "test", "script": { "type": "text/javascript", "exec": [
-          "pm.test('[Refresh] Status 200', () => pm.response.to.have.status(200));",
-          "pm.test('[Refresh] New accessToken saved', () => {",
-          "  const r = pm.response.json().result;",
-          "  pm.expect(r).to.have.property('accessToken');",
-          "  pm.collectionVariables.set('accessToken', r.accessToken);",
-          "});"
-        ]}}
-      ],
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('[Refresh] Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('[Refresh] New accessToken saved', () => {",
+        "  const r = pm.response.json().result;",
+        "  pm.expect(r).to.have.property('accessToken');",
+        "  pm.collectionVariables.set('accessToken', r.accessToken);",
+        "});"
+      ]}}],
       "request": {
         "method": "POST",
         "header": [{ "key": "Content-Type", "value": "text/plain" }],
@@ -116,38 +119,31 @@
     },
     {
       "name": "Step 06 - Create Debt",
-      "event": [
-        { "listen": "test", "script": { "type": "text/javascript", "exec": [
-          "pm.test('[CreateDebt] Status 200', () => pm.response.to.have.status(200));",
-          "pm.test('[CreateDebt] debtId saved', () => {",
-          "  const r = pm.response.json().result;",
-          "  pm.expect(r).to.have.property('id');",
-          "  pm.expect(r).to.have.property('remainingPrincipal');",
-          "  pm.collectionVariables.set('debtId', r.id);",
-          "  console.log('✓ Created debtId:', r.id);",
-          "});"
-        ]}}
-      ],
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('[CreateDebt] Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('[CreateDebt] debtId saved', () => {",
+        "  const r = pm.response.json().result;",
+        "  pm.expect(r).to.have.property('id');",
+        "  pm.expect(r).to.have.property('remainingPrincipal');",
+        "  pm.collectionVariables.set('debtId', r.id);",
+        "});"
+      ]}}],
       "request": {
         "method": "POST",
         "header": [
           { "key": "Authorization", "value": "Bearer {{accessToken}}" },
           { "key": "Content-Type", "value": "application/json" }
         ],
-        "body": { "mode": "raw", "raw": "{\n  \"debt\": {\n    \"lenderName\": \"VPBank\",\n    \"totalPrincipal\": 50000000,\n    \"startDate\": \"2024-01-01\",\n    \"termMonths\": 24,\n    \"dueDay\": 15,\n    \"debtType\": \"BANKING\"\n  },\n  \"interestSettings\": {\n    \"interestCalculationMethod\": \"REDUCING_BALANCE\",\n    \"interestFrequency\": \"MONTHLY\",\n    \"interestRate\": 12.5\n  }\n}" },
+        "body": { "mode": "raw", "raw": "{\n  \"debt\": {\n    \"lenderName\": \"VPBank\",\n    \"totalPrincipal\": 50000000,\n    \"startDate\": \"{{debtStartDate}}\",\n    \"termMonths\": 24,\n    \"dueDay\": 15,\n    \"debtType\": \"BANKING\"\n  },\n  \"interestSettings\": {\n    \"interestCalculationMethod\": \"REDUCING_BALANCE\",\n    \"interestFrequency\": \"MONTHLY\",\n    \"interestRate\": 12.5\n  }\n}" },
         "url": { "raw": "{{baseUrl}}/api/debts", "host": ["{{baseUrl}}"], "path": ["api","debts"] }
       }
     },
     {
       "name": "Step 07 - Get All Debts",
-      "event": [
-        { "listen": "test", "script": { "type": "text/javascript", "exec": [
-          "pm.test('[GetDebts] Status 200', () => pm.response.to.have.status(200));",
-          "pm.test('[GetDebts] Has debts', () => {",
-          "  pm.expect(pm.response.json().result).to.be.an('array').with.length.greaterThan(0);",
-          "});"
-        ]}}
-      ],
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('[GetDebts] Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('[GetDebts] Is array', () => pm.expect(pm.response.json().result).to.be.an('array').with.length.greaterThan(0));"
+      ]}}],
       "request": {
         "method": "GET",
         "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
@@ -156,17 +152,15 @@
     },
     {
       "name": "Step 08 - Get Debt by ID",
-      "event": [
-        { "listen": "test", "script": { "type": "text/javascript", "exec": [
-          "pm.test('[GetDebtById] Status 200', () => pm.response.to.have.status(200));",
-          "pm.test('[GetDebtById] Has fields', () => {",
-          "  const r = pm.response.json().result;",
-          "  pm.expect(r).to.have.property('lenderName');",
-          "  pm.expect(r).to.have.property('totalPrincipal');",
-          "  pm.expect(r).to.have.property('remainingPrincipal');",
-          "});"
-        ]}}
-      ],
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('[GetDebtById] Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('[GetDebtById] Has fields', () => {",
+        "  const r = pm.response.json().result;",
+        "  pm.expect(r).to.have.property('lenderName');",
+        "  pm.expect(r).to.have.property('totalPrincipal');",
+        "  pm.expect(r).to.have.property('remainingPrincipal');",
+        "});"
+      ]}}],
       "request": {
         "method": "GET",
         "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
@@ -175,39 +169,32 @@
     },
     {
       "name": "Step 09 - Create Payment",
-      "event": [
-        { "listen": "test", "script": { "type": "text/javascript", "exec": [
-          "pm.test('[CreatePayment] Status 200', () => pm.response.to.have.status(200));",
-          "pm.test('[CreatePayment] paymentId saved', () => {",
-          "  const r = pm.response.json().result;",
-          "  pm.expect(r).to.have.property('id');",
-          "  pm.expect(r).to.have.property('principalPaid');",
-          "  pm.expect(r).to.have.property('interestPaid');",
-          "  pm.collectionVariables.set('paymentId', r.id);",
-          "  console.log('✓ Created paymentId:', r.id);",
-          "});"
-        ]}}
-      ],
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('[CreatePayment] Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('[CreatePayment] paymentId saved', () => {",
+        "  const r = pm.response.json().result;",
+        "  pm.expect(r).to.have.property('id');",
+        "  pm.expect(r).to.have.property('principalPaid');",
+        "  pm.expect(r).to.have.property('interestPaid');",
+        "  pm.collectionVariables.set('paymentId', r.id);",
+        "});"
+      ]}}],
       "request": {
         "method": "POST",
         "header": [
           { "key": "Authorization", "value": "Bearer {{accessToken}}" },
           { "key": "Content-Type", "value": "application/json" }
         ],
-        "body": { "mode": "raw", "raw": "{\n  \"debtId\": {{debtId}},\n  \"amount\": 3000000,\n  \"paymentMethod\": \"BANK_TRANSFER\",\n  \"paymentDate\": \"2024-06-15\",\n  \"note\": \"E2E test payment\"\n}" },
+        "body": { "mode": "raw", "raw": "{\n  \"debtId\": {{debtId}},\n  \"amount\": 3000000,\n  \"paymentMethod\": \"BANK_TRANSFER\",\n  \"paymentDate\": \"{{today}}\",\n  \"note\": \"E2E test payment\"\n}" },
         "url": { "raw": "{{baseUrl}}/api/payments", "host": ["{{baseUrl}}"], "path": ["api","payments"] }
       }
     },
     {
       "name": "Step 10 - Get All Payments",
-      "event": [
-        { "listen": "test", "script": { "type": "text/javascript", "exec": [
-          "pm.test('[GetPayments] Status 200', () => pm.response.to.have.status(200));",
-          "pm.test('[GetPayments] Has payments', () => {",
-          "  pm.expect(pm.response.json().result).to.be.an('array').with.length.greaterThan(0);",
-          "});"
-        ]}}
-      ],
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('[GetPayments] Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('[GetPayments] Is array', () => pm.expect(pm.response.json().result).to.be.an('array').with.length.greaterThan(0));"
+      ]}}],
       "request": {
         "method": "GET",
         "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
@@ -216,16 +203,14 @@
     },
     {
       "name": "Step 11 - Get Payment by ID",
-      "event": [
-        { "listen": "test", "script": { "type": "text/javascript", "exec": [
-          "pm.test('[GetPaymentById] Status 200', () => pm.response.to.have.status(200));",
-          "pm.test('[GetPaymentById] Has fields', () => {",
-          "  const r = pm.response.json().result;",
-          "  pm.expect(r).to.have.property('amount');",
-          "  pm.expect(r).to.have.property('paymentMethod');",
-          "});"
-        ]}}
-      ],
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('[GetPaymentById] Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('[GetPaymentById] Has fields', () => {",
+        "  const r = pm.response.json().result;",
+        "  pm.expect(r).to.have.property('amount');",
+        "  pm.expect(r).to.have.property('paymentMethod');",
+        "});"
+      ]}}],
       "request": {
         "method": "GET",
         "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
@@ -234,16 +219,14 @@
     },
     {
       "name": "Step 12 - Get Dashboard",
-      "event": [
-        { "listen": "test", "script": { "type": "text/javascript", "exec": [
-          "pm.test('[Dashboard] Status 200', () => pm.response.to.have.status(200));",
-          "pm.test('[Dashboard] Has summary fields', () => {",
-          "  const r = pm.response.json().result;",
-          "  pm.expect(r).to.have.property('totalDebt');",
-          "  pm.expect(r).to.have.property('totalPaid');",
-          "});"
-        ]}}
-      ],
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('[Dashboard] Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('[Dashboard] Has fields', () => {",
+        "  const r = pm.response.json().result;",
+        "  pm.expect(r).to.have.property('totalDebt');",
+        "  pm.expect(r).to.have.property('totalPaid');",
+        "});"
+      ]}}],
       "request": {
         "method": "GET",
         "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
@@ -252,18 +235,16 @@
     },
     {
       "name": "Step 13 - Get Analysis",
-      "event": [
-        { "listen": "test", "script": { "type": "text/javascript", "exec": [
-          "pm.test('[Analysis] Status 200', () => pm.response.to.have.status(200));",
-          "pm.test('[Analysis] Has 4 metrics', () => {",
-          "  const r = pm.response.json().result;",
-          "  pm.expect(r).to.have.property('dti');",
-          "  pm.expect(r).to.have.property('interestRatio');",
-          "  pm.expect(r).to.have.property('overdue');",
-          "  pm.expect(r).to.have.property('repaymentTime');",
-          "});"
-        ]}}
-      ],
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('[Analysis] Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('[Analysis] Has 4 metrics', () => {",
+        "  const r = pm.response.json().result;",
+        "  pm.expect(r).to.have.property('dti');",
+        "  pm.expect(r).to.have.property('interestRatio');",
+        "  pm.expect(r).to.have.property('overdue');",
+        "  pm.expect(r).to.have.property('repaymentTime');",
+        "});"
+      ]}}],
       "request": {
         "method": "GET",
         "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
@@ -272,18 +253,16 @@
     },
     {
       "name": "Step 14 - Compare Plans",
-      "event": [
-        { "listen": "test", "script": { "type": "text/javascript", "exec": [
-          "pm.test('[ComparePlans] Status 200', () => pm.response.to.have.status(200));",
-          "pm.test('[ComparePlans] Has both plans', () => {",
-          "  const r = pm.response.json().result;",
-          "  pm.expect(r).to.have.property('firstPlan');",
-          "  pm.expect(r).to.have.property('secondPlan');",
-          "  pm.expect(r.firstPlan).to.have.property('totalInterestPaid');",
-          "  pm.expect(r.firstPlan).to.have.property('payoffDurationMonths');",
-          "});"
-        ]}}
-      ],
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('[ComparePlans] Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('[ComparePlans] Has both plans', () => {",
+        "  const r = pm.response.json().result;",
+        "  pm.expect(r).to.have.property('firstPlan');",
+        "  pm.expect(r).to.have.property('secondPlan');",
+        "  pm.expect(r.firstPlan).to.have.property('totalInterestPaid');",
+        "  pm.expect(r.firstPlan).to.have.property('payoffDurationMonths');",
+        "});"
+      ]}}],
       "request": {
         "method": "POST",
         "header": [
@@ -296,17 +275,14 @@
     },
     {
       "name": "Step 15 - Save Plan",
-      "event": [
-        { "listen": "test", "script": { "type": "text/javascript", "exec": [
-          "pm.test('[SavePlan] Status 200', () => pm.response.to.have.status(200));",
-          "pm.test('[SavePlan] planId saved', () => {",
-          "  const r = pm.response.json().result;",
-          "  pm.expect(r).to.have.property('id');",
-          "  pm.expect(r).to.have.property('strategy');",
-          "  console.log('✓ Saved planId:', r.id);",
-          "});"
-        ]}}
-      ],
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('[SavePlan] Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('[SavePlan] Has plan', () => {",
+        "  const r = pm.response.json().result;",
+        "  pm.expect(r).to.have.property('id');",
+        "  pm.expect(r).to.have.property('strategy');",
+        "});"
+      ]}}],
       "request": {
         "method": "POST",
         "header": [
@@ -319,16 +295,14 @@
     },
     {
       "name": "Step 16 - Get Saved Plan",
-      "event": [
-        { "listen": "test", "script": { "type": "text/javascript", "exec": [
-          "pm.test('[GetSavedPlan] Status 200', () => pm.response.to.have.status(200));",
-          "pm.test('[GetSavedPlan] Has plan', () => {",
-          "  const r = pm.response.json().result;",
-          "  pm.expect(r).to.have.property('id');",
-          "  pm.expect(r).to.have.property('strategy');",
-          "});"
-        ]}}
-      ],
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('[GetSavedPlan] Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('[GetSavedPlan] Has fields', () => {",
+        "  const r = pm.response.json().result;",
+        "  pm.expect(r).to.have.property('id');",
+        "  pm.expect(r).to.have.property('strategy');",
+        "});"
+      ]}}],
       "request": {
         "method": "GET",
         "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
@@ -337,14 +311,10 @@
     },
     {
       "name": "Step 17 - Get Payments of Debt",
-      "event": [
-        { "listen": "test", "script": { "type": "text/javascript", "exec": [
-          "pm.test('[PaymentsOfDebt] Status 200', () => pm.response.to.have.status(200));",
-          "pm.test('[PaymentsOfDebt] Is array', () => {",
-          "  pm.expect(pm.response.json().result).to.be.an('array').with.length.greaterThan(0);",
-          "});"
-        ]}}
-      ],
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('[PaymentsOfDebt] Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('[PaymentsOfDebt] Is array', () => pm.expect(pm.response.json().result).to.be.an('array').with.length.greaterThan(0));"
+      ]}}],
       "request": {
         "method": "GET",
         "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
@@ -353,56 +323,45 @@
     },
     {
       "name": "Step 18 - Update Payment",
-      "event": [
-        { "listen": "test", "script": { "type": "text/javascript", "exec": [
-          "pm.test('[UpdatePayment] Status 200', () => pm.response.to.have.status(200));",
-          "pm.test('[UpdatePayment] Note updated', () => {",
-          "  const r = pm.response.json().result;",
-          "  pm.expect(r.note).to.eql('Updated e2e note');",
-          "});"
-        ]}}
-      ],
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('[UpdatePayment] Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('[UpdatePayment] Note updated', () => pm.expect(pm.response.json().result.note).to.eql('Updated e2e note'));"
+      ]}}],
       "request": {
         "method": "PUT",
         "header": [
           { "key": "Authorization", "value": "Bearer {{accessToken}}" },
           { "key": "Content-Type", "value": "application/json" }
         ],
-        "body": { "mode": "raw", "raw": "{\n  \"note\": \"Updated e2e note\",\n  \"paymentDate\": \"2024-06-20\"\n}" },
+        "body": { "mode": "raw", "raw": "{\n  \"note\": \"Updated e2e note\",\n  \"paymentDate\": \"{{today}}\"\n}" },
         "url": { "raw": "{{baseUrl}}/api/payments/{{paymentId}}", "host": ["{{baseUrl}}"], "path": ["api","payments","{{paymentId}}"] }
       }
     },
     {
       "name": "Step 19 - Update Debt",
-      "event": [
-        { "listen": "test", "script": { "type": "text/javascript", "exec": [
-          "pm.test('[UpdateDebt] Status 200', () => pm.response.to.have.status(200));",
-          "pm.test('[UpdateDebt] lenderName updated', () => {",
-          "  pm.expect(pm.response.json().result.lenderName).to.eql('Techcombank');",
-          "});"
-        ]}}
-      ],
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('[UpdateDebt] Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('[UpdateDebt] lenderName updated', () => pm.expect(pm.response.json().result.lenderName).to.eql('Techcombank'));"
+      ]}}],
       "request": {
         "method": "PUT",
         "header": [
           { "key": "Authorization", "value": "Bearer {{accessToken}}" },
           { "key": "Content-Type", "value": "application/json" }
         ],
-        "body": { "mode": "raw", "raw": "{\n  \"lenderName\": \"Techcombank\",\n  \"totalPrincipal\": 50000000,\n  \"startDate\": \"2024-01-01\",\n  \"termMonths\": 36,\n  \"dueDay\": 20,\n  \"debtType\": \"BANKING\"\n}" },
+        "body": { "mode": "raw", "raw": "{\n  \"lenderName\": \"Techcombank\",\n  \"totalPrincipal\": 50000000,\n  \"startDate\": \"{{debtStartDate}}\",\n  \"termMonths\": 36,\n  \"dueDay\": 20,\n  \"debtType\": \"BANKING\"\n}" },
         "url": { "raw": "{{baseUrl}}/api/debts/{{debtId}}", "host": ["{{baseUrl}}"], "path": ["api","debts","{{debtId}}"] }
       }
     },
     {
       "name": "Step 20 - Change Password",
-      "event": [
-        { "listen": "test", "script": { "type": "text/javascript", "exec": [
-          "pm.test('[ChangePassword] Status 200', () => pm.response.to.have.status(200));",
-          "pm.test('[ChangePassword] Success message', () => {",
-          "  pm.expect(pm.response.json().message).to.eql('Success');",
-          "  pm.collectionVariables.set('testPassword', 'newpassword456');",
-          "});"
-        ]}}
-      ],
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('[ChangePassword] Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('[ChangePassword] Success', () => {",
+        "  pm.expect(pm.response.json().message).to.eql('Success');",
+        "  pm.collectionVariables.set('password', 'newpassword456');",
+        "});"
+      ]}}],
       "request": {
         "method": "POST",
         "header": [
@@ -415,14 +374,10 @@
     },
     {
       "name": "Step 21 - Delete Saved Plan",
-      "event": [
-        { "listen": "test", "script": { "type": "text/javascript", "exec": [
-          "pm.test('[DeleteSavedPlan] Status 200', () => pm.response.to.have.status(200));",
-          "pm.test('[DeleteSavedPlan] Success', () => {",
-          "  pm.expect(pm.response.json().message).to.eql('Success');",
-          "});"
-        ]}}
-      ],
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('[DeleteSavedPlan] Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('[DeleteSavedPlan] Success', () => pm.expect(pm.response.json().message).to.eql('Success'));"
+      ]}}],
       "request": {
         "method": "DELETE",
         "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
@@ -431,14 +386,10 @@
     },
     {
       "name": "Step 22 - Delete Payment",
-      "event": [
-        { "listen": "test", "script": { "type": "text/javascript", "exec": [
-          "pm.test('[DeletePayment] Status 200', () => pm.response.to.have.status(200));",
-          "pm.test('[DeletePayment] Success', () => {",
-          "  pm.expect(pm.response.json().message).to.eql('Success');",
-          "});"
-        ]}}
-      ],
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('[DeletePayment] Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('[DeletePayment] Success', () => pm.expect(pm.response.json().message).to.eql('Success'));"
+      ]}}],
       "request": {
         "method": "DELETE",
         "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
@@ -447,15 +398,13 @@
     },
     {
       "name": "Step 23 - Delete Debt",
-      "event": [
-        { "listen": "test", "script": { "type": "text/javascript", "exec": [
-          "pm.test('[DeleteDebt] Status 200', () => pm.response.to.have.status(200));",
-          "pm.test('[DeleteDebt] Success', () => {",
-          "  pm.expect(pm.response.json().message).to.eql('Success');",
-          "  console.log('✓ E2E flow completed successfully');",
-          "});"
-        ]}}
-      ],
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('[DeleteDebt] Status 200', () => pm.response.to.have.status(200));",
+        "pm.test('[DeleteDebt] Success', () => {",
+        "  pm.expect(pm.response.json().message).to.eql('Success');",
+        "  console.log('✓ E2E flow completed successfully');",
+        "});"
+      ]}}],
       "request": {
         "method": "DELETE",
         "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],

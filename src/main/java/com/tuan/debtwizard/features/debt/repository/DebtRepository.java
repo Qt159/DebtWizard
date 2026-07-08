@@ -94,4 +94,11 @@ public interface DebtRepository extends JpaRepository<Debt, Long> {
     BigDecimal getTotalActiveExpectedMonthlyPayment(@Param("userId") Long userId);
 
     List<Debt> findByUserIdAndStatusInAndDeletedFalse(Long id, List<DebtStatus> active);
+
+    @Query("""
+    SELECT d FROM Debt d
+    JOIN FETCH d.user
+    WHERE d.id IN :ids
+    """)
+    List<Debt> findAllByIdWithUser(@Param("ids") List<Long> ids);
 }

@@ -20,10 +20,12 @@ import com.tuan.debtwizard.features.planning.model.SavedPlan;
 import com.tuan.debtwizard.features.planning.repository.SavedPlanRepository;
 import com.tuan.debtwizard.features.user.model.User;
 import com.tuan.debtwizard.features.user.repository.UserRepository;
+import com.tuan.debtwizard.features.planning.helper.SimulationHelper;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,26 +38,37 @@ public class PlanningService {
     private final SavedPlanRepository savedPlanRepository;
     private final SnapshotMapper snapshotMapper;
     private final SavedPlanMapper savedPlanMapper;
+    private final SimulationHelper simulationHelper;
 
     public PlanningService(SimulationEngine simulationEngine,
                            DebtRepository debtRepository,
                            UserRepository userRepository,
                            SavedPlanRepository savedPlanRepository,
                            SnapshotMapper snapshotMapper,
-                           SavedPlanMapper savedPlanMapper) {
+                           SavedPlanMapper savedPlanMapper,
+                           SimulationHelper simulationHelper) {
         this.simulationEngine = simulationEngine;
         this.debtRepository = debtRepository;
         this.userRepository = userRepository;
         this.savedPlanRepository = savedPlanRepository;
         this.snapshotMapper = snapshotMapper;
         this.savedPlanMapper = savedPlanMapper;
+        this.simulationHelper = simulationHelper;
     }
 
     // Compare không lưu DB
-    
     public CompareResponse comparePlans(CompareRequest request, UserDetails userDetails) {
-        List<Debt> debts = loadAndVerifyDebts(request.getDebtIds(), userDetails.getUsername());
+        User user = getUser(userDetails.getUsername());
+        List<Debt> debts = loadAndVerifyDebts(request.getDebtIds(), user.getUsername());
         List<DebtSnapshot> snapshots = snapshotMapper.toSnapshots(debts);
+
+        // Tính ngưỡng tối đa: thu nhập - chi tiêu - tổng minimum payments
+        BigDecimal maxAllowed = simulationHelper.calculateMonthlyExtraBudget(user, snapshots);
+
+        // Validate: user không được nhập vượt ngưỡng
+        if (request.getMonthlyExtraPayment().compareTo(maxAllowed) > 0) {
+            throw new AppException(ErrorCode.EXTRA_PAYMENT_EXCEEDS_MAX);
+        }
 
         List<DebtSnapshot> forFirst = new ArrayList<>();
         List<DebtSnapshot> forSecond = new ArrayList<>();
@@ -65,6 +78,7 @@ public class PlanningService {
         }
 
         CompareResponse response = new CompareResponse();
+        response.setMaxAllowedExtraPayment(maxAllowed);
         response.setFirstPlan(simulationEngine.simulate(forFirst, request.getFirstStrategy(), request.getMonthlyExtraPayment()));
         response.setSecondPlan(simulationEngine.simulate(forSecond, request.getSecondStrategy(), request.getMonthlyExtraPayment()));
         return response;
@@ -76,9 +90,16 @@ public class PlanningService {
     public SavedPlanResponse savePlan(SavePlanRequest request, UserDetails userDetails) {
         User user = getUser(userDetails.getUsername());
         List<Debt> debts = loadAndVerifyDebts(request.getDebtIds(), user.getUsername());
+        List<DebtSnapshot> snapshots = snapshotMapper.toSnapshots(debts);
+
+        // Validate: không vượt ngưỡng tối đa
+        BigDecimal maxAllowed = simulationHelper.calculateMonthlyExtraBudget(user, snapshots);
+        if (request.getMonthlyExtraPayment().compareTo(maxAllowed) > 0) {
+            throw new AppException(ErrorCode.EXTRA_PAYMENT_EXCEEDS_MAX);
+        }
 
         PlanComparisonDto result = simulationEngine.simulate(
-                snapshotMapper.toSnapshots(debts), request.getStrategy(), request.getMonthlyExtraPayment());
+                snapshots, request.getStrategy(), request.getMonthlyExtraPayment());
         savedPlanRepository.findByUserId(user.getId()).ifPresent(savedPlanRepository::delete);
         savedPlanRepository.flush();
 
@@ -114,9 +135,9 @@ public class PlanningService {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
-
-    private List<Debt> loadAndVerifyDebts(List<Long> debtIds, String username) {
-        List<Debt> debts = debtRepository.findAllById(debtIds);
+    @Transactional(readOnly = true)
+    protected List<Debt> loadAndVerifyDebts(List<Long> debtIds, String username) {
+        List<Debt> debts = debtRepository.findAllByIdWithUser(debtIds);
         for (Debt debt : debts) {
             if (!debt.getUser().getUsername().equals(username)) {
                 throw new AppException(ErrorCode.UNAUTHORIZED);

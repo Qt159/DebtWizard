@@ -22,6 +22,7 @@ public class DebtStateService {
     }
     //dùng sau khi user thanh toán đủ một kỳ.
     public void moveNextDueDate(Debt debt, BigDecimal paymentAmount){
+        if (debt.getNextDueDate() == null) return;
         if(paymentAmount.compareTo(debt.getExpectedMonthlyPayment()) >= 0){
             LocalDate nextMonth = debt.getNextDueDate().plusMonths(1);
             int correctDay = Math.min(debt.getDueDay(), nextMonth.lengthOfMonth());
