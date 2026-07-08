@@ -58,9 +58,26 @@ JWT_SECRET=your_jwt_secret_key
 
 ### 4. Run the application
 
+Nếu đã cài Maven trên máy:
+
 ```bash
-./mvnw spring-boot:run
+mvn spring-boot:run
 ```
+
+Hoặc dùng Maven Wrapper (không cần cài Maven sẵn):
+
+- **Windows CMD:**
+  ```cmd
+  mvnw.cmd spring-boot:run
+  ```
+- **Windows PowerShell:**
+  ```powershell
+  .\mvnw spring-boot:run
+  ```
+- **Linux / macOS:**
+  ```bash
+  ./mvnw spring-boot:run
+  ```
 
 Server khởi động tại `http://localhost:8080`.
 

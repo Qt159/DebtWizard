@@ -1,16 +1,17 @@
 {
   "info": {
-    "_postman_id": "debtwizard-collection-v1",
+    "_postman_id": "debtwizard-collection-v2",
     "name": "DebtWizard API",
     "description": "Complete Postman Collection for DebtWizard Spring Boot REST API",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:8080" },
-    { "key": "accessToken", "value": "" },
+    { "key": "baseUrl",      "value": "http://localhost:8080" },
+    { "key": "accessToken",  "value": "" },
     { "key": "refreshToken", "value": "" },
-    { "key": "debtId", "value": "1" },
-    { "key": "paymentId", "value": "1" }
+    { "key": "debtId",       "value": "1" },
+    { "key": "paymentId",    "value": "1" },
+    { "key": "planId",       "value": "1" }
   ],
   "item": [
     {
@@ -18,156 +19,90 @@
       "item": [
         {
           "name": "Register",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Has result.id', () => {",
-                  "  const body = pm.response.json();",
-                  "  pm.expect(body.result).to.have.property('id');",
-                  "  pm.expect(body.result).to.have.property('username');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Has result.id', () => {",
+            "  const r = pm.response.json().result;",
+            "  pm.expect(r).to.have.property('id');",
+            "  pm.expect(r).to.have.property('username');",
+            "});"
+          ]}}],
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\",\n  \"fullName\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"monthlyIncome\": 15000000\n}"
-            },
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\",\n  \"fullName\": \"Test User\",\n  \"email\": \"test@example.com\",\n  \"monthlyIncome\": 15000000\n}" },
             "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api","auth","register"] }
           }
         },
         {
           "name": "Register - 400 Validation Error",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 400', () => pm.response.to.have.status(400));"
+          ]}}],
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"username\": \"ab\",\n  \"password\": \"123\",\n  \"fullName\": \"\",\n  \"email\": \"not-an-email\",\n  \"monthlyIncome\": -100\n}"
-            },
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"ab\",\n  \"password\": \"123\",\n  \"fullName\": \"\",\n  \"email\": \"not-an-email\",\n  \"monthlyIncome\": -100\n}" },
             "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api","auth","register"] }
           }
         },
         {
           "name": "Register - 409 Username Exists",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 409', () => pm.response.to.have.status(409));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 409', () => pm.response.to.have.status(409));"
+          ]}}],
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\",\n  \"fullName\": \"Test User\",\n  \"email\": \"other@example.com\",\n  \"monthlyIncome\": 10000000\n}"
-            },
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\",\n  \"fullName\": \"Test User\",\n  \"email\": \"other@example.com\",\n  \"monthlyIncome\": 10000000\n}" },
             "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api","auth","register"] }
           }
         },
         {
           "name": "Login",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Has tokens', () => {",
-                  "  const body = pm.response.json();",
-                  "  pm.expect(body.result).to.have.property('accessToken');",
-                  "  pm.expect(body.result).to.have.property('refreshToken');",
-                  "  pm.collectionVariables.set('accessToken', body.result.accessToken);",
-                  "  pm.collectionVariables.set('refreshToken', body.result.refreshToken);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Has tokens', () => {",
+            "  const r = pm.response.json().result;",
+            "  pm.expect(r).to.have.property('accessToken');",
+            "  pm.expect(r).to.have.property('refreshToken');",
+            "  pm.collectionVariables.set('accessToken', r.accessToken);",
+            "  pm.collectionVariables.set('refreshToken', r.refreshToken);",
+            "});"
+          ]}}],
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\"\n}"
-            },
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"password123\"\n}" },
             "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api","auth","login"] }
           }
         },
         {
           "name": "Login - 401 Wrong Credentials",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 401', () => pm.response.to.have.status(401));"
+          ]}}],
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"wrongpassword\"\n}"
-            },
+            "body": { "mode": "raw", "raw": "{\n  \"username\": \"testuser\",\n  \"password\": \"wrongpassword\"\n}" },
             "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api","auth","login"] }
           }
         },
         {
           "name": "Refresh Token",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Has new accessToken', () => {",
-                  "  const body = pm.response.json();",
-                  "  pm.expect(body.result).to.have.property('accessToken');",
-                  "  pm.collectionVariables.set('accessToken', body.result.accessToken);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Has new accessToken', () => {",
+            "  const r = pm.response.json().result;",
+            "  pm.expect(r).to.have.property('accessToken');",
+            "  pm.collectionVariables.set('accessToken', r.accessToken);",
+            "});"
+          ]}}],
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "text/plain" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{{refreshToken}}"
-            },
+            "body": { "mode": "raw", "raw": "{{refreshToken}}" },
             "url": { "raw": "{{baseUrl}}/api/auth/refresh", "host": ["{{baseUrl}}"], "path": ["api","auth","refresh"] }
           }
         }
@@ -178,23 +113,15 @@
       "item": [
         {
           "name": "Get My Profile",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Has user fields', () => {",
-                  "  const r = pm.response.json().result;",
-                  "  pm.expect(r).to.have.property('id');",
-                  "  pm.expect(r).to.have.property('username');",
-                  "  pm.expect(r).to.have.property('email');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Has user fields', () => {",
+            "  const r = pm.response.json().result;",
+            "  pm.expect(r).to.have.property('id');",
+            "  pm.expect(r).to.have.property('username');",
+            "  pm.expect(r).to.have.property('email');",
+            "});"
+          ]}}],
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
@@ -203,17 +130,9 @@
         },
         {
           "name": "Get My Profile - 401 No Token",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 401', () => pm.response.to.have.status(401));"
+          ]}}],
           "request": {
             "method": "GET",
             "header": [],
@@ -222,113 +141,101 @@
         },
         {
           "name": "Update My Profile",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('fullName updated', () => {",
-                  "  const r = pm.response.json().result;",
-                  "  pm.expect(r.fullName).to.eql('Updated Name');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('fullName updated', () => {",
+            "  const r = pm.response.json().result;",
+            "  pm.expect(r.fullName).to.eql('Updated Name');",
+            "});"
+          ]}}],
           "request": {
             "method": "PUT",
             "header": [
               { "key": "Authorization", "value": "Bearer {{accessToken}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"fullName\": \"Updated Name\",\n  \"monthlyIncome\": 20000000,\n  \"monthlyExpense\": 8000000\n}"
-            },
+            "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Updated Name\",\n  \"monthlyIncome\": 20000000,\n  \"monthlyExpense\": 8000000\n}" },
             "url": { "raw": "{{baseUrl}}/api/users/me", "host": ["{{baseUrl}}"], "path": ["api","users","me"] }
           }
         },
         {
           "name": "Update Profile - 400 Blank Name",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 400', () => pm.response.to.have.status(400));"
+          ]}}],
           "request": {
             "method": "PUT",
             "header": [
               { "key": "Authorization", "value": "Bearer {{accessToken}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"fullName\": \"\",\n  \"monthlyIncome\": 20000000\n}"
-            },
+            "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"\",\n  \"monthlyIncome\": 20000000\n}" },
             "url": { "raw": "{{baseUrl}}/api/users/me", "host": ["{{baseUrl}}"], "path": ["api","users","me"] }
           }
         },
         {
           "name": "Change Password",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Success message', () => {",
-                  "  pm.expect(pm.response.json().message).to.eql('Success');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Success message', () => {",
+            "  pm.expect(pm.response.json().message).to.eql('Success');",
+            "});"
+          ]}}],
           "request": {
             "method": "POST",
             "header": [
               { "key": "Authorization", "value": "Bearer {{accessToken}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"oldPassword\": \"password123\",\n  \"newPassword\": \"newpassword456\",\n  \"confirmPassword\": \"newpassword456\"\n}"
-            },
+            "body": { "mode": "raw", "raw": "{\n  \"oldPassword\": \"password123\",\n  \"newPassword\": \"newpassword456\",\n  \"confirmPassword\": \"newpassword456\"\n}" },
             "url": { "raw": "{{baseUrl}}/api/users/change-password", "host": ["{{baseUrl}}"], "path": ["api","users","change-password"] }
           }
         },
         {
           "name": "Change Password - 400 Too Short",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 400', () => pm.response.to.have.status(400));"
+          ]}}],
           "request": {
             "method": "POST",
             "header": [
               { "key": "Authorization", "value": "Bearer {{accessToken}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"oldPassword\": \"password123\",\n  \"newPassword\": \"123\",\n  \"confirmPassword\": \"123\"\n}"
-            },
+            "body": { "mode": "raw", "raw": "{\n  \"oldPassword\": \"password123\",\n  \"newPassword\": \"123\",\n  \"confirmPassword\": \"123\"\n}" },
             "url": { "raw": "{{baseUrl}}/api/users/change-password", "host": ["{{baseUrl}}"], "path": ["api","users","change-password"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard",
+      "item": [
+        {
+          "name": "Get Dashboard",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Has dashboard fields', () => {",
+            "  const r = pm.response.json().result;",
+            "  pm.expect(r).to.have.property('totalDebt');",
+            "  pm.expect(r).to.have.property('totalPaid');",
+            "});"
+          ]}}],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/dashboard", "host": ["{{baseUrl}}"], "path": ["api","dashboard"] }
+          }
+        },
+        {
+          "name": "Get Dashboard - 401 No Token",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 401', () => pm.response.to.have.status(401));"
+          ]}}],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/dashboard", "host": ["{{baseUrl}}"], "path": ["api","dashboard"] }
           }
         }
       ]
@@ -338,77 +245,47 @@
       "item": [
         {
           "name": "Create Debt",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Has debt id', () => {",
-                  "  const r = pm.response.json().result;",
-                  "  pm.expect(r).to.have.property('id');",
-                  "  pm.collectionVariables.set('debtId', r.id);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Has debt id', () => {",
+            "  const r = pm.response.json().result;",
+            "  pm.expect(r).to.have.property('id');",
+            "  pm.collectionVariables.set('debtId', r.id);",
+            "});"
+          ]}}],
           "request": {
             "method": "POST",
             "header": [
               { "key": "Authorization", "value": "Bearer {{accessToken}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"debt\": {\n    \"lenderName\": \"VPBank\",\n    \"totalPrincipal\": 50000000,\n    \"startDate\": \"2024-01-01\",\n    \"termMonths\": 24,\n    \"dueDay\": 15,\n    \"debtType\": \"BANKING\"\n  },\n  \"interestSettings\": {\n    \"interestCalculationMethod\": \"REDUCING_BALANCE\",\n    \"interestFrequency\": \"MONTHLY\",\n    \"interestRate\": 12.5,\n    \"lateFee\": 50000\n  }\n}"
-            },
+            "body": { "mode": "raw", "raw": "{\n  \"debt\": {\n    \"lenderName\": \"VPBank\",\n    \"totalPrincipal\": 50000000,\n    \"startDate\": \"2024-01-01\",\n    \"termMonths\": 24,\n    \"dueDay\": 15,\n    \"debtType\": \"BANKING\"\n  },\n  \"interestSettings\": {\n    \"interestCalculationMethod\": \"REDUCING_BALANCE\",\n    \"interestFrequency\": \"MONTHLY\",\n    \"interestRate\": 12.5\n  }\n}" },
             "url": { "raw": "{{baseUrl}}/api/debts", "host": ["{{baseUrl}}"], "path": ["api","debts"] }
           }
         },
         {
           "name": "Create Debt - 400 Validation Error",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 400', () => pm.response.to.have.status(400));"
+          ]}}],
           "request": {
             "method": "POST",
             "header": [
               { "key": "Authorization", "value": "Bearer {{accessToken}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"debt\": {\n    \"lenderName\": \"\",\n    \"totalPrincipal\": -1000,\n    \"startDate\": null,\n    \"termMonths\": -5,\n    \"dueDay\": 32,\n    \"debtType\": null\n  },\n  \"interestSettings\": {\n    \"interestCalculationMethod\": null,\n    \"interestFrequency\": null,\n    \"interestRate\": 200,\n    \"lateFee\": -1\n  }\n}"
-            },
+            "body": { "mode": "raw", "raw": "{\n  \"debt\": {\n    \"lenderName\": \"\",\n    \"totalPrincipal\": -1000,\n    \"startDate\": null,\n    \"termMonths\": -5,\n    \"dueDay\": 32,\n    \"debtType\": null\n  },\n  \"interestSettings\": {\n    \"interestCalculationMethod\": null,\n    \"interestFrequency\": null,\n    \"interestRate\": 200\n  }\n}" },
             "url": { "raw": "{{baseUrl}}/api/debts", "host": ["{{baseUrl}}"], "path": ["api","debts"] }
           }
         },
         {
           "name": "Get All Debts",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Result is array', () => {",
-                  "  pm.expect(pm.response.json().result).to.be.an('array');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Result is array', () => {",
+            "  pm.expect(pm.response.json().result).to.be.an('array');",
+            "});"
+          ]}}],
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
@@ -417,50 +294,30 @@
         },
         {
           "name": "Get Debts - Filter by Status ACTIVE",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('All debts are ACTIVE', () => {",
-                  "  const items = pm.response.json().result;",
-                  "  items.forEach(d => pm.expect(d.status).to.eql('ACTIVE'));",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('All debts are ACTIVE', () => {",
+            "  const items = pm.response.json().result;",
+            "  items.forEach(d => pm.expect(d.status).to.eql('ACTIVE'));",
+            "});"
+          ]}}],
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
-            "url": {
-              "raw": "{{baseUrl}}/api/debts?debtStatus=ACTIVE",
-              "host": ["{{baseUrl}}"], "path": ["api","debts"],
-              "query": [{ "key": "debtStatus", "value": "ACTIVE" }]
-            }
+            "url": { "raw": "{{baseUrl}}/api/debts?debtStatus=ACTIVE", "host": ["{{baseUrl}}"], "path": ["api","debts"], "query": [{ "key": "debtStatus", "value": "ACTIVE" }] }
           }
         },
         {
           "name": "Get Debt by ID",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Debt has required fields', () => {",
-                  "  const r = pm.response.json().result;",
-                  "  pm.expect(r).to.have.property('lenderName');",
-                  "  pm.expect(r).to.have.property('totalPrincipal');",
-                  "  pm.expect(r).to.have.property('remainingPrincipal');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Debt has required fields', () => {",
+            "  const r = pm.response.json().result;",
+            "  pm.expect(r).to.have.property('lenderName');",
+            "  pm.expect(r).to.have.property('totalPrincipal');",
+            "  pm.expect(r).to.have.property('remainingPrincipal');",
+            "});"
+          ]}}],
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
@@ -469,17 +326,9 @@
         },
         {
           "name": "Get Debt - 404 Not Found",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 404', () => pm.response.to.have.status(404));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 404', () => pm.response.to.have.status(404));"
+          ]}}],
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
@@ -488,98 +337,46 @@
         },
         {
           "name": "Update Debt",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('lenderName updated', () => {",
-                  "  const r = pm.response.json().result;",
-                  "  pm.expect(r.lenderName).to.eql('Techcombank');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('lenderName updated', () => {",
+            "  const r = pm.response.json().result;",
+            "  pm.expect(r.lenderName).to.eql('Techcombank');",
+            "});"
+          ]}}],
           "request": {
             "method": "PUT",
             "header": [
               { "key": "Authorization", "value": "Bearer {{accessToken}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"lenderName\": \"Techcombank\",\n  \"totalPrincipal\": 50000000,\n  \"startDate\": \"2024-01-01\",\n  \"termMonths\": 36,\n  \"dueDay\": 20,\n  \"debtType\": \"BANKING\"\n}"
-            },
+            "body": { "mode": "raw", "raw": "{\n  \"lenderName\": \"Techcombank\",\n  \"totalPrincipal\": 50000000,\n  \"startDate\": \"2024-01-01\",\n  \"termMonths\": 36,\n  \"dueDay\": 20,\n  \"debtType\": \"BANKING\"\n}" },
             "url": { "raw": "{{baseUrl}}/api/debts/{{debtId}}", "host": ["{{baseUrl}}"], "path": ["api","debts","{{debtId}}"] }
           }
         },
         {
           "name": "Update Debt - 404 Not Found",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 404', () => pm.response.to.have.status(404));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 404', () => pm.response.to.have.status(404));"
+          ]}}],
           "request": {
             "method": "PUT",
             "header": [
               { "key": "Authorization", "value": "Bearer {{accessToken}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"lenderName\": \"Techcombank\",\n  \"totalPrincipal\": 50000000,\n  \"startDate\": \"2024-01-01\",\n  \"termMonths\": 36,\n  \"dueDay\": 20,\n  \"debtType\": \"BANKING\"\n}"
-            },
+            "body": { "mode": "raw", "raw": "{\n  \"lenderName\": \"Techcombank\",\n  \"totalPrincipal\": 50000000,\n  \"startDate\": \"2024-01-01\",\n  \"termMonths\": 36,\n  \"dueDay\": 20,\n  \"debtType\": \"BANKING\"\n}" },
             "url": { "raw": "{{baseUrl}}/api/debts/999999", "host": ["{{baseUrl}}"], "path": ["api","debts","999999"] }
           }
         },
         {
-          "name": "Get Payments of Debt",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Result is array', () => {",
-                  "  pm.expect(pm.response.json().result).to.be.an('array');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
-            "url": { "raw": "{{baseUrl}}/api/debts/{{debtId}}/payments", "host": ["{{baseUrl}}"], "path": ["api","debts","{{debtId}}","payments"] }
-          }
-        },
-        {
           "name": "Delete Debt",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Success message', () => {",
-                  "  pm.expect(pm.response.json().message).to.eql('Success');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Success message', () => {",
+            "  pm.expect(pm.response.json().message).to.eql('Success');",
+            "});"
+          ]}}],
           "request": {
             "method": "DELETE",
             "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
@@ -588,21 +385,27 @@
         },
         {
           "name": "Delete Debt - 404 Not Found",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 404', () => pm.response.to.have.status(404));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 404', () => pm.response.to.have.status(404));"
+          ]}}],
           "request": {
             "method": "DELETE",
             "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
             "url": { "raw": "{{baseUrl}}/api/debts/999999", "host": ["{{baseUrl}}"], "path": ["api","debts","999999"] }
+          }
+        },
+        {
+          "name": "Get Payments of Debt",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Result is array', () => {",
+            "  pm.expect(pm.response.json().result).to.be.an('array');",
+            "});"
+          ]}}],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/debts/{{debtId}}/payments", "host": ["{{baseUrl}}"], "path": ["api","debts","{{debtId}}","payments"] }
           }
         }
       ]
@@ -612,107 +415,80 @@
       "item": [
         {
           "name": "Create Payment",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Has payment id', () => {",
-                  "  const r = pm.response.json().result;",
-                  "  pm.expect(r).to.have.property('id');",
-                  "  pm.expect(r).to.have.property('principalPaid');",
-                  "  pm.expect(r).to.have.property('interestPaid');",
-                  "  pm.collectionVariables.set('paymentId', r.id);",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Has payment id', () => {",
+            "  const r = pm.response.json().result;",
+            "  pm.expect(r).to.have.property('id');",
+            "  pm.expect(r).to.have.property('principalPaid');",
+            "  pm.expect(r).to.have.property('interestPaid');",
+            "  pm.collectionVariables.set('paymentId', r.id);",
+            "});"
+          ]}}],
           "request": {
             "method": "POST",
             "header": [
               { "key": "Authorization", "value": "Bearer {{accessToken}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"debtId\": {{debtId}},\n  \"amount\": 2000000,\n  \"paymentMethod\": \"BANK_TRANSFER\",\n  \"paymentDate\": \"2024-06-15\",\n  \"note\": \"Monthly payment June\"\n}"
-            },
+            "body": { "mode": "raw", "raw": "{\n  \"debtId\": {{debtId}},\n  \"amount\": 2000000,\n  \"paymentMethod\": \"BANK_TRANSFER\",\n  \"paymentDate\": \"2024-06-15\",\n  \"note\": \"Monthly payment June\"\n}" },
             "url": { "raw": "{{baseUrl}}/api/payments", "host": ["{{baseUrl}}"], "path": ["api","payments"] }
           }
         },
         {
           "name": "Create Payment - 400 Negative Amount",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 400', () => pm.response.to.have.status(400));"
+          ]}}],
           "request": {
             "method": "POST",
             "header": [
               { "key": "Authorization", "value": "Bearer {{accessToken}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"debtId\": {{debtId}},\n  \"amount\": -500,\n  \"paymentMethod\": \"CASH\",\n  \"paymentDate\": \"2024-06-15\"\n}"
-            },
+            "body": { "mode": "raw", "raw": "{\n  \"debtId\": {{debtId}},\n  \"amount\": -500,\n  \"paymentMethod\": \"CASH\",\n  \"paymentDate\": \"2024-06-15\"\n}" },
             "url": { "raw": "{{baseUrl}}/api/payments", "host": ["{{baseUrl}}"], "path": ["api","payments"] }
           }
         },
         {
           "name": "Create Payment - 400 Future Date",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 400', () => pm.response.to.have.status(400));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 400', () => pm.response.to.have.status(400));"
+          ]}}],
           "request": {
             "method": "POST",
             "header": [
               { "key": "Authorization", "value": "Bearer {{accessToken}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"debtId\": {{debtId}},\n  \"amount\": 1000000,\n  \"paymentMethod\": \"CASH\",\n  \"paymentDate\": \"2099-01-01\"\n}"
-            },
+            "body": { "mode": "raw", "raw": "{\n  \"debtId\": {{debtId}},\n  \"amount\": 1000000,\n  \"paymentMethod\": \"CASH\",\n  \"paymentDate\": \"2099-01-01\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/payments", "host": ["{{baseUrl}}"], "path": ["api","payments"] }
+          }
+        },
+        {
+          "name": "Get All Payments",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Result is array', () => {",
+            "  pm.expect(pm.response.json().result).to.be.an('array');",
+            "});"
+          ]}}],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
             "url": { "raw": "{{baseUrl}}/api/payments", "host": ["{{baseUrl}}"], "path": ["api","payments"] }
           }
         },
         {
           "name": "Get Payment by ID",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Payment has fields', () => {",
-                  "  const r = pm.response.json().result;",
-                  "  pm.expect(r).to.have.property('amount');",
-                  "  pm.expect(r).to.have.property('paymentMethod');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Payment has fields', () => {",
+            "  const r = pm.response.json().result;",
+            "  pm.expect(r).to.have.property('amount');",
+            "  pm.expect(r).to.have.property('paymentMethod');",
+            "});"
+          ]}}],
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
@@ -721,19 +497,66 @@
         },
         {
           "name": "Get Payment - 404 Not Found",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 404', () => pm.response.to.have.status(404));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 404', () => pm.response.to.have.status(404));"
+          ]}}],
           "request": {
             "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/payments/999999", "host": ["{{baseUrl}}"], "path": ["api","payments","999999"] }
+          }
+        },
+        {
+          "name": "Update Payment",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));"
+          ]}}],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"note\": \"Updated note for June\",\n  \"paymentDate\": \"2024-06-20\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/payments/{{paymentId}}", "host": ["{{baseUrl}}"], "path": ["api","payments","{{paymentId}}"] }
+          }
+        },
+        {
+          "name": "Update Payment - 404 Not Found",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 404', () => pm.response.to.have.status(404));"
+          ]}}],
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"note\": \"Updated note\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/payments/999999", "host": ["{{baseUrl}}"], "path": ["api","payments","999999"] }
+          }
+        },
+        {
+          "name": "Delete Payment",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Success message', () => {",
+            "  pm.expect(pm.response.json().message).to.eql('Success');",
+            "});"
+          ]}}],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/payments/{{paymentId}}", "host": ["{{baseUrl}}"], "path": ["api","payments","{{paymentId}}"] }
+          }
+        },
+        {
+          "name": "Delete Payment - 404 Not Found",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 404', () => pm.response.to.have.status(404));"
+          ]}}],
+          "request": {
+            "method": "DELETE",
             "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
             "url": { "raw": "{{baseUrl}}/api/payments/999999", "host": ["{{baseUrl}}"], "path": ["api","payments","999999"] }
           }
@@ -745,25 +568,17 @@
       "item": [
         {
           "name": "Get All Analysis",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Has analysis sections', () => {",
-                  "  const r = pm.response.json().result;",
-                  "  pm.expect(r).to.have.property('dti');",
-                  "  pm.expect(r).to.have.property('interestRatio');",
-                  "  pm.expect(r).to.have.property('overdue');",
-                  "  pm.expect(r).to.have.property('repaymentTime');",
-                  "  pm.expect(r).to.have.property('analysisDate');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Has analysis sections', () => {",
+            "  const r = pm.response.json().result;",
+            "  pm.expect(r).to.have.property('dti');",
+            "  pm.expect(r).to.have.property('interestRatio');",
+            "  pm.expect(r).to.have.property('overdue');",
+            "  pm.expect(r).to.have.property('repaymentTime');",
+            "  pm.expect(r).to.have.property('analysisDate');",
+            "});"
+          ]}}],
           "request": {
             "method": "GET",
             "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
@@ -772,17 +587,9 @@
         },
         {
           "name": "Get Analysis - 401 No Token",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 401', () => pm.response.to.have.status(401));"
+          ]}}],
           "request": {
             "method": "GET",
             "header": [],
@@ -796,58 +603,102 @@
       "item": [
         {
           "name": "Compare Repayment Plans",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
-                  "pm.test('Has both plans', () => {",
-                  "  const r = pm.response.json().result;",
-                  "  pm.expect(r).to.have.property('firstPlan');",
-                  "  pm.expect(r).to.have.property('secondPlan');",
-                  "  pm.expect(r.firstPlan).to.have.property('totalInterestPaid');",
-                  "  pm.expect(r.firstPlan).to.have.property('payoffDurationMonths');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Has both plans', () => {",
+            "  const r = pm.response.json().result;",
+            "  pm.expect(r).to.have.property('firstPlan');",
+            "  pm.expect(r).to.have.property('secondPlan');",
+            "  pm.expect(r.firstPlan).to.have.property('totalInterestPaid');",
+            "  pm.expect(r.firstPlan).to.have.property('payoffDurationMonths');",
+            "});"
+          ]}}],
           "request": {
             "method": "POST",
             "header": [
               { "key": "Authorization", "value": "Bearer {{accessToken}}" },
               { "key": "Content-Type", "value": "application/json" }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"debtIds\": [{{debtId}}],\n  \"monthlyExtraPayment\": 1000000,\n  \"firstStrategy\": \"MINIMIZE_INTEREST\",\n  \"secondStrategy\": \"IMPROVE_CASHFLOW\"\n}"
-            },
+            "body": { "mode": "raw", "raw": "{\n  \"debtIds\": [{{debtId}}],\n  \"monthlyExtraPayment\": 1000000,\n  \"firstStrategy\": \"MINIMIZE_INTEREST\",\n  \"secondStrategy\": \"IMPROVE_CASHFLOW\"\n}" },
             "url": { "raw": "{{baseUrl}}/api/planning/compare", "host": ["{{baseUrl}}"], "path": ["api","planning","compare"] }
           }
         },
         {
           "name": "Compare Plans - 401 No Token",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status 401', () => pm.response.to.have.status(401));"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 401', () => pm.response.to.have.status(401));"
+          ]}}],
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"debtIds\": [1],\n  \"monthlyExtraPayment\": 500000,\n  \"firstStrategy\": \"MINIMIZE_INTEREST\",\n  \"secondStrategy\": \"IMPROVE_CASHFLOW\"\n}"
-            },
+            "body": { "mode": "raw", "raw": "{\n  \"debtIds\": [1],\n  \"monthlyExtraPayment\": 500000,\n  \"firstStrategy\": \"MINIMIZE_INTEREST\",\n  \"secondStrategy\": \"IMPROVE_CASHFLOW\"\n}" },
             "url": { "raw": "{{baseUrl}}/api/planning/compare", "host": ["{{baseUrl}}"], "path": ["api","planning","compare"] }
+          }
+        },
+        {
+          "name": "Save Plan",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Has saved plan', () => {",
+            "  const r = pm.response.json().result;",
+            "  pm.expect(r).to.have.property('id');",
+            "  pm.expect(r).to.have.property('strategy');",
+            "  pm.collectionVariables.set('planId', r.id);",
+            "});"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"debtIds\": [{{debtId}}],\n  \"monthlyExtraPayment\": 1000000,\n  \"strategy\": \"MINIMIZE_INTEREST\"\n}" },
+            "url": { "raw": "{{baseUrl}}/api/planning/save", "host": ["{{baseUrl}}"], "path": ["api","planning","save"] }
+          }
+        },
+        {
+          "name": "Save Plan - 400 Validation Error",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 400', () => pm.response.to.have.status(400));"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": { "mode": "raw", "raw": "{\n  \"debtIds\": [],\n  \"monthlyExtraPayment\": -1000,\n  \"strategy\": null\n}" },
+            "url": { "raw": "{{baseUrl}}/api/planning/save", "host": ["{{baseUrl}}"], "path": ["api","planning","save"] }
+          }
+        },
+        {
+          "name": "Get Saved Plan",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Has saved plan fields', () => {",
+            "  const r = pm.response.json().result;",
+            "  pm.expect(r).to.have.property('id');",
+            "  pm.expect(r).to.have.property('strategy');",
+            "});"
+          ]}}],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/planning/saved", "host": ["{{baseUrl}}"], "path": ["api","planning","saved"] }
+          }
+        },
+        {
+          "name": "Delete Saved Plan",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Status 200', () => pm.response.to.have.status(200));",
+            "pm.test('Success message', () => {",
+            "  pm.expect(pm.response.json().message).to.eql('Success');",
+            "});"
+          ]}}],
+          "request": {
+            "method": "DELETE",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": { "raw": "{{baseUrl}}/api/planning/saved", "host": ["{{baseUrl}}"], "path": ["api","planning","saved"] }
           }
         }
       ]
