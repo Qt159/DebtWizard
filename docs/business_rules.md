@@ -8,12 +8,14 @@ Nếu `minimumPayment > balance` tại tháng đó → hệ thống tự động
 Người dùng nhập thủ công số tiền `monthlyExtraPayment` khi gọi `/api/planning/compare` hoặc `/api/planning/save`.
 Toàn bộ extra payment được phân bổ vào một khoản nợ duy nhất mỗi tháng — khoản nợ được chọn theo chiến lược.
 
-Khoảng giá trị gợi ý cho extra payment:
+Giá trị `monthlyExtraPayment` phải nằm trong khoảng:
 - `extraPaymentMin = 0`
-- `extraPaymentMax = monthlyIncome - expense - totalMinimumPayment`
+- `extraPaymentMax = monthlyIncome - expense - totalMinimumPayment` (của các debt được chọn)
 
-Nếu `extraPaymentMax ≤ 0` → user thực ra không có khả năng trả thêm, hệ thống nên cảnh báo.
-Hệ thống nên trả về `suggestedExtraRange` trong response của compare để frontend hiển thị gợi ý cho user.
+Server **tính toán và validate** ngưỡng max này. Nếu user nhập vượt quá → trả lỗi `EXTRA_PAYMENT_EXCEEDS_MAX`.
+Response của `/compare` trả về `maxAllowedExtraPayment` để frontend hiển thị ngưỡng cho user.
+
+Nếu `maxAllowedExtraPayment ≤ 0` → user không có khả năng trả thêm, frontend nên cảnh báo.
 
 > **Lưu ý:** Income và expense trong profile là con số tĩnh do user tự khai báo, không phản ánh biến động thu chi thực tế từng tháng. User có trách nhiệm điều chỉnh `monthlyExtraPayment` phù hợp với khả năng thực tế của mình.
 
