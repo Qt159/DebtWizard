@@ -1,36 +1,41 @@
-HELP.md
+# --- Các file hệ thống và build ---
 target/
+build/
+.gradle/
 .mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
 
-### STS ###
-.apt_generated
-.classpath
-.factorypath
-.project
-.settings
-.springBeans
-.sts4-cache
-
-### IntelliJ IDEA ###
-.idea
+# --- Cấu hình IDE ---
+.idea/
 *.iws
 *.iml
 *.ipr
-
-### NetBeans ###
+.vscode/
+.settings/
+.classpath
+.project
+.factorypath
+.springBeans
+.sts4-cache
+.apt_generated
 /nbproject/private/
 /nbbuild/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
+
+# --- Cấu hình dự án ---
+DebtWizard.git/
+HELP.md
+
+# LƯU Ý: .env ĐƯỢC GIỮ LẠI
+# Nếu bạn muốn Git theo dõi file .env, hãy để nguyên như dòng dưới:
+.env
+
+# Local dev config — chứa secrets, không commit
+src/main/resources/application-local.properties
+
+#
+!**/src/main/**/target/
+!**/src/test/**/target/
 !**/src/main/**/build/
 !**/src/test/**/build/
-
-### VS Code ###
-.vscode/
-
-### Môi trường ###
-.env
