@@ -103,9 +103,9 @@ Hệ thống sử dụng **Feature-Based Architecture** kết hợp **Layered Ar
 - Soft-delete (`deleted = true`) và soft-update (chỉ `note` và `paymentDate`)
 
 **PlanningService + SimulationEngine**
-- `comparePlans`: verify ownership, convert `Debt → DebtSnapshot` (in-memory), chạy `SimulationEngine.simulate()` độc lập cho 2 strategy, trả về `CompareResponse`, không lưu DB
-- `SimulationEngine.simulate()`: chạy vòng lặp tháng, build `PlanComparisonDto` trực tiếp.
-- `savePlan`: re-simulate với strategy đã chọn, `SavedPlan` + `PlanMonthlySchedule` + `PlanDebtPayment` vào DB, replace plan cũ nếu có
+- `comparePlans`: load debts bằng `JOIN FETCH user` (tránh LazyInitializationException), verify ownership, tính `maxAllowedExtraPayment = income - expense - totalMinimumPayment`, validate `monthlyExtraPayment ≤ maxAllowedExtraPayment`, convert `Debt → DebtSnapshot` (in-memory), chạy `SimulationEngine.simulate()` độc lập cho 2 strategy, trả về `CompareResponse { maxAllowedExtraPayment, firstPlan, secondPlan }`, không lưu DB
+- `SimulationEngine.simulate()`: chạy vòng lặp tháng, tách biệt `baseExtraPayment` (cố định từ user) và `snowballBonus` (tích lũy từ cashflow released), build `PlanComparisonDto` trực tiếp
+- `savePlan`: validate `monthlyExtraPayment ≤ maxAllowedExtraPayment`, re-simulate với strategy đã chọn, `SavedPlan` + `PlanMonthlySchedule` + `PlanDebtPayment` vào DB, replace plan cũ nếu có
 - `getSavedPlan`: load từ DB, trả về full schedule
 - `deleteSavedPlan`: xóa plan, xóa schedules và debt payments
 
@@ -223,21 +223,23 @@ User → POST /api/planning/compare
        balance        = remainingPrincipal + accruedInterest
        interestRate   = interestSettings.interestRate
        minimumPayment = expectedMonthlyPayment
+  → Tính maxAllowedExtraPayment = income - expense - totalMinimumPayment
+  → Validate monthlyExtraPayment ≤ maxAllowedExtraPayment (lỗi EXTRA_PAYMENT_EXCEEDS_MAX nếu vượt)
   → SimulationEngine.simulate() × 2 (copy snapshots, chạy độc lập)
       Mỗi tháng:
         applyMonthlyInterest:   balance × (rate/100/12)
-        applyMinimumPayments:   trừ minimumPayment từng debt
+        applyMinimumPayments:   trừ minimumPayment (interest-first: lãi trước, gốc sau)
         strategy.selectTarget(): chọn debt ưu tiên
-        applyExtraPayment:      trừ extra vào target
-        releaseCashflow:        debt paid off → minimumPayment vào extra
+        applyExtraPayment:      trừ (baseExtra + snowballBonus) vào target
+        releaseCashflow:        debt paid off → snowballBonus += minimumPayment
         build DebtPaymentDetailDto per debt → SimulationMonthDto
-  → PlanComparisonDto trả trực tiếp 
-  → CompareResponse { firstPlan, secondPlan }   — KHÔNG lưu DB
+  → PlanComparisonDto trả trực tiếp
+  → CompareResponse { maxAllowedExtraPayment, firstPlan, secondPlan }   — KHÔNG lưu DB
 ```
 
 **Chiến lược chọn debt ưu tiên:**
 - `MINIMIZE_INTEREST` (Avalanche): chọn debt có `interestRate` cao nhất
-- `IMPROVE_CASHFLOW`: chọn debt có `score = minimumPayment / estimatedPayoffMonths` cao nhất
+- `IMPROVE_CASHFLOW`: `score = minimumPayment / estimatedPayoffMonths = minimumPayment² / balance` — chọn debt có score cao nhất (ưu tiên minimum payment lớn + gần trả hết)
 
 ### 7.5 Lưu kế hoạch trả nợ
 

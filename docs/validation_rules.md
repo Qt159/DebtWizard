@@ -113,7 +113,8 @@ Monthly income nên lớn hơn 0 để phân tích DTI có ý nghĩa.
 **VR29 – Budget Sufficiency** *(chưa implement)*  
 Monthly income nên đủ để chi trả: `expense + totalMinimumPayment`.
 
-**VR30 – Extra Payment Range** *(chưa implement)*  
-`monthlyExtraPayment` nên nằm trong khoảng `[0, monthlyIncome - expense - totalMinimumPayment]`.
-Nếu user nhập vượt `extraPaymentMax` → hệ thống nên cảnh báo (simulation vẫn chạy nhưng kế hoạch không thực tế).
-Nếu `extraPaymentMax ≤ 0` → hệ thống nên thông báo user không có khả năng trả thêm với thu chi hiện tại.
+**VR30 – Extra Payment Range** *(ĐÃ IMPLEMENT)*  
+`monthlyExtraPayment` phải nằm trong khoảng `[0, monthlyIncome - expense - totalMinimumPayment]`.
+Server tính `maxAllowedExtraPayment` và validate. Nếu vượt → trả lỗi `EXTRA_PAYMENT_EXCEEDS_MAX`.
+Response `/compare` trả về `maxAllowedExtraPayment` để frontend hiển thị ngưỡng cho user.
+Nếu `maxAllowedExtraPayment ≤ 0` → user không có khả năng trả thêm với thu chi hiện tại.
