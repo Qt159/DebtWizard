@@ -49,11 +49,40 @@ CREATE DATABASE debtwizard;
 
 ### 3. Configure environment variables
 
+**Development (Local):**
+
 Tạo file `.env` tại thư mục gốc của project:
 
 ```env
 DB_PASSWORD=your_postgres_password
 JWT_SECRET=your_jwt_secret_key
+```
+
+Sau đó export vào shell trước khi chạy:
+```bash
+# Linux/macOS
+export $(cat .env | xargs)
+
+# Windows PowerShell
+Get-Content .env | ForEach-Object { $var = $_.Split('='); [System.Environment]::SetEnvironmentVariable($var[0], $var[1]) }
+```
+
+**Production (EC2/Server):**
+
+Không cần `.env` file. Set environment variables trực tiếp:
+
+```bash
+# Option 1: Export before running
+export DB_PASSWORD=your_password
+export JWT_SECRET=your_secret
+java -jar DebtWizard.jar
+
+# Option 2: Pass as arguments
+java -jar DebtWizard.jar \
+  --spring.datasource.password=your_password \
+  --jwt.secret=your_secret
+  
+# Option 3: Use systemd service with Environment= directive (recommended)
 ```
 
 ### 4. Run the application
