@@ -1,6 +1,6 @@
 # DebtWizard
 
-DebtWizard là nền tảng quản lý nợ cá nhân trên nền tảng web, giúp người dùng quản lý các khoản nợ, theo dõi lịch sử thanh toán và xây dựng kế hoạch trả nợ dựa trên phân tích tình hình tài chính.
+DebtWizard là nền tảng quản lý nợ cá nhân, hỗ trợ người dùng theo dõi lịch sử thanh toán, tính lãi tự động và xây dựng kế hoạch trả nợ tối ưu dựa trên phân tích tình hình tài chính thực tế.
 
 ## Features
 
@@ -10,7 +10,6 @@ DebtWizard là nền tảng quản lý nợ cá nhân trên nền tảng web, gi
 - **Dashboard**: tổng hợp thông tin tài chính tổng quan — danh sách khoản nợ, dư nợ gốc, lãi phát sinh, tổng số tiền phải trả.
 - **Phân tích tài chính**: đánh giá sức khỏe tài chính qua 4 chỉ số định lượng — DTI, tỷ lệ gánh nặng lãi vay, tỷ lệ nợ quá hạn, thời gian dự kiến trả hết nợ — kèm mức đánh giá và khuyến nghị.
 - **Lập kế hoạch trả nợ**: so sánh 2 chiến lược (MinimizeInterest / Improve Cashflow), lưu kế hoạch đã chọn với lịch trình chi tiết từng tháng.
-- **Gamification** *(Dự kiến phát triển)*.
 
 ## Tech Stack
 
@@ -24,7 +23,6 @@ DebtWizard là nền tảng quản lý nợ cá nhân trên nền tảng web, gi
 | Authorization | Spring Security |
 | API Docs | SpringDoc OpenAPI 2.5.0 (Swagger UI) |
 | Build Tool | Maven |
-| Utilities | Lombok, MapStruct 1.5.5 |
 
 ## Prerequisites
 
@@ -51,38 +49,11 @@ CREATE DATABASE debtwizard;
 
 **Development (Local):**
 
-Tạo file `.env` tại thư mục gốc của project:
+Tạo file .env tại thư mục gốc của project:
 
 ```env
 DB_PASSWORD=your_postgres_password
 JWT_SECRET=your_jwt_secret_key
-```
-
-Sau đó export vào shell trước khi chạy:
-```bash
-# Linux/macOS
-export $(cat .env | xargs)
-
-# Windows PowerShell
-Get-Content .env | ForEach-Object { $var = $_.Split('='); [System.Environment]::SetEnvironmentVariable($var[0], $var[1]) }
-```
-
-**Production (EC2/Server):**
-
-Không cần `.env` file. Set environment variables trực tiếp:
-
-```bash
-# Option 1: Export before running
-export DB_PASSWORD=your_password
-export JWT_SECRET=your_secret
-java -jar DebtWizard.jar
-
-# Option 2: Pass as arguments
-java -jar DebtWizard.jar \
-  --spring.datasource.password=your_password \
-  --jwt.secret=your_secret
-  
-# Option 3: Use systemd service with Environment= directive (recommended)
 ```
 
 ### 4. Run the application

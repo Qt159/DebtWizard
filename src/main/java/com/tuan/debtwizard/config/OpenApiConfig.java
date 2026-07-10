@@ -17,7 +17,7 @@ import org.springframework.context.annotation.Configuration;
         contact = @Contact(name = "DebtWizard Team")
     ),
     servers = {
-        @Server(url = "http://13.250.33.71:8080", description = "Production Server"),
+        @Server(url = "http://13.229.63.110:8080", description = "Production Server"),
         @Server(url = "http://localhost:8080", description = "Local Development Server")
     }
 )

@@ -27,7 +27,7 @@ Nhiều người đang mắc nhiều khoản nợ cùng lúc nhưng không biế
 - Xử lý thanh toán theo nguyên tắc interest-first allocation
 - Phân tích 4 chỉ số: DTI, Interest Ratio, Overdue Ratio, Repayment Time
 - Mô phỏng 2 chiến lược trả nợ: Minimize Interest (Avalanche) và Improve Cashflow
-- Lưu kế hoạch trả nợ đã chọn kèm lịch trình chi tiết từng tháng
+- Lưu kế hoạch trả[]() nợ đã chọn kèm lịch trình chi tiết từng tháng
 - Lưu trữ thông tin thu nhập/chi tiêu hàng tháng để phục vụ phân tích
 
 ## 2. Kiến trúc hệ thống
@@ -316,3 +316,24 @@ User → GET /api/analysis/all
 | Scheduler Pattern | `DebtScheduler` — daily cron job |
 | Simulation Engine Pattern | `SimulationEngine` — stateless monthly simulation loop, trả thẳng DTO |
 | Soft Delete Pattern | `Debt.deleted`, `Payment.deleted` |
+## 10. Deployment Architecture
+
+DebtWizard được triển khai theo mô hình client-server trên nền tảng AWS.
+
+```text
+        Client
+           │
+     HTTPS / REST API
+           │
+           ▼
+ AWS EC2 (Spring Boot)
+           │
+        PostgreSQL
+           │
+           ▼
+     Amazon RDS
+```
+
+Backend được triển khai trên Amazon EC2 và kết nối đến cơ sở dữ liệu Amazon RDS PostgreSQL.
+
+Chi tiết về hạ tầng, quy trình triển khai và cấu hình môi trường được trình bày trong **DEPLOYMENT.md**.
