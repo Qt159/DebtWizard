@@ -35,11 +35,10 @@ public class SimulationEngine {
         this.improveCashflowStrategy = improveCashflowStrategy;
     }
 
-    /**
-     * Chạy simulation và trả thẳng PlanComparisonDto.
-     *
-     * monthlyExtraPayment: số tiền trả thêm cố định mỗi tháng do user nhập.
-     * snowballBonus: tiền được giải phóng từ các khoản nợ đã trả hết, cộng dồn qua từng tháng.
+    /*
+      Chạy simulation và trả thẳng PlanComparisonDto.
+     monthlyExtraPayment: số tiền trả thêm cố định mỗi tháng do user nhập.
+     snowballBonus: tiền được giải phóng từ các khoản nợ đã trả hết, cộng dồn qua từng tháng.
      */
     public PlanComparisonDto simulate(List<DebtSnapshot> snapshots,
                                       RepaymentStrategy strategyType,
