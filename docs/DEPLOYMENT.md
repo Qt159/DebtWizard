@@ -4,12 +4,17 @@
 
 DebtWizard Backend được triển khai trên AWS với kiến trúc:
 
+![AWSInfrastructure](images/AWSInfrastructureArchitecture.drawio.png)
 
 Hệ thống chỉ triển khai Backend và Database.
 
 - Backend: Spring Boot Application chạy trên Amazon EC2.
 - Database: PostgreSQL chạy trên Amazon RDS.
 - EC2 chịu trách nhiệm xử lý REST API và kết nối đến RDS thông qua JDBC.
+- Runtime:
+  + Java 17
+  + Spring Boot 3.x
+  + PostgreSQL
 
 ---
 
@@ -56,8 +61,9 @@ Mục đích:
 
 - Chứa Amazon RDS PostgreSQL.
 - Không expose Database trực tiếp ra Internet.
+- Amazon RDS sử dụng DB Subnet Group chứa các subnet thuộc nhiều Availability Zone khác nhau để hỗ trợ khả năng sẵn sàng cao (High Availability) và cho phép triển khai Multi-AZ khi cần thiết.
 
-Amazon RDS yêu cầu DB Subnet Group phải có tối thiểu 2 Subnets thuộc 2 Availability Zones khác nhau.
+Trong hệ thống này, RDS PostgreSQL được đặt trong các Private Subnet thuộc hai Availability Zone khác nhau nhằm tăng khả năng mở rộng và đảm bảo database không bị expose trực tiếp ra Internet.
 
 Architecture:
 
@@ -327,10 +333,17 @@ Backend chạy tại:
 ```
 http://<ec2-public-ip>:8080
 ```
+## 12.1 Run Application in Background
 
----
+Để Backend tiếp tục chạy sau khi thoát SSH session, sử dụng `nohup`.
 
-# 13. Verify Deployment
+Chạy application:
+
+```bash
+nohup java -jar target/DebtWizard.jar > app.log 2>&1 &
+````
+
+# 13. Verify Deploymen  t
 
 Kiểm tra Application:
 
@@ -348,10 +361,7 @@ Kiểm tra:
 
 # 14. Future Improvements
 
-- Dockerize Application.
-- Docker Compose cho local development.
-- CI/CD với GitHub Actions.
-- Nginx Reverse Proxy.
-- HTTPS với SSL Certificate.
-- AWS Secrets Manager.
-- CloudWatch Monitoring.
+- Containerize application using Docker.
+- Push Docker image to Amazon ECR.
+- Deploy using Amazon ECS/Fargate.
+- CI/CD with GitHub Actions.

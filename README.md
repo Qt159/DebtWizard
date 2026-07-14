@@ -5,11 +5,11 @@ DebtWizard là nền tảng quản lý nợ cá nhân, hỗ trợ người dùng
 ## Features
 
 - **Quản lý khoản nợ**: tạo, cập nhật và theo dõi nhiều khoản nợ (BANKING, PERSONAL_LOAN, CREDIT).
-- **Theo dõi thanh toán**: ghi nhận các khoản thanh toán, theo dõi tiến độ trả nợ theo nguyên tắc interest-first.
-- **Tính lãi tự động**: hỗ trợ 2 phương pháp FLAT và REDUCING_BALANCE, accrual hàng ngày qua Scheduler.
-- **Dashboard**: tổng hợp thông tin tài chính tổng quan — danh sách khoản nợ, dư nợ gốc, lãi phát sinh, tổng số tiền phải trả.
-- **Phân tích tài chính**: đánh giá sức khỏe tài chính qua 4 chỉ số định lượng — DTI, tỷ lệ gánh nặng lãi vay, tỷ lệ nợ quá hạn, thời gian dự kiến trả hết nợ — kèm mức đánh giá và khuyến nghị.
-- **Lập kế hoạch trả nợ**: so sánh 2 chiến lược (MinimizeInterest / Improve Cashflow), lưu kế hoạch đã chọn với lịch trình chi tiết từng tháng.
+- **Theo dõi thanh toán**: ghi nhận các khoản thanh toán, cập nhật tiến độ trả nợ và xử lý phân bổ thanh toán ưu tiên phần lãi trước phần gốc.
+- **Tính lãi tự động**: hỗ trợ 2 phương pháp FLAT và REDUCING_BALANCE, tự động accrual hàng ngày thông qua Scheduler.
+- **Dashboard**: tổng hợp thông tin tài chính gồm danh sách khoản nợ, dư nợ gốc, lãi phát sinh và tổng số tiền phải trả.
+- **Phân tích tài chính**: đánh giá sức khỏe tài chính qua 4 chỉ số định lượng — DTI, tỷ lệ gánh nặng lãi vay, tỷ lệ nợ quá hạn và thời gian dự kiến trả hết nợ.
+- **Lập kế hoạch trả nợ**: mô phỏng và so sánh 2 chiến lược (Minimize Interest / Improve Cashflow), lưu kế hoạch đã chọn cùng lịch thanh toán chi tiết.
 
 ## Tech Stack
 
@@ -23,116 +23,90 @@ DebtWizard là nền tảng quản lý nợ cá nhân, hỗ trợ người dùng
 | Authorization | Spring Security |
 | API Docs | SpringDoc OpenAPI 2.5.0 (Swagger UI) |
 | Build Tool | Maven |
+| Cloud | AWS EC2, Amazon RDS, VPC |
 
 ## Prerequisites
 
+- Git
 - Java 17+
 - Maven 3.8+
 - PostgreSQL 14+
 
+## Deployment
+
+Backend được triển khai trên AWS.  
+Chi tiết kiến trúc và các bước triển khai:
+
+- [Deployment Guide](docs/DEPLOYMENT.md)
+
 ## Getting Started
 
-### 1. Clone the repository
+### 1. Clone Repository
 
 ```bash
 git clone https://github.com/Qt159/DebtWizard.git
 cd DebtWizard
 ```
 
-### 2. Create the database
-
-```sql
+### 2. Create Database
+```bash
 CREATE DATABASE debtwizard;
 ```
 
-### 3. Configure environment variables
-
-**Development (Local):**
-
-Tạo file .env tại thư mục gốc của project:
-
-```env
+### 3. Configure Environment Variables
+Tạo file .env tại thư mục gốc:
+```bash
 DB_PASSWORD=your_postgres_password
 JWT_SECRET=your_jwt_secret_key
 ```
-
-### 4. Run the application
-
-Nếu đã cài Maven trên máy:
-
+### 4. Run Application
 ```bash
 mvn spring-boot:run
 ```
-
-Hoặc dùng Maven Wrapper (không cần cài Maven sẵn):
-
-- **Windows CMD:**
-  ```cmd
-  mvnw.cmd spring-boot:run
-  ```
-- **Windows PowerShell:**
-  ```powershell
-  .\mvnw spring-boot:run
-  ```
-- **Linux / macOS:**
-  ```bash
-  ./mvnw spring-boot:run
-  ```
-
-Server khởi động tại `http://localhost:8080`.
+Application chạy tại:
+http://localhost:8080
 
 ## API Documentation
-
 Swagger UI:
-
-```
 http://localhost:8080/swagger-ui/index.html
-```
-
-Tất cả các API yêu cầu xác thực đều sử dụng Bearer Token.
-
-1. Đăng nhập qua `POST /api/auth/login` để lấy access token.
-2. Nhấn **Authorize** trên Swagger UI và nhập `Bearer <token>`.
+Authentication flow:
+Gọi POST /api/auth/login để lấy access token.
+Nhấn Authorize trên Swagger UI.
+Nhập: Bearer <access-token>
 
 ## Project Structure
-
-```
 src/main/java/com/tuan/debtwizard/
-├── config/          # Security, OpenAPI, và app configuration
-├── dto/             # Shared DTOs (ApiResponse)
-├── exception/       # Global exception handler và error codes
+├── config/          # Security, OpenAPI, application configuration
+├── dto/             # Shared DTOs
+├── exception/       # Global exception handling
 └── features/
-    ├── auth/        # Đăng ký, đăng nhập, JWT filter, refresh token
-    ├── user/        # Quản lý profile, đổi mật khẩu
-    ├── debt/        # CRUD khoản nợ, tính lãi, quản lý trạng thái
-    ├── payment/     # Ghi nhận và theo dõi thanh toán
-    ├── planning/    # So sánh kế hoạch trả nợ, lưu kế hoạch đã chọn
-    ├── analysis/    # Phân tích 4 chỉ số sức khỏe tài chính
-    └── dashboard/   # Tổng hợp thông tin tài chính tổng quan
-```
+├── auth/        # Authentication, JWT, refresh token
+├── user/        # User management
+├── debt/        # Debt management and interest calculation
+├── payment/     # Payment tracking
+├── planning/    # Repayment simulation and planning
+├── analysis/    # Financial analysis
+└── dashboard/   # Financial overview
 
 ## Environment Variables
-
-| Variable | Description | Required |
-|---|---|---|
-| `DB_PASSWORD` | Mật khẩu PostgreSQL | Yes |
-| `JWT_SECRET` | Secret key để ký JWT token | Yes |
-
-## Documentation
-
-Tài liệu bổ sung trong thư mục `docs/`:
-
-- [System Architecture Document (SAD)](docs/SAD.md)
-- [Database Design](docs/DATABASE_DESIGN.md)
-- [Business Rules](docs/business_rules.md)
-- [Validation Rules](docs/validation_rules.md)
-- [Algorithm](docs/algorithm.md)
+| Variable      | Description                | Required |
+| ------------- | -------------------------- | -------- |
+| `DB_PASSWORD` | PostgreSQL password        | Yes      |
+| `JWT_SECRET`  | Secret key for signing JWT | Yes      |
 
 ## Testing the API
+Dự án cung cấp Postman Collection trong package postman:
+- DebtWizard.postman_collection.json
+- DebtWizard.postman_environment.json
 
-Dự án cung cấp sẵn bộ sưu tập Postman:
+Import hai file trên vào Postman để kiểm thử API.
+## Documentation
+Các tài liệu thiết kế và kỹ thuật:
+    - [System Architecture Document (SAD)](docs/SAD.md)
+    - [Database Design](docs/DatabaseDesign.md)
+    - [Business Rules](docs/BusinessRules.md)
+    - [Validation Rules](docs/ValidationRules.md)
+    - [Algorithm](docs/Algorithm.md)
+    - [Deployment Guide](docs/DEPLOYMENT.md)
+    
 
-- `DebtWizard.postman_collection.json`
-- `DebtWizard.postman_environment.json`
-
-Import cả hai tệp vào Postman để bắt đầu kiểm thử các API.

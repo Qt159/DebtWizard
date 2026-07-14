@@ -2,12 +2,11 @@
 
 ## Sơ đồ quan hệ thực thể (ERD)
 
-<img src="Erd.png" width="500" alt="Entity-Relationship diagram">
-
+![Entity-Relationship Diagram](images/erd.png)
 
 ---
 
-## Quan hệ giữa các bảng
+# Quan hệ giữa các bảng
 
 | Quan hệ | Loại | Mô tả |
 |---------|------|-------|
