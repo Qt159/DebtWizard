@@ -343,23 +343,9 @@ Chạy application:
 nohup java -jar target/DebtWizard.jar > app.log 2>&1 &
 ````
 
-# 13. Verify Deploymen  t
-
-Kiểm tra Application:
-
-```bash
-curl http://localhost:8080
-```
-
-Kiểm tra:
-
-- Spring Boot Application khởi động thành công.
-- EC2 kết nối được với RDS.
-- REST API hoạt động bình thường.
-
 ---
 
-# 14. Future Improvements
+# 13. Future Improvements
 
 - Containerize application using Docker.
 - Push Docker image to Amazon ECR.
