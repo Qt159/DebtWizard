@@ -1,6 +1,7 @@
 package com.tuan.debtwizard.features.debt.service.interest.strategy;
 
 import com.tuan.debtwizard.features.debt.model.Debt;
+import com.tuan.debtwizard.features.debt.model.InterestFrequency;
 import com.tuan.debtwizard.features.debt.model.InterestSettings;
 import com.tuan.debtwizard.features.debt.service.interest.InterestCalculationStrategy;
 import org.springframework.stereotype.Service;
@@ -15,6 +16,7 @@ public class FlatInterestCalculationStrategy implements InterestCalculationStrat
 
     private BigDecimal getPeriodRate(InterestSettings settings) {
         BigDecimal baseRate = settings.getInterestRate();
+
         if (baseRate == null || baseRate.compareTo(BigDecimal.ZERO) <= 0) {
             return BigDecimal.ZERO;
         }
@@ -26,34 +28,69 @@ public class FlatInterestCalculationStrategy implements InterestCalculationStrat
         };
     }
 
-    @Override
-    public BigDecimal calculateInterest(Debt debt, LocalDate fromDate, LocalDate toDate) {
-        long days = ChronoUnit.DAYS.between(fromDate, toDate);
-        BigDecimal periodRate = getPeriodRate(debt.getInterestSettings());
-        BigDecimal principal = debt.getTotalPrincipal();
-        if (principal == null || principal.compareTo(BigDecimal.ZERO) <= 0) return BigDecimal.ZERO;
 
-        BigDecimal multiplier = switch (debt.getInterestSettings().getInterestFrequency()) {
+    private BigDecimal getTimeMultiplier(InterestFrequency frequency, long days) {
+        return switch (frequency) {
             case DAILY -> BigDecimal.valueOf(days);
             case MONTHLY -> BigDecimal.valueOf(days).divide(BigDecimal.valueOf(30), 10, RoundingMode.HALF_UP);
             case ANNUALLY -> BigDecimal.valueOf(days).divide(BigDecimal.valueOf(365), 10, RoundingMode.HALF_UP);
         };
-        return principal.multiply(periodRate).multiply(multiplier)
+    }
+
+
+    @Override
+    public BigDecimal calculateInterest(Debt debt, LocalDate fromDate, LocalDate toDate) {
+
+        InterestSettings settings = debt.getInterestSettings();
+
+        if (settings == null || settings.getInterestFrequency() == null) {
+            return BigDecimal.ZERO;
+        }
+
+        long days = ChronoUnit.DAYS.between(fromDate, toDate);
+
+        if (days <= 0) {
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal principal = debt.getTotalPrincipal();
+
+        if (principal == null || principal.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+
+        BigDecimal rate = getPeriodRate(settings);
+        BigDecimal multiplier = getTimeMultiplier(settings.getInterestFrequency(), days);
+
+        return principal.multiply(rate)
+                .multiply(multiplier)
                 .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
     }
 
-    //MonthlyPayment = P/n + P × (annualRate/100/12)
+
+    // MonthlyPayment = P/n + P × (annualRate/100/12)
     @Override
     public BigDecimal calculateMonthlyPayment(BigDecimal principal, int termMonths, BigDecimal annualRate) {
-        if (principal == null || principal.compareTo(BigDecimal.ZERO) <= 0) return BigDecimal.ZERO;
+
+        if (principal == null || principal.compareTo(BigDecimal.ZERO) <= 0) {
+            return BigDecimal.ZERO;
+        }
+
+        if (termMonths <= 0) {
+            return BigDecimal.ZERO;
+        }
+
         if (annualRate == null || annualRate.compareTo(BigDecimal.ZERO) <= 0) {
             return principal.divide(BigDecimal.valueOf(termMonths), 2, RoundingMode.HALF_UP);
         }
+
         BigDecimal monthlyRate = annualRate
                 .divide(BigDecimal.valueOf(100), 10, RoundingMode.HALF_UP)
                 .divide(BigDecimal.valueOf(12), 10, RoundingMode.HALF_UP);
+
         BigDecimal principalPart = principal.divide(BigDecimal.valueOf(termMonths), 10, RoundingMode.HALF_UP);
         BigDecimal interestPart = principal.multiply(monthlyRate);
+
         return principalPart.add(interestPart).setScale(2, RoundingMode.HALF_UP);
     }
 }
