@@ -7,6 +7,7 @@ import com.tuan.debtwizard.features.auth.dto.RegisterRequest;
 import com.tuan.debtwizard.features.auth.dto.RegisterResponse;
 import com.tuan.debtwizard.features.auth.service.AuthService;
 import jakarta.validation.Valid;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -32,6 +33,11 @@ public class AuthController {
     @PostMapping("/refresh")
     public ApiResponse<LoginResponse> refreshToken(@RequestBody String refreshToken) {
         return ApiResponse.success(authService.refresh(refreshToken));
+    }
+    @PostMapping("/logout")
+    public ApiResponse<Void> logout(Authentication authentication) {
+        authService.logout(authentication.getName());
+        return ApiResponse.success();
     }
 
 }
