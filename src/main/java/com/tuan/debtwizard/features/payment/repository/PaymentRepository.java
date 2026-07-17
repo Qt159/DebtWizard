@@ -12,18 +12,20 @@ import java.util.Optional;
 
 @Repository
 public interface PaymentRepository extends JpaRepository<Payment, Long> {
-
-    List<Payment> findByDebtId(Long debtId);
-
-    @Query("SELECT p FROM Payment p WHERE p.debt.user.id = :userId AND p.deleted = false ORDER BY p.paymentDate DESC")
-    List<Payment> findAllByUserId(@Param("userId") Long userId);
-
+    List<Payment> findByDebtIdAndDeletedFalse(Long debtId);
     @Query("""
-    SELECT SUM(p.amount)
+    SELECT p FROM Payment p
+    WHERE p.debt.user.id = :userId
+    AND p.deleted = false
+    ORDER BY p.paymentDate DESC
+    """)
+    List<Payment> findAllByUserId(@Param("userId") Long userId);
+    @Query("""
+    SELECT (SUM(p.amount), 0)
     FROM Payment p
     WHERE p.debt.user.id = :userId
-""")
+    AND p.deleted = false
+    """)
     BigDecimal getTotalPaid(@Param("userId") Long userId);
-
-    Optional<Payment> findByIdAndDebtUserId(Long id, Long id1);
+    Optional<Payment> findByIdAndDebtUserIdAndDeletedFalse(Long paymentId, Long userId);
 }

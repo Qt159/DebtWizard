@@ -12,7 +12,10 @@ import lombok.Setter;
 public class PaymentListItem {
     private Long id;
     private Long debtId;
+    private String lenderName;
     private BigDecimal amount;
+    private BigDecimal principalPaid;
+    private BigDecimal interestPaid;
     private LocalDate paymentDate;
     private PaymentMethod paymentMethod;
     private String note;

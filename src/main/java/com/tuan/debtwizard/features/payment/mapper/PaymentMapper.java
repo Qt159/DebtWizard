@@ -7,14 +7,12 @@ import com.tuan.debtwizard.features.payment.dto.PaymentResponse;
 import com.tuan.debtwizard.features.payment.model.Payment;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
-
 @Component
 public class PaymentMapper {
 
     public Payment toEntity(PaymentRequest paymentRequest, Debt debt) {
-
         Payment payment = new Payment();
+
         payment.setDebt(debt);
         payment.setAmount(paymentRequest.getAmount());
         payment.setPaymentDate(paymentRequest.getPaymentDate());
@@ -26,9 +24,11 @@ public class PaymentMapper {
 
     public PaymentResponse toResponse(Payment payment) {
         PaymentResponse response = new PaymentResponse();
-        response.setId(payment.getId());
-        response.setDebtId(payment.getDebt().getId());
-        response.setLenderName(payment.getDebt().getLenderName());
+        Debt debt = payment.getDebt();
+        if (debt != null) {
+            response.setDebtId(debt.getId());
+            response.setLenderName(debt.getLenderName());
+        }
         response.setNote(payment.getNote());
         response.setAmount(payment.getAmount());
         response.setPaymentMethod(payment.getPaymentMethod());
@@ -41,12 +41,14 @@ public class PaymentMapper {
     }
     public PaymentListItem toListItem(Payment payment) {
         PaymentListItem item = new PaymentListItem();
+        Debt debt = payment.getDebt();
         item.setId(payment.getId());
-        item.setDebtId(payment.getDebt().getId());
+        if (debt != null) {
+            item.setDebtId(debt.getId());}
+
         item.setAmount(payment.getAmount());
         item.setPaymentMethod(payment.getPaymentMethod());
         item.setNote(payment.getNote());
-        item.setDebtId(payment.getDebt().getId());
         item.setPaymentDate(payment.getPaymentDate());
         return item;
     }

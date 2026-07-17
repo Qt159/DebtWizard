@@ -4,7 +4,6 @@ import com.tuan.debtwizard.dto.ApiResponse;
 import com.tuan.debtwizard.features.payment.dto.PaymentListItem;
 import com.tuan.debtwizard.features.payment.dto.PaymentRequest;
 import com.tuan.debtwizard.features.payment.dto.PaymentResponse;
-import com.tuan.debtwizard.features.payment.dto.UpdatePaymentRequest;
 import com.tuan.debtwizard.features.payment.service.PaymentService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
@@ -45,19 +44,5 @@ public class PaymentController {
         return ApiResponse.success(paymentService.getPayment(userDetails, id));
     }
 
-    @PutMapping("/{id}")
-    public ApiResponse<PaymentResponse> updatePayment(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long id,
-            @Valid @RequestBody UpdatePaymentRequest request) {
-        return ApiResponse.success(paymentService.updatePayment(id, request, userDetails));
-    }
 
-    @DeleteMapping("/{id}")
-    public ApiResponse<Void> deletePayment(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @PathVariable Long id) {
-        paymentService.deletePayment(id, userDetails);
-        return ApiResponse.success();
-    }
 }

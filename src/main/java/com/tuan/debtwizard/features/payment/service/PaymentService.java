@@ -10,7 +10,6 @@ import com.tuan.debtwizard.features.debt.service.interest.InterestAccrualService
 import com.tuan.debtwizard.features.payment.dto.PaymentListItem;
 import com.tuan.debtwizard.features.payment.dto.PaymentRequest;
 import com.tuan.debtwizard.features.payment.dto.PaymentResponse;
-import com.tuan.debtwizard.features.payment.dto.UpdatePaymentRequest;
 import com.tuan.debtwizard.features.payment.mapper.PaymentMapper;
 import com.tuan.debtwizard.features.payment.model.Payment;
 import com.tuan.debtwizard.features.payment.repository.PaymentRepository;
@@ -25,6 +24,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 public class PaymentService {
@@ -53,6 +53,7 @@ public class PaymentService {
     @Transactional
     public PaymentResponse createPayment(PaymentRequest request, UserDetails userDetails) {
         User user = getUserByUsername(userDetails.getUsername());
+
         Debt debt = debtRepository
                 .findByIdAndUserIdAndDeletedFalse(request.getDebtId(), user.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.DEBT_NOT_FOUND));
@@ -69,6 +70,10 @@ public class PaymentService {
         BigDecimal interest = debt.getAccruedInterest();
         BigDecimal principal = debt.getRemainingPrincipal();
 
+        BigDecimal totalDebt = interest.add(principal);
+        if (amount.compareTo(totalDebt) > 0) {
+            throw new AppException(ErrorCode.PAYMENT_EXCEEDS_REMAINING);
+        }
         BigDecimal interestPaid = amount.min(interest);
         BigDecimal remainingAfterInterest = amount.subtract(interestPaid);
         BigDecimal principalPaid = remainingAfterInterest.min(principal);
@@ -89,18 +94,16 @@ public class PaymentService {
         payment.setInterestPaid(interestPaid);
         payment.setPrincipalPaid(principalPaid);
 
-        return paymentMapper.toResponse(paymentRepository.save(payment));
+        Payment savedPayment = paymentRepository.save(payment);
+
+        return paymentMapper.toResponse(savedPayment);
     }
 
     @Transactional(readOnly = true)
     public PaymentResponse getPayment(UserDetails userDetails, Long id) {
         User user = getUserByUsername(userDetails.getUsername());
-        Payment payment = paymentRepository
-                .findByIdAndDebtUserId(id, user.getId())
+        Payment payment = paymentRepository.findByIdAndDebtUserIdAndDeletedFalse(id, user.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_FOUND));
-        if (payment.isDeleted()) {
-            throw new AppException(ErrorCode.PAYMENT_NOT_FOUND);
-        }
         return paymentMapper.toResponse(payment);
     }
 
@@ -110,12 +113,11 @@ public class PaymentService {
         debtRepository.findByIdAndUserIdAndDeletedFalse(debtId, user.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.DEBT_NOT_FOUND));
 
-        List<Payment> payments = paymentRepository.findByDebtId(debtId);
+        List<Payment> payments = paymentRepository.findByDebtIdAndDeletedFalse(debtId);
         List<PaymentListItem> items = new ArrayList<>();
         for (Payment payment : payments) {
-            if (!payment.isDeleted()) {
-                items.add(paymentMapper.toListItem(payment));
-            }
+            PaymentListItem item = paymentMapper.toListItem(payment);
+            items.add(item);
         }
         return items;
     }
@@ -124,45 +126,15 @@ public class PaymentService {
     public List<PaymentListItem> getAllPayments(UserDetails userDetails) {
         User user = getUserByUsername(userDetails.getUsername());
         List<Payment> payments = paymentRepository.findAllByUserId(user.getId());
+
         List<PaymentListItem> items = new ArrayList<>();
         for (Payment payment : payments) {
-            items.add(paymentMapper.toListItem(payment));
+            PaymentListItem item = paymentMapper.toListItem(payment);
+            items.add(item);
         }
         return items;
     }
 
-    
-    @Transactional
-    public PaymentResponse updatePayment(Long id, UpdatePaymentRequest request, UserDetails userDetails) {
-        User user = getUserByUsername(userDetails.getUsername());
-        Payment payment = paymentRepository
-                .findByIdAndDebtUserId(id, user.getId())
-                .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_FOUND));
-        if (payment.isDeleted()) {
-            throw new AppException(ErrorCode.PAYMENT_NOT_FOUND);
-        }
-        if (request.getNote() != null) {
-            payment.setNote(request.getNote());
-        }
-        if (request.getPaymentDate() != null) {
-            payment.setPaymentDate(request.getPaymentDate());
-        }
-        return paymentMapper.toResponse(paymentRepository.save(payment));
-    }
-
-    
-    @Transactional
-    public void deletePayment(Long id, UserDetails userDetails) {
-        User user = getUserByUsername(userDetails.getUsername());
-        Payment payment = paymentRepository
-                .findByIdAndDebtUserId(id, user.getId())
-                .orElseThrow(() -> new AppException(ErrorCode.PAYMENT_NOT_FOUND));
-        if (payment.isDeleted()) {
-            throw new AppException(ErrorCode.PAYMENT_NOT_FOUND);
-        }
-        payment.setDeleted(true);
-        paymentRepository.save(payment);
-    }
 
     private void validatePaymentDate(LocalDate paymentDate, Debt debt) {
         if (paymentDate.isAfter(LocalDate.now())

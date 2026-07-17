@@ -13,7 +13,7 @@ public class SimulationHelper {
 
     public BigDecimal calculateMonthlyExtraBudget(User user, List<DebtSnapshot> debts) {
         BigDecimal income = user.getMonthlyIncome();
-        BigDecimal expense = user.getExpense();
+        BigDecimal expense = user.getMonthlyExpense();
 
         BigDecimal total = income.subtract(expense);
         BigDecimal minPayment = calculateTotalMinimumPayment(debts);
