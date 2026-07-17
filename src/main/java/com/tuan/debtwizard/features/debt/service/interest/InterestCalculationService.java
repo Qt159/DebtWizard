@@ -33,14 +33,13 @@ public class InterestCalculationService {
         InterestSettings settings = debt.getInterestSettings();
         if (settings == null) {
             return debt.getTotalPrincipal()
-                    .divide(BigDecimal.valueOf(debt.getTermMonths()), 2, java.math.RoundingMode.HALF_UP);
+                    .divide(BigDecimal.valueOf(debt.getTermMonths()),
+                            2, java.math.RoundingMode.HALF_UP);
         }
     
-        BigDecimal principal = switch (settings.getInterestCalculationMethod()) {
-            case FLAT -> debt.getTotalPrincipal();
-            case REDUCING_BALANCE -> debt.getRemainingPrincipal();
-        };
+        BigDecimal principal =  debt.getTotalPrincipal();
         return factory.get(settings.getInterestCalculationMethod())
-                .calculateMonthlyPayment(principal, debt.getTermMonths(), settings.getInterestRate());
+                .calculateMonthlyPayment(principal,
+                        debt.getTermMonths(), settings.getInterestRate());
     }
 }

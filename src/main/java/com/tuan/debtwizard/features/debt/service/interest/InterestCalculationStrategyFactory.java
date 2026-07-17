@@ -1,4 +1,6 @@
 package com.tuan.debtwizard.features.debt.service.interest;
+import com.tuan.debtwizard.exception.AppException;
+import com.tuan.debtwizard.exception.ErrorCode;
 import com.tuan.debtwizard.features.debt.model.InterestCalculationMethod;
 import com.tuan.debtwizard.features.debt.service.interest.strategy.FlatInterestCalculationStrategy;
 import com.tuan.debtwizard.features.debt.service.interest.strategy.ReducingBalanceInterestCalculationStrategy;
@@ -15,7 +17,11 @@ public class InterestCalculationStrategyFactory {
         this.reducing = reducing;
     }
 
+
     public InterestCalculationStrategy get(InterestCalculationMethod method) {
+        if (method == null) {
+            throw new AppException(ErrorCode.INTEREST_CALCULATION_METHOD_NULL);
+        }
         return switch (method) {
             case FLAT -> flat;
             case REDUCING_BALANCE -> reducing;

@@ -2,6 +2,7 @@ package com.tuan.debtwizard.features.debt.service.interest;
 
 import com.tuan.debtwizard.features.debt.model.Debt;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -12,7 +13,7 @@ public class InterestAccrualService {
     public InterestAccrualService(
             InterestCalculationService interestCalculationService) {
         this.interestCalculationService = interestCalculationService;}
-
+    @Transactional //Lãi tích lũy
     public void accrueInterest(Debt debt, LocalDate toDate) {
         if (debt == null || toDate == null) {return;}
 

@@ -45,7 +45,8 @@ public enum ErrorCode {
     INVALID_INPUT(HttpStatus.BAD_REQUEST, "Dữ liệu không hợp lệ"),
     DATA_INTEGRITY_VIOLATION(HttpStatus.BAD_REQUEST, "Vi phạm ràng buộc dữ liệu"),
     INVALID_OAUTH2_USER(HttpStatus.UNAUTHORIZED, "OAuth2 không hợp lệ"),
-    NEW_PASSWORD_SAME_AS_OLD(HttpStatus.BAD_REQUEST, "Mật khẩu mới không được trùng với mật khẩu cũ");
+    NEW_PASSWORD_SAME_AS_OLD(HttpStatus.BAD_REQUEST, "Mật khẩu mới không được trùng với mật khẩu cũ"),
+    INTEREST_CALCULATION_METHOD_NULL(HttpStatus.BAD_REQUEST,"Phương thức tính lãi không thể bỏ trống" );
 
     private final HttpStatus status;
     private final String message;
