@@ -4,7 +4,6 @@ import com.tuan.debtwizard.exception.AppException;
 import com.tuan.debtwizard.exception.ErrorCode;
 import com.tuan.debtwizard.features.debt.dto.CreateDebtRequest;
 import com.tuan.debtwizard.features.debt.dto.DebtListItemResponse;
-import com.tuan.debtwizard.features.debt.dto.DebtRequest;
 import com.tuan.debtwizard.features.debt.dto.DebtResponse;
 import com.tuan.debtwizard.features.debt.mapper.DebtMapper;
 import com.tuan.debtwizard.features.debt.model.Debt;
@@ -15,6 +14,7 @@ import com.tuan.debtwizard.features.user.model.User;
 import com.tuan.debtwizard.features.user.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import com.tuan.debtwizard.features.debt.dto.UpdateDebtRequest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
@@ -48,16 +48,13 @@ public class DebtService {
     }
 
     @Transactional
-    public DebtResponse createDebt(CreateDebtRequest createDebtRequest, UserDetails userDetails) {
+    public DebtResponse createDebt(CreateDebtRequest request, UserDetails userDetails) {
         User currentUser = findUserOrThrow(userDetails);
-        Debt debt = debtMapper.toEntity(
-                createDebtRequest.getDebt(),
-                createDebtRequest.getInterestSettings());
+        Debt debt = debtMapper.toEntity( request, request.getInterestSettings());
         debt.setUser(currentUser);
         debt.setStatus(DebtStatus.ACTIVE);
         debt.setNextDueDate(debtStateService.calculateFirstDueDate(debt));
         debt.setExpectedMonthlyPayment(interestCalculationService.calculateMonthlyPayment(debt));
-
         Debt savedDebt = debtRepository.save(debt);
         return debtMapper.toResponse(savedDebt);
     }
@@ -86,12 +83,12 @@ public class DebtService {
         return debtMapper.toResponse(debt);
     }
 
-    public DebtResponse updateDebt(Long id, DebtRequest req, UserDetails userDetails) {
+    public DebtResponse updateDebt(Long id,  UpdateDebtRequest request, UserDetails userDetails) {
         User currentUser = findUserOrThrow(userDetails);
         Debt debt = debtRepository.findByIdAndUserIdAndDeletedFalse(id, currentUser.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.DEBT_NOT_FOUND));
-        if (req.getLenderName() != null) {
-            debt.setLenderName(req.getLenderName());
+        if (request.getLenderName() != null) {
+            debt.setLenderName(request.getLenderName());
         }
         return debtMapper.toResponse(debtRepository.save(debt));
     }

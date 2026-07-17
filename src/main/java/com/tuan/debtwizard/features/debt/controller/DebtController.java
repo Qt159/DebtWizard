@@ -4,7 +4,8 @@ import com.tuan.debtwizard.dto.ApiResponse;
 import com.tuan.debtwizard.features.debt.dto.CreateDebtRequest;
 import com.tuan.debtwizard.features.debt.dto.DebtListItemResponse;
 import com.tuan.debtwizard.features.debt.dto.DebtResponse;
-import com.tuan.debtwizard.features.debt.dto.DebtRequest;
+
+import com.tuan.debtwizard.features.debt.dto.UpdateDebtRequest;
 import com.tuan.debtwizard.features.debt.model.DebtStatus;
 import com.tuan.debtwizard.features.debt.service.DebtService;
 import com.tuan.debtwizard.features.payment.dto.PaymentListItem;
@@ -52,10 +53,10 @@ public class DebtController {
     @PutMapping("/{id}")
     public ApiResponse<DebtResponse> updateDebt(
             @PathVariable Long id,
-            @Valid @RequestBody DebtRequest debtRequest,
+            @Valid @RequestBody UpdateDebtRequest updateDebtRequest,
             @AuthenticationPrincipal UserDetails userDetails) {
 
-        return ApiResponse.success(debtService.updateDebt(id, debtRequest, userDetails));
+        return ApiResponse.success(debtService.updateDebt(id, updateDebtRequest, userDetails));
     }
     @DeleteMapping("/{id}")
     public ApiResponse<Void> deleteDebt(
