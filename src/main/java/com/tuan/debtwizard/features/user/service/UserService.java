@@ -38,7 +38,7 @@ public class UserService {
         if (request.getMonthlyIncome() != null) {
             user.setMonthlyIncome(request.getMonthlyIncome());}
         if (request.getMonthlyExpense() != null) {
-            user.setExpense(request.getMonthlyExpense());
+            user.setMonthlyExpense(request.getMonthlyExpense());
         }
 
         return mapToResponse(userRepository.save(user));
@@ -54,11 +54,14 @@ public class UserService {
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
             throw new AppException(ErrorCode.INVALID_PASSWORD);
         }
+        if (!passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
+            throw new AppException(ErrorCode.NEW_PASSWORD_SAME_AS_OLD);
+        }
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
     }
 
     private UserResponse mapToResponse(User user) {
         return new UserResponse(user.getId(), user.getUsername(),
-                user.getFullName(), user.getEmail(), user.getMonthlyIncome(), user.getExpense());
+                user.getFullName(), user.getEmail(), user.getMonthlyIncome(), user.getMonthlyExpense());
     }
 }

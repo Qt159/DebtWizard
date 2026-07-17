@@ -2,8 +2,6 @@ package com.tuan.debtwizard.features.user.model;
 
 import com.tuan.debtwizard.features.debt.model.Debt;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
@@ -24,11 +22,9 @@ public class User implements UserDetails {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @NotBlank
     @Column(nullable = false, unique = true, length = 50)
     private String username;
 
-    @Email
     @Column(unique = true, length = 100)
     private String email;
 
@@ -42,7 +38,7 @@ public class User implements UserDetails {
     private BigDecimal monthlyIncome = BigDecimal.ZERO;
 
     @Column(precision = 15, scale = 2)
-    private BigDecimal expense = BigDecimal.ZERO;
+    private BigDecimal monthlyExpense = BigDecimal.ZERO;
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
@@ -67,13 +63,13 @@ public class User implements UserDetails {
         this.updatedAt = LocalDateTime.now();
     }
     public User() {}
-    public User(String username, String email, String password, String fullName, BigDecimal monthlyIncome, BigDecimal expense) {
+    public User(String username, String email, String password, String fullName, BigDecimal monthlyIncome, BigDecimal monthlyExpense) {
         this.username = username;
         this.email = email;
         this.password = password;
         this.fullName = fullName;
         this.monthlyIncome = monthlyIncome;
-        this.expense = expense;
+        this.monthlyExpense = monthlyExpense;
     }
     @Override
     public String getUsername() {
