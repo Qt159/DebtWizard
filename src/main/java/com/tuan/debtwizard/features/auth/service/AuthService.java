@@ -106,4 +106,10 @@ public class AuthService {
 
         return new LoginResponse(newAccessToken, newRefreshToken);
     }
+    @Transactional
+    public void logout(String username) {
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        refreshTokenRepository.deleteByUser(user);
+    }
 }
