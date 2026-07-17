@@ -9,10 +9,9 @@ import java.time.Period;
 @Setter
 public class RepaymentTimeResponse {
     private int totalActiveDebts;
-    private int repaymentMonths;       // số tháng cần để trả hết
-    private String recommendation;
-    public RepaymentTimeResponse(int totalActiveDebts, int repaymentMonths) {
+    private Integer estimatedMonths;       // số tháng cần để trả hết
+    public RepaymentTimeResponse(int totalActiveDebts, Integer estimatedMonths) {
         this.totalActiveDebts = totalActiveDebts;
-        this.repaymentMonths = repaymentMonths;
+        this.estimatedMonths = estimatedMonths;
     }
 }

@@ -2,6 +2,7 @@ package com.tuan.debtwizard.features.dashboard.dto;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.springframework.http.HttpStatus;
 
 import java.time.LocalDate;
 
@@ -16,5 +17,7 @@ public class NextDueDebtInfo {
         this.nextDueDate = nextDueDate;
         this.daysUntilDue = daysUntilDue;
     }
+    public NextDueDebtInfo(){}
+
 
 }

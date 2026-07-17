@@ -3,7 +3,6 @@ package com.tuan.debtwizard.features.debt.repository;
 import com.tuan.debtwizard.features.debt.model.Debt;
 import com.tuan.debtwizard.features.debt.model.DebtStatus;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -34,17 +33,10 @@ public interface DebtRepository extends JpaRepository<Debt, Long> {
     SELECT SUM(d.remainingPrincipal)
     FROM Debt d
     WHERE d.user.id = :userId
-    AND d.status = 'OVERDUE'
+    AND d.status = com.tuan.debtwizard.features.debt.model.DebtStatus.OVERDUE
     AND d.deleted = false
     """)
     BigDecimal getTotalOverdue(@Param("userId") Long userId);
-    @Query("""
-    SELECT COUNT(d)
-    FROM Debt d
-    WHERE d.user.id = :userId
-    AND d.deleted = false
-    """)
-    int countDebt(@Param("userId") Long userId);
 
     @Query("""
     SELECT COUNT(d)
@@ -58,15 +50,17 @@ public interface DebtRepository extends JpaRepository<Debt, Long> {
             @Param("status") DebtStatus status
     );
 
-    Page<Debt> findByDeletedFalseAndStatusNot(DebtStatus debtStatus, Pageable pageable);
-
+    Page<Debt> findByDeletedFalseAndStatusNot(
+            DebtStatus debtStatus,
+            Pageable pageable
+    );
     @Query("""
     SELECT d FROM Debt d 
     WHERE d.user.id = :userId 
     AND d.status <> com.tuan.debtwizard.features.debt.model.DebtStatus.PAID_OFF
     AND d.deleted = false
-""")
-    List<Debt> findActiveDebtsByUserId(@Param("userId") Long userId);
+    """)
+    List<Debt> findUnpaidDebtsByUserId(@Param("userId") Long userId);
     @Query("""
     SELECT SUM(d.accruedInterest)
     FROM Debt d
@@ -92,11 +86,9 @@ public interface DebtRepository extends JpaRepository<Debt, Long> {
     and d.status = com.tuan.debtwizard.features.debt.model.DebtStatus.ACTIVE
 """)
     BigDecimal getTotalActiveExpectedMonthlyPayment(@Param("userId") Long userId);
-
-    List<Debt> findByUserIdAndStatusInAndDeletedFalse(Long id, List<DebtStatus> active);
-
     @Query("""
-    SELECT d FROM Debt d
+    SELECT d
+    FROM Debt d
     JOIN FETCH d.user
     WHERE d.id IN :ids
     """)

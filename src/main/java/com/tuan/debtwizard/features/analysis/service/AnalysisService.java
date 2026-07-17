@@ -42,7 +42,7 @@ public class AnalysisService {
             return new DtiResponse(BigDecimal.ZERO,
                     BigDecimal.ZERO,
                     0.0,
-                    FinanceHealth.CRITICAL,
+                    FinanceHealth.INCOMPLETE,
                     "Vui lòng cập nhật thu nhập để tính toán DTI");
         }
         BigDecimal monthlyPayment = debtRepository.getTotalActiveExpectedMonthlyPayment(user.getId());
@@ -54,7 +54,7 @@ public class AnalysisService {
         FinanceHealth health = FinanceClassifier.byRatio(ratio, 30, 50);
         return new DtiResponse(income, monthlyPayment, ratio,health,  health.getDefaultAdvice());
     }
-    // ratio = income / totalInterest
+    // ratio = totalInterest / income
     private InterestRatioResponse calculateInterestRatio(User user){
         BigDecimal income = user.getMonthlyIncome();
         BigDecimal totalInterest = debtRepository.getTotalAccruedInterest(user.getId());
@@ -64,7 +64,8 @@ public class AnalysisService {
             return new InterestRatioResponse(BigDecimal.ZERO,
                     BigDecimal.ZERO,
                     BigDecimal.ZERO, 0.0,
-                    FinanceHealth.CRITICAL, "Vui lòng cập nhật thu nhập để tính toán !");}
+                    FinanceHealth.INCOMPLETE,
+                    "Vui lòng cập nhật thu nhập để tính toán !");}
 
         if (totalInterest == null || totalInterest.compareTo(BigDecimal.ZERO) <= 0) {
             return new InterestRatioResponse(
@@ -95,7 +96,6 @@ public class AnalysisService {
     private RepaymentTimeResponse calculateRepaymentTime(User user) {
         Long userId = user.getId();
         int activeDebtCount = debtRepository.countDebtByStatus(userId, DebtStatus.ACTIVE);
-
         if (activeDebtCount == 0) {
             return new RepaymentTimeResponse(0, 0);}
         BigDecimal totalRemaining = debtRepository.getTotalRemainingDebt(userId);
@@ -109,7 +109,7 @@ public class AnalysisService {
         if (monthlyPayment == null
                 || monthlyPayment.compareTo(BigDecimal.ZERO) <= 0) {
             // không có khoản thanh toán hàng tháng
-            return new RepaymentTimeResponse(activeDebtCount, -1);
+            return new RepaymentTimeResponse(activeDebtCount, null);
         }
 
         int estimatedMonths = totalRemaining

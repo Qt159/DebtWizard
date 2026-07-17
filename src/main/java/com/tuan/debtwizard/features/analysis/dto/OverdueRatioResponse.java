@@ -4,6 +4,8 @@ import com.tuan.debtwizard.features.analysis.FinanceHealth;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
+
 @Setter
 @Getter
 public class OverdueRatioResponse {

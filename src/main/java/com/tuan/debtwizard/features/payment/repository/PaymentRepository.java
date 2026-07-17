@@ -21,7 +21,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     """)
     List<Payment> findAllByUserId(@Param("userId") Long userId);
     @Query("""
-    SELECT (SUM(p.amount), 0)
+    SELECT SUM(p.amount)
     FROM Payment p
     WHERE p.debt.user.id = :userId
     AND p.deleted = false
