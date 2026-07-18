@@ -37,7 +37,7 @@ DebtWizard là nền tảng quản lý nợ cá nhân, hỗ trợ người dùng
 Backend được triển khai trên AWS.  
 Chi tiết kiến trúc và các bước triển khai:
 
-- [Deployment Guide](docs/DEPLOYMENT.md)
+- [Deployment Guide](docs/deployment.md)
 
 ## Getting Started
 
@@ -120,11 +120,11 @@ Dự án cung cấp Postman Collection trong package postman:
 Import hai file trên vào Postman để kiểm thử API.
 ## Documentation
 Các tài liệu thiết kế và kỹ thuật:
-    - [System Architecture Document (SAD)](docs/SAD.md)
-    - [Database Design](docs/DATABASE_DESIGN.md)
+    - [Solution Architecture](docs/solution_architecture.md)
+    - [Database Design](docs/database_design.md)
     - [Business Rules](docs/business_rules.md)
     - [Validation Rules](docs/validation_rules.md)
     - [Algorithm](docs/algorithm.md)
-    - [Deployment Guide](docs/DEPLOYMENT.md)
+    - [Deployment Guide](docs/deployment.md)
     
 

@@ -100,7 +100,6 @@ Hệ thống sử dụng **Feature-Based Architecture** kết hợp **Layered Ar
 - Validate: debt tồn tại, chưa `PAID_OFF`, ngày thanh toán hợp lệ
 - Accrual lãi đến ngày thanh toán trước khi phân bổ
 - Interest-first allocation: trừ `accruedInterest` trước, phần còn lại vào `remainingPrincipal`
-- Soft-delete (`deleted = true`) và soft-update (chỉ `note` và `paymentDate`)
 
 **PlanningService + SimulationEngine**
 - `comparePlans`: load debts bằng `JOIN FETCH user` (tránh LazyInitializationException), verify ownership, tính `maxAllowedExtraPayment = income - expense - totalMinimumPayment`, validate `monthlyExtraPayment ≤ maxAllowedExtraPayment`, convert `Debt → DebtSnapshot` (in-memory), chạy `SimulationEngine.simulate()` độc lập cho 2 strategy, trả về `CompareResponse { maxAllowedExtraPayment, firstPlan, secondPlan }`, không lưu DB
@@ -294,8 +293,8 @@ User → GET /api/analysis/all
 | POST | `/api/payments` | Ghi nhận thanh toán |
 | GET | `/api/payments` | Toàn bộ lịch sử thanh toán |
 | GET | `/api/payments/{id}` | Chi tiết thanh toán |
-| PUT | `/api/payments/{id}` | Cập nhật `note` / `paymentDate` (soft-update) |
-| DELETE | `/api/payments/{id}` | Xóa thanh toán (soft-delete) |
+| PUT | `/api/payments/{id}` | Cập nhật `note` / `paymentDate` (soft-update) *(chưa implement)* |
+| DELETE | `/api/payments/{id}` | Xóa thanh toán (soft-delete) *(chưa implement)* |
 | GET | `/api/analysis/all` | Phân tích 4 chỉ số sức khỏe tài chính |
 | POST | `/api/planning/compare` | So sánh 2 kế hoạch trả nợ (stateless) |
 | POST | `/api/planning/save` | Lưu kế hoạch đã chọn |

@@ -11,7 +11,7 @@
   - `estimatedPayoffMonths = balance / minimumPayment`
   - `priorityScore = minimumPayment / estimatedPayoffMonths`
 - Chọn khoản nợ có `priorityScore` **cao nhất**.
-- **Giải thích:** Score = `minimumPayment² / balance` — ưu tiên các khoản nợ vừa có **minimum payment lớn** (giải phóng nhiều cashflow khi tất toán), vừa **gần trả hết** (tất toán sớm). Sau khi tất toán, minimum payment của khoản đó được cộng vào `snowballBonus` cho các tháng tiếp theo.
+- **Giải thích:** Score = `minimumPayment / (balance/minimum)` — ưu tiên các khoản nợ vừa có **minimum payment lớn** (giải phóng nhiều cashflow khi tất toán), vừa **gần trả hết** (tất toán sớm). Sau khi tất toán, minimum payment của khoản đó được cộng vào `snowballBonus` cho các tháng tiếp theo.
 - Mục tiêu: tối đa hóa dòng tiền được giải phóng trong thời gian ngắn nhất.
 
 ## 2. Simulation
