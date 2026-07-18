@@ -8,11 +8,11 @@ import com.tuan.debtwizard.features.planning.model.PlanMonthlySchedule;
 import com.tuan.debtwizard.features.planning.model.SavedPlan;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class SavedPlanMapper {
-
     public SavedPlanResponse toResponse(SavedPlan plan) {
         SavedPlanResponse response = new SavedPlanResponse();
         response.setId(plan.getId());
@@ -25,41 +25,49 @@ public class SavedPlanMapper {
         response.setSchedule(toScheduleDtos(plan.getMonthlySchedules()));
         return response;
     }
-
     private List<SimulationMonthDto> toScheduleDtos(List<PlanMonthlySchedule> schedules) {
-        return schedules.stream()
-                .map(this::toScheduleDto)
-                .toList();
+        List<SimulationMonthDto> result = new ArrayList<>();
+        for (PlanMonthlySchedule schedule : schedules) {
+            result.add(toScheduleDto(schedule));
+        }
+        return result;
     }
 
     private SimulationMonthDto toScheduleDto(PlanMonthlySchedule schedule) {
         SimulationMonthDto dto = new SimulationMonthDto();
+
         dto.setMonthIndex(schedule.getMonthIndex());
         dto.setDate(schedule.getDate());
         dto.setTotalPayment(schedule.getTotalPayment());
         dto.setExtraPaymentUsed(schedule.getExtraPaymentUsed());
         dto.setCashflowReleased(schedule.getCashflowReleased());
         dto.setPayments(toDebtPaymentDtos(schedule.getDebtPayments()));
+
         return dto;
     }
 
     private List<DebtPaymentDetailDto> toDebtPaymentDtos(List<PlanDebtPayment> payments) {
-        return payments.stream()
-                .map(this::toDebtPaymentDto)
-                .toList();
+        List<DebtPaymentDetailDto> result = new ArrayList<>();
+
+        for (PlanDebtPayment payment : payments) {
+            result.add(toDebtPaymentDto(payment));
+        }
+        return result;
     }
 
-    private DebtPaymentDetailDto toDebtPaymentDto(PlanDebtPayment p) {
+    private DebtPaymentDetailDto toDebtPaymentDto(PlanDebtPayment payment) {
         DebtPaymentDetailDto dto = new DebtPaymentDetailDto();
-        dto.setDebtId(p.getDebt().getId());
-        dto.setDebtName(p.getDebtName());
-        dto.setMinimumPaid(p.getMinimumPaid());
-        dto.setExtraPaid(p.getExtraPaid());
-        dto.setPrincipalPaid(p.getPrincipalPaid());
-        dto.setInterestPaid(p.getInterestPaid());
-        dto.setTotalPaid(p.getMinimumPaid().add(p.getExtraPaid()));
-        dto.setRemainingBalance(p.getRemainingBalance());
-        dto.setPaidOff(p.isPaidOff());
+
+        dto.setDebtId(payment.getDebt().getId());
+        dto.setDebtName(payment.getDebtName());
+        dto.setMinimumPaid(payment.getMinimumPaid());
+        dto.setExtraPaid(payment.getExtraPaid());
+        dto.setPrincipalPaid(payment.getPrincipalPaid());
+        dto.setInterestPaid(payment.getInterestPaid());
+        dto.setTotalPaid(payment.getMinimumPaid().add(payment.getExtraPaid()));
+        dto.setRemainingBalance(payment.getRemainingBalance());
+        dto.setPaidOff(payment.isPaidOff());
+
         return dto;
     }
 }

@@ -46,7 +46,9 @@ public enum ErrorCode {
     DATA_INTEGRITY_VIOLATION(HttpStatus.BAD_REQUEST, "Vi phạm ràng buộc dữ liệu"),
     INVALID_OAUTH2_USER(HttpStatus.UNAUTHORIZED, "OAuth2 không hợp lệ"),
     NEW_PASSWORD_SAME_AS_OLD(HttpStatus.BAD_REQUEST, "Mật khẩu mới không được trùng với mật khẩu cũ"),
-    INTEREST_CALCULATION_METHOD_NULL(HttpStatus.BAD_REQUEST,"Phương thức tính lãi không thể bỏ trống" );
+    INTEREST_CALCULATION_METHOD_NULL(HttpStatus.BAD_REQUEST,"Phương thức tính lãi không thể bỏ trống" ),
+    INVALID_STRATEGY(HttpStatus.BAD_REQUEST, "Chiến lược không hợp lệ"),
+    SIMULATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Quy trình mô phỏng thất bại");
 
     private final HttpStatus status;
     private final String message;

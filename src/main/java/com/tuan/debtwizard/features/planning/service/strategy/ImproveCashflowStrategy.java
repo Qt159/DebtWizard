@@ -10,12 +10,9 @@ import java.util.List;
 @Component
 public class ImproveCashflowStrategy implements DebtSelectionStrategy {
 
-    /**
-     * Chọn khoản nợ có thể trả hết nhanh nhất để giải phóng cashflow sớm nhất.
-     * Ưu tiên debt có balance / minimumPayment thấp nhất (payoff gần nhất).
-     * extraPaymentAllocation KHÔNG đưa vào công thức vì nó là tổng budget chung,
-     * chưa biết sẽ phân bổ bao nhiêu cho debt này.
-     */
+
+     /*Chọn khoản nợ có thể trả hết nhanh nhất để giải phóng cashflow sớm nhất.
+     Ưu tiên debt có balance / minimumPayment thấp nhất (payoff gần nhất)*/
     @Override
     public DebtSnapshot selectTargetDebt(List<DebtSnapshot> activeDebts, BigDecimal extraPaymentAllocation) {
         DebtSnapshot target = null;

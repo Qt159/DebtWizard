@@ -3,6 +3,7 @@ package com.tuan.debtwizard.features.dashboard.controller;
 import com.tuan.debtwizard.dto.ApiResponse;
 import com.tuan.debtwizard.features.dashboard.dto.DashboardResponse;
 import com.tuan.debtwizard.features.dashboard.service.DashboardService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -11,6 +12,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/api/dashboard")
+@SecurityRequirement(name = "Bearer Authentication")
 public class DashboardController {
     private final DashboardService dashboardService;
 
