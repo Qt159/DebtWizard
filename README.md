@@ -56,9 +56,28 @@ CREATE DATABASE debtwizard;
 ### 3. Configure Environment Variables
 Tạo file .env tại thư mục gốc:
 ```bash
+# Database Configuration (Required)
 DB_PASSWORD=your_postgres_password
-JWT_SECRET=your_jwt_secret_key
+
+# JWT Configuration (Required)
+JWT_SECRET=your_jwt_secret_key_at_least_32_chars
+
+# Database Configuration (Optional - có default)
+DB_HOST=localhost                # Default: localhost
+DB_PORT=5432                     # Default: 5432
+DB_NAME=debtwizard              # Default: debtwizard
+DB_USERNAME=postgres            # Default: postgres
+
+# JWT Configuration (Optional - có default)
+JWT_ACCESS_EXPIRATION=900000     # Default: 900000 (15 phút)
+JWT_REFRESH_EXPIRATION=604800000 # Default: 604800000 (7 ngày)
 ```
+
+**Lưu ý:**
+- `DB_PASSWORD` và `JWT_SECRET` **bắt buộc** phải cấu hình
+- Các biến còn lại có giá trị mặc định, chỉ thay đổi khi cần
+- Trong production: `JWT_SECRET` phải là chuỗi ngẫu nhiên mạnh (>32 ký tự)
+- Database credentials phải khớp với cấu hình PostgreSQL của bạn
 ### 4. Run Application
 ```bash
 mvn spring-boot:run

@@ -53,6 +53,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                 }
             }
         } catch (JwtException | IllegalArgumentException e) {
+            e.printStackTrace();
             // Token không hợp lệ hoặc hết hạn thì bỏ qua
         }
         filterChain.doFilter(request, response);

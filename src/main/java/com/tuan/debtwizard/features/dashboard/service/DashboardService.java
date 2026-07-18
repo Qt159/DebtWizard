@@ -10,7 +10,6 @@ import com.tuan.debtwizard.features.debt.repository.DebtRepository;
 import com.tuan.debtwizard.features.payment.repository.PaymentRepository;
 import com.tuan.debtwizard.features.user.model.User;
 import com.tuan.debtwizard.features.user.repository.UserRepository;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,8 +35,8 @@ public class DashboardService {
     }
 
     @Transactional(readOnly = true)
-    public DashboardResponse getDashboard(UserDetails userDetails) {
-        User user = userRepository.findByUsername(userDetails.getUsername())
+    public DashboardResponse getDashboard(String username) {
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         Long userId = user.getId();

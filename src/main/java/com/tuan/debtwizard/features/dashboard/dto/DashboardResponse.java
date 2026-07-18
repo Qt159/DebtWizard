@@ -26,7 +26,7 @@ public class DashboardResponse {
     public DashboardResponse(BigDecimal totalDebt, BigDecimal totalPaid,
                            BigDecimal remainingDebt, int activeDebtCount,int paidOffDebtCount ,
                            int overdueDebtCount,BigDecimal overdueAmount, BigDecimal accruedInterest,
-                           NextDueDebtInfo nextDueDebt)
+                           NextDueDebtInfo nextDueDebt, List<NextDueDebtInfo> upcomingDebts)
     {
         this.totalDebt = totalDebt;
         this.totalPaid = totalPaid;
@@ -39,6 +39,7 @@ public class DashboardResponse {
         this.overdueAmount = overdueAmount;
         this.accruedInterest = accruedInterest;
         this.nextDueDebt = nextDueDebt;
+        this.upcomingDebts = upcomingDebts;
     }
     public DashboardResponse(){}
 }

@@ -4,6 +4,7 @@ import com.tuan.debtwizard.dto.ApiResponse;
 import com.tuan.debtwizard.features.dashboard.dto.DashboardResponse;
 import com.tuan.debtwizard.features.dashboard.service.DashboardService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -21,7 +22,7 @@ public class DashboardController {
     }
 
     @GetMapping
-    public ApiResponse<DashboardResponse> getDashboard(@AuthenticationPrincipal UserDetails userDetails) {
-        return ApiResponse.success(dashboardService.getDashboard(userDetails));
+    public ApiResponse<DashboardResponse> getDashboard( Authentication authentication) {
+        return ApiResponse.success(dashboardService.getDashboard(authentication.getName()));
     }
 }
