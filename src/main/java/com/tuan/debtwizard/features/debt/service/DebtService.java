@@ -1,5 +1,6 @@
 package com.tuan.debtwizard.features.debt.service;
 
+import com.tuan.debtwizard.dto.PagedResponse;
 import com.tuan.debtwizard.exception.AppException;
 import com.tuan.debtwizard.exception.ErrorCode;
 import com.tuan.debtwizard.features.debt.dto.CreateDebtRequest;
@@ -8,17 +9,24 @@ import com.tuan.debtwizard.features.debt.dto.DebtResponse;
 import com.tuan.debtwizard.features.debt.mapper.DebtMapper;
 import com.tuan.debtwizard.features.debt.model.Debt;
 import com.tuan.debtwizard.features.debt.model.DebtStatus;
+import com.tuan.debtwizard.features.debt.model.DebtType;
 import com.tuan.debtwizard.features.debt.repository.DebtRepository;
 import com.tuan.debtwizard.features.debt.service.interest.InterestCalculationService;
 import com.tuan.debtwizard.features.user.model.User;
 import com.tuan.debtwizard.features.user.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import com.tuan.debtwizard.features.debt.dto.UpdateDebtRequest;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @Service
 @Transactional
@@ -59,20 +67,43 @@ public class DebtService {
         return debtMapper.toResponse(savedDebt);
     }
 
+    private static final Set<String> ALLOWED_SORT_FIELDS =
+            Set.of("createdAt", "nextDueDate", "totalPrincipal", "remainingPrincipal");
+
     @Transactional(readOnly = true)
-    public List<DebtListItemResponse> getDebts(UserDetails userDetails, DebtStatus status) {
+    public PagedResponse<DebtListItemResponse> getDebts(
+            UserDetails userDetails,
+            DebtStatus status,
+            DebtType debtType,
+            LocalDate dueDateBefore,
+            LocalDate dueDateAfter,
+            int page,
+            int size,
+            String sortBy,
+            String sortDir) {
+
         User currentUser = findUserOrThrow(userDetails);
-        List<Debt> debts;
-        if (status == null) {
-            debts = debtRepository.findByUserIdAndDeletedFalse(currentUser.getId());
-        } else {
-            debts = debtRepository.findByUserIdAndStatusAndDeletedFalse(currentUser.getId(), status);
+
+        String resolvedSortBy = ALLOWED_SORT_FIELDS.contains(sortBy) ? sortBy : "createdAt";
+        Sort.Direction direction = "asc".equalsIgnoreCase(sortDir) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        int resolvedSize = Math.min(size, 50);
+        Pageable pageable = PageRequest.of(page, resolvedSize, Sort.by(direction, resolvedSortBy));
+
+        Page<Debt> debtPage = debtRepository.findWithFilters(
+                currentUser.getId(), status, debtType, dueDateBefore, dueDateAfter, pageable);
+
+        List<DebtListItemResponse> content = new ArrayList<>();
+        for (Debt debt : debtPage.getContent()) {
+            content.add(debtMapper.toListItem(debt));
         }
-        List<DebtListItemResponse> items = new ArrayList<>();
-        for (Debt debt : debts) {
-            items.add(debtMapper.toListItem(debt));
-        }
-        return items;
+
+        return PagedResponse.of(
+                content,
+                debtPage.getNumber(),
+                debtPage.getSize(),
+                debtPage.getTotalElements(),
+                debtPage.getTotalPages(),
+                debtPage.isLast());
     }
 
     @Transactional(readOnly = true)

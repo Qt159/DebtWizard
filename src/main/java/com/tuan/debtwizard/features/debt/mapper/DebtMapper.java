@@ -74,7 +74,12 @@ public class DebtMapper {
         response.setTotalPrincipal(debt.getTotalPrincipal());
         response.setRemainingPrincipal(debt.getRemainingPrincipal());
         response.setStatus(debt.getStatus());
+        response.setDebtType(debt.getDebtType());
         response.setDueDay(debt.getDueDay());
+        response.setNextDueDate(debt.getNextDueDate());
+        if (debt.getInterestSettings() != null) {
+            response.setInterestRate(debt.getInterestSettings().getInterestRate());
+        }
 
         return response;
     }

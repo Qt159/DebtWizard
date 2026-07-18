@@ -1,5 +1,6 @@
 package com.tuan.debtwizard.features.payment.service;
 
+import com.tuan.debtwizard.dto.PagedResponse;
 import com.tuan.debtwizard.exception.AppException;
 import com.tuan.debtwizard.exception.ErrorCode;
 import com.tuan.debtwizard.features.debt.model.Debt;
@@ -15,6 +16,10 @@ import com.tuan.debtwizard.features.payment.model.Payment;
 import com.tuan.debtwizard.features.payment.repository.PaymentRepository;
 import com.tuan.debtwizard.features.user.model.User;
 import com.tuan.debtwizard.features.user.repository.UserRepository;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +30,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 @Service
 public class PaymentService {
@@ -107,19 +113,41 @@ public class PaymentService {
         return paymentMapper.toResponse(payment);
     }
 
+    private static final Set<String> ALLOWED_PAYMENT_SORT_FIELDS =
+            Set.of("paymentDate", "amount", "createdAt");
+
     @Transactional(readOnly = true)
-    public List<PaymentListItem> getPayments(UserDetails userDetails, Long debtId) {
+    public PagedResponse<PaymentListItem> getPayments(
+            UserDetails userDetails,
+            Long debtId,
+            int page,
+            int size,
+            String sortBy,
+            String sortDir) {
+
         User user = getUserByUsername(userDetails.getUsername());
         debtRepository.findByIdAndUserIdAndDeletedFalse(debtId, user.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.DEBT_NOT_FOUND));
 
-        List<Payment> payments = paymentRepository.findByDebtIdAndDeletedFalse(debtId);
-        List<PaymentListItem> items = new ArrayList<>();
-        for (Payment payment : payments) {
-            PaymentListItem item = paymentMapper.toListItem(payment);
-            items.add(item);
+        String resolvedSortBy = ALLOWED_PAYMENT_SORT_FIELDS.contains(sortBy) ? sortBy : "paymentDate";
+        Sort.Direction direction = "asc".equalsIgnoreCase(sortDir) ? Sort.Direction.ASC : Sort.Direction.DESC;
+        int resolvedSize = Math.min(size, 50);
+        Pageable pageable = PageRequest.of(page, resolvedSize, Sort.by(direction, resolvedSortBy));
+
+        Page<Payment> paymentPage = paymentRepository.findByDebtIdAndUserId(debtId, user.getId(), pageable);
+
+        List<PaymentListItem> content = new ArrayList<>();
+        for (Payment payment : paymentPage.getContent()) {
+            content.add(paymentMapper.toListItem(payment));
         }
-        return items;
+
+        return PagedResponse.of(
+                content,
+                paymentPage.getNumber(),
+                paymentPage.getSize(),
+                paymentPage.getTotalElements(),
+                paymentPage.getTotalPages(),
+                paymentPage.isLast());
     }
 
     @Transactional(readOnly = true)
