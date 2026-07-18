@@ -86,8 +86,7 @@ Application chạy tại:
 http://localhost:8080
 
 ## API Documentation
-Swagger UI:
-http://localhost:8080/swagger-ui/index.html
+Swagger UI: http://13.212.48.231:8080/swagger-ui/index.html
 Authentication flow:
 Gọi POST /api/auth/login để lấy access token.
 Nhấn Authorize trên Swagger UI.
@@ -122,10 +121,10 @@ Import hai file trên vào Postman để kiểm thử API.
 ## Documentation
 Các tài liệu thiết kế và kỹ thuật:
     - [System Architecture Document (SAD)](docs/SAD.md)
-    - [Database Design](docs/DatabaseDesign.md)
-    - [Business Rules](docs/BusinessRules.md)
-    - [Validation Rules](docs/ValidationRules.md)
-    - [Algorithm](docs/Algorithm.md)
+    - [Database Design](docs/DATABASE_DESIGN.md)
+    - [Business Rules](docs/business_rules.md)
+    - [Validation Rules](docs/validation_rules.md)
+    - [Algorithm](docs/algorithm.md)
     - [Deployment Guide](docs/DEPLOYMENT.md)
     
 

@@ -76,11 +76,9 @@ public class SimulationEngine {
             // Extra payment của tháng hiện tại = extra user nhập + snowball tích lũy
             BigDecimal totalExtraThisMonth = monthlyExtraPayment.add(snowballBonus);
 
-            DebtSnapshot target =
-                    selectionStrategy.selectTargetDebt(activeDebts, totalExtraThisMonth);
+            DebtSnapshot target = selectionStrategy.selectTargetDebt(activeDebts, totalExtraThisMonth);
 
-            BigDecimal extraUsed =
-                    paymentHelper.applyExtraPayment(totalExtraThisMonth, target);
+            BigDecimal extraUsed = paymentHelper.applyExtraPayment(totalExtraThisMonth, target);
 
             // Nếu có khoản nợ được tất toán thì giải phóng minimum payment
             BigDecimal released = paymentHelper.releaseCashflow(activeDebts);
