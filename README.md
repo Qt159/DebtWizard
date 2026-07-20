@@ -32,13 +32,6 @@ DebtWizard là nền tảng quản lý nợ cá nhân, hỗ trợ người dùng
 - Maven 3.8+
 - PostgreSQL 14+
 
-## Deployment
-
-Backend được triển khai trên AWS.  
-Chi tiết kiến trúc và các bước triển khai:
-
-- [Deployment Guide](docs/deployment.md)
-
 ## Getting Started
 
 ### 1. Clone Repository
@@ -119,12 +112,13 @@ Dự án cung cấp Postman Collection trong package postman:
 
 Import hai file trên vào Postman để kiểm thử API.
 ## Documentation
-Các tài liệu thiết kế và kỹ thuật:
-    - [Solution Architecture](docs/solution_architecture.md)
-    - [Database Design](docs/database_design.md)
-    - [Business Rules](docs/business_rules.md)
-    - [Validation Rules](docs/validation_rules.md)
-    - [Algorithm](docs/algorithm.md)
-    - [Deployment Guide](docs/deployment.md)
-    
+
+| Tài liệu | Mô tả |
+|----------|-------|
+| [Solution Architecture](docs/solution_architecture.md) | Kiến trúc hệ thống, module, data flow, API endpoints |
+| [Database Design](docs/database_design.md) | Schema, quan hệ bảng, mô tả cột |
+| [Business Rules](docs/business_rules.md) | Các quy tắc nghiệp vụ |
+| [Validation Rules](docs/validation_rules.md) | Quy tắc validate đầu vào |
+| [Algorithm](docs/algorithm.md) | Thuật toán simulation, accrual, chiến lược trả nợ |
+| [Deployment Guide](docs/deployment.md) | Hướng dẫn triển khai AWS |
 
