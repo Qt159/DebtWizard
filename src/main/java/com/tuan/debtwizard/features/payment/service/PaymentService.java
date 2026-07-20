@@ -1,6 +1,5 @@
 package com.tuan.debtwizard.features.payment.service;
 
-import com.tuan.debtwizard.dto.PagedResponse;
 import com.tuan.debtwizard.exception.AppException;
 import com.tuan.debtwizard.exception.ErrorCode;
 import com.tuan.debtwizard.features.debt.model.Debt;
@@ -16,9 +15,6 @@ import com.tuan.debtwizard.features.payment.model.Payment;
 import com.tuan.debtwizard.features.payment.repository.PaymentRepository;
 import com.tuan.debtwizard.features.user.model.User;
 import com.tuan.debtwizard.features.user.repository.UserRepository;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -117,37 +113,26 @@ public class PaymentService {
             Set.of("paymentDate", "amount", "createdAt");
 
     @Transactional(readOnly = true)
-    public PagedResponse<PaymentListItem> getPayments(
+    public List<PaymentListItem> getPayments(
             UserDetails userDetails,
             Long debtId,
-            int page,
-            int size,
+            LocalDate dateFrom,
+            LocalDate dateTo,
             String sortBy,
             String sortDir) {
-
         User user = getUserByUsername(userDetails.getUsername());
         debtRepository.findByIdAndUserIdAndDeletedFalse(debtId, user.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.DEBT_NOT_FOUND));
 
-        String resolvedSortBy = ALLOWED_PAYMENT_SORT_FIELDS.contains(sortBy) ? sortBy : "paymentDate";
-        Sort.Direction direction = "asc".equalsIgnoreCase(sortDir) ? Sort.Direction.ASC : Sort.Direction.DESC;
-        int resolvedSize = Math.min(size, 50);
-        Pageable pageable = PageRequest.of(page, resolvedSize, Sort.by(direction, resolvedSortBy));
+        Sort sort = DebtService.buildSort(sortBy, sortDir, ALLOWED_PAYMENT_SORT_FIELDS, "paymentDate");
 
-        Page<Payment> paymentPage = paymentRepository.findByDebtIdAndUserId(debtId, user.getId(), pageable);
-
-        List<PaymentListItem> content = new ArrayList<>();
-        for (Payment payment : paymentPage.getContent()) {
-            content.add(paymentMapper.toListItem(payment));
+        List<Payment> payments = paymentRepository.findByDebtIdAndUserId(
+                debtId, user.getId(), dateFrom, dateTo, sort);
+        List<PaymentListItem> items = new ArrayList<>();
+        for (Payment payment : payments) {
+            items.add(paymentMapper.toListItem(payment));
         }
-
-        return PagedResponse.of(
-                content,
-                paymentPage.getNumber(),
-                paymentPage.getSize(),
-                paymentPage.getTotalElements(),
-                paymentPage.getTotalPages(),
-                paymentPage.isLast());
+        return items;
     }
 
     @Transactional(readOnly = true)

@@ -2,16 +2,16 @@ package com.tuan.debtwizard.features.debt.repository;
 
 import com.tuan.debtwizard.features.debt.model.Debt;
 import com.tuan.debtwizard.features.debt.model.DebtStatus;
-import com.tuan.debtwizard.features.debt.model.DebtType;
+import com.tuan.debtwizard.features.debt.model.InterestCalculationMethod;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,18 +25,16 @@ public interface DebtRepository extends JpaRepository<Debt, Long> {
     SELECT d FROM Debt d
     WHERE d.user.id = :userId
     AND d.deleted = false
+    AND (:search IS NULL OR LOWER(d.lenderName) LIKE LOWER(CONCAT('%', :search, '%')))
     AND (:status IS NULL OR d.status = :status)
-    AND (:debtType IS NULL OR d.debtType = :debtType)
-    AND (:dueDateBefore IS NULL OR d.nextDueDate <= :dueDateBefore)
-    AND (:dueDateAfter IS NULL OR d.nextDueDate >= :dueDateAfter)
+    AND (:interestMethod IS NULL OR d.interestSettings.interestCalculationMethod = :interestMethod)
     """)
-    Page<Debt> findWithFilters(
+    List<Debt> findWithFilters(
             @Param("userId") Long userId,
+            @Param("search") String search,
             @Param("status") DebtStatus status,
-            @Param("debtType") DebtType debtType,
-            @Param("dueDateBefore") LocalDate dueDateBefore,
-            @Param("dueDateAfter") LocalDate dueDateAfter,
-            Pageable pageable
+            @Param("interestMethod") InterestCalculationMethod interestMethod,
+            Sort sort
     );
 
     Optional<Debt> findByIdAndUserIdAndDeletedFalse(Long id, Long userId);

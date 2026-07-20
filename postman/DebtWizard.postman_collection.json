@@ -755,26 +755,128 @@
           ],
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
             "url": {
-              "raw": "{{baseUrl}}/api/debts?debtStatus=ACTIVE",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "debts"
-              ],
+              "raw": "{{baseUrl}}/api/debts?status=ACTIVE",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "debts"],
+              "query": [{ "key": "status", "value": "ACTIVE" }]
+            }
+          }
+        },
+        {
+          "name": "Get Debts - Filter by InterestMethod FLAT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Result is array', () => {",
+                  "  pm.expect(pm.response.json().result).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/debts?interestMethod=FLAT",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "debts"],
+              "query": [{ "key": "interestMethod", "value": "FLAT" }]
+            }
+          }
+        },
+        {
+          "name": "Get Debts - Search by lenderName",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Result is array', () => {",
+                  "  pm.expect(pm.response.json().result).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/debts?search=VP",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "debts"],
+              "query": [{ "key": "search", "value": "VP" }]
+            }
+          }
+        },
+        {
+          "name": "Get Debts - Sort by remainingPrincipal ASC",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Result is array', () => {",
+                  "  pm.expect(pm.response.json().result).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/debts?sortBy=remainingPrincipal&sortDir=asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "debts"],
               "query": [
-                {
-                  "key": "debtStatus",
-                  "value": "ACTIVE"
-                }
+                { "key": "sortBy", "value": "remainingPrincipal" },
+                { "key": "sortDir", "value": "asc" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Debts - Search + Filter + Sort combined",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Result is array', () => {",
+                  "  pm.expect(pm.response.json().result).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/debts?search=VP&status=ACTIVE&interestMethod=REDUCING_BALANCE&sortBy=remainingPrincipal&sortDir=desc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "debts"],
+              "query": [
+                { "key": "search", "value": "VP" },
+                { "key": "status", "value": "ACTIVE" },
+                { "key": "interestMethod", "value": "REDUCING_BALANCE" },
+                { "key": "sortBy", "value": "remainingPrincipal" },
+                { "key": "sortDir", "value": "desc" }
               ]
             }
           }
@@ -1030,22 +1132,70 @@
           ],
           "request": {
             "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{accessToken}}"
-              }
-            ],
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
             "url": {
               "raw": "{{baseUrl}}/api/debts/{{debtId}}/payments",
-              "host": [
-                "{{baseUrl}}"
-              ],
-              "path": [
-                "api",
-                "debts",
-                "{{debtId}}",
-                "payments"
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "debts", "{{debtId}}", "payments"]
+            }
+          }
+        },
+        {
+          "name": "Get Payments of Debt - Filter by dateFrom/dateTo",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Result is array', () => {",
+                  "  pm.expect(pm.response.json().result).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/debts/{{debtId}}/payments?dateFrom=2024-01-01&dateTo=2024-12-31",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "debts", "{{debtId}}", "payments"],
+              "query": [
+                { "key": "dateFrom", "value": "2024-01-01" },
+                { "key": "dateTo", "value": "2024-12-31" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Payments of Debt - Sort by amount ASC",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test('Status 200', () => pm.response.to.have.status(200));",
+                  "pm.test('Result is array', () => {",
+                  "  pm.expect(pm.response.json().result).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/debts/{{debtId}}/payments?sortBy=amount&sortDir=asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "debts", "{{debtId}}", "payments"],
+              "query": [
+                { "key": "sortBy", "value": "amount" },
+                { "key": "sortDir", "value": "asc" }
               ]
             }
           }
