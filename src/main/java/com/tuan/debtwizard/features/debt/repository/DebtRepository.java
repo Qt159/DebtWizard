@@ -2,7 +2,6 @@ package com.tuan.debtwizard.features.debt.repository;
 
 import com.tuan.debtwizard.features.debt.model.Debt;
 import com.tuan.debtwizard.features.debt.model.DebtStatus;
-import com.tuan.debtwizard.features.debt.model.InterestCalculationMethod;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -25,16 +24,11 @@ public interface DebtRepository extends JpaRepository<Debt, Long> {
     SELECT d FROM Debt d
     WHERE d.user.id = :userId
     AND d.deleted = false
-    AND (:search IS NULL OR LOWER(d.lenderName) LIKE LOWER(CONCAT('%', :search, '%')))
-    AND (:status IS NULL OR d.status = :status)
-    AND (:interestMethod IS NULL OR d.interestSettings.interestCalculationMethod = :interestMethod)
+    AND LOWER(d.lenderName) LIKE LOWER(CONCAT('%', :search, '%'))
     """)
-    List<Debt> findWithFilters(
+    List<Debt> findByUserIdWithSearch(
             @Param("userId") Long userId,
-            @Param("search") String search,
-            @Param("status") DebtStatus status,
-            @Param("interestMethod") InterestCalculationMethod interestMethod,
-            Sort sort
+            @Param("search") String search
     );
 
     Optional<Debt> findByIdAndUserIdAndDeletedFalse(Long id, Long userId);

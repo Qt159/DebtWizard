@@ -15,7 +15,6 @@ import com.tuan.debtwizard.features.payment.model.Payment;
 import com.tuan.debtwizard.features.payment.repository.PaymentRepository;
 import com.tuan.debtwizard.features.user.model.User;
 import com.tuan.debtwizard.features.user.repository.UserRepository;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -24,9 +23,8 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
-import java.util.Set;
 
 @Service
 public class PaymentService {
@@ -109,9 +107,6 @@ public class PaymentService {
         return paymentMapper.toResponse(payment);
     }
 
-    private static final Set<String> ALLOWED_PAYMENT_SORT_FIELDS =
-            Set.of("paymentDate", "amount", "createdAt");
-
     @Transactional(readOnly = true)
     public List<PaymentListItem> getPayments(
             UserDetails userDetails,
@@ -124,10 +119,20 @@ public class PaymentService {
         debtRepository.findByIdAndUserIdAndDeletedFalse(debtId, user.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.DEBT_NOT_FOUND));
 
-        Sort sort = DebtService.buildSort(sortBy, sortDir, ALLOWED_PAYMENT_SORT_FIELDS, "paymentDate");
-
         List<Payment> payments = paymentRepository.findByDebtIdAndUserId(
-                debtId, user.getId(), dateFrom, dateTo, sort);
+                debtId, user.getId(), dateFrom, dateTo);
+
+        // Sort in-memory
+        Comparator<Payment> comparator = switch (sortBy) {
+            case "amount" -> Comparator.comparing(Payment::getAmount);
+            case "createdAt" -> Comparator.comparing(Payment::getCreatedAt);
+            default -> Comparator.comparing(Payment::getPaymentDate);
+        };
+        if ("desc".equalsIgnoreCase(sortDir)) {
+            comparator = comparator.reversed();
+        }
+        payments.sort(comparator);
+
         List<PaymentListItem> items = new ArrayList<>();
         for (Payment payment : payments) {
             items.add(paymentMapper.toListItem(payment));

@@ -29,8 +29,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
             @Param("debtId") Long debtId,
             @Param("userId") Long userId,
             @Param("dateFrom") LocalDate dateFrom,
-            @Param("dateTo") LocalDate dateTo,
-            Sort sort
+            @Param("dateTo") LocalDate dateTo
     );
 
     @Query("""

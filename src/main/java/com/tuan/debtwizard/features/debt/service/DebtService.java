@@ -14,21 +14,18 @@ import com.tuan.debtwizard.features.debt.repository.DebtRepository;
 import com.tuan.debtwizard.features.debt.service.interest.InterestCalculationService;
 import com.tuan.debtwizard.features.user.model.User;
 import com.tuan.debtwizard.features.user.repository.UserRepository;
-import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
-import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
 public class DebtService {
-
-    private static final Set<String> ALLOWED_SORT_FIELDS =
-            Set.of("createdAt", "remainingPrincipal");
 
     private final DebtRepository debtRepository;
     private final DebtMapper debtMapper;
@@ -74,10 +71,33 @@ public class DebtService {
             String sortDir) {
 
         User currentUser = findUserOrThrow(userDetails);
-        Sort sort = buildSort(sortBy, sortDir, ALLOWED_SORT_FIELDS, "createdAt");
 
-        List<Debt> debts = debtRepository.findWithFilters(
-                currentUser.getId(), search, status, interestMethod, sort);
+        List<Debt> debts = (search == null || search.isBlank())
+                ? debtRepository.findByUserIdAndDeletedFalse(currentUser.getId())
+                : debtRepository.findByUserIdWithSearch(currentUser.getId(), search);
+
+        // Filter enums in-memory to avoid JPQL enum null-check issues
+        if (status != null) {
+            debts = debts.stream()
+                    .filter(d -> d.getStatus() == status)
+                    .collect(java.util.stream.Collectors.toList());
+        }
+        if (interestMethod != null) {
+            debts = debts.stream()
+                    .filter(d -> d.getInterestSettings() != null
+                            && d.getInterestSettings().getInterestCalculationMethod() == interestMethod)
+                    .collect(java.util.stream.Collectors.toList());
+        }
+
+        // Sort in-memory
+        Comparator<Debt> comparator = "remainingPrincipal".equals(sortBy)
+                ? Comparator.comparing(Debt::getRemainingPrincipal)
+                : Comparator.comparing(Debt::getCreatedAt);
+
+        if ("desc".equalsIgnoreCase(sortDir)) {
+            comparator = comparator.reversed();
+        }
+        debts.sort(comparator);
 
         List<DebtListItemResponse> result = new ArrayList<>();
         for (Debt debt : debts) {
@@ -110,11 +130,5 @@ public class DebtService {
                 .orElseThrow(() -> new AppException(ErrorCode.DEBT_NOT_FOUND));
         debt.setDeleted(true);
         debtRepository.save(debt);
-    }
-
-    public static Sort buildSort(String sortBy, String sortDir, Set<String> allowed, String defaultField) {
-        String field = allowed.contains(sortBy) ? sortBy : defaultField;
-        Sort.Direction direction = "asc".equalsIgnoreCase(sortDir) ? Sort.Direction.ASC : Sort.Direction.DESC;
-        return Sort.by(direction, field);
     }
 }
