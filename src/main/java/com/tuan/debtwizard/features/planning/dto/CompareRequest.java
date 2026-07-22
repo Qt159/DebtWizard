@@ -1,9 +1,7 @@
 package com.tuan.debtwizard.features.planning.dto;
 
 import com.tuan.debtwizard.features.planning.model.RepaymentStrategy;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.PositiveOrZero;
+import jakarta.validation.constraints.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -13,13 +11,21 @@ import java.util.List;
 @Getter
 @Setter
 public class CompareRequest {
-    @NotEmpty
-    private List<Long> debtIds;
-    @NotNull
-    @PositiveOrZero
+    @NotEmpty(message = "Danh sách khoản nợ không được để trống")
+    @Size(max = 50, message = "Chỉ được so sánh tối đa 50 khoản nợ")
+
+    @NotEmpty(message = "ID khoản nợ không được để trống")
+    private List<
+    @Positive(message = "ID khoản nợ phải lớn hơn 0")
+    Long> debtIds;
+
+    @NotNull(message = "Số tiền trả thêm hàng tháng không được để trống")
+    @PositiveOrZero(message = "Số tiền trả thêm hàng tháng phải lớn hơn hoặc bằng 0")
     private BigDecimal monthlyExtraPayment;
-    @NotNull
+
+    @NotNull(message = "Vui lòng chọn chiến lược thứ nhất")
     private RepaymentStrategy firstStrategy;
-    @NotNull
+
+   @NotNull(message = "Vui lòng chọn chiến lược thứ hai")
     private RepaymentStrategy secondStrategy;
 }
