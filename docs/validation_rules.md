@@ -103,17 +103,8 @@ Không được để trống, phải lớn hơn hoặc bằng 0.
 **VR27 – Repayment Strategy**  
 Không được để trống.
 
----
 
-## Dự kiến bổ sung
-
-**VR28 – Monthly Income Validation** *(chưa implement)*  
-Monthly income nên lớn hơn 0 để phân tích DTI có ý nghĩa.
-
-**VR29 – Budget Sufficiency** *(chưa implement)*  
-Monthly income nên đủ để chi trả: `expense + totalMinimumPayment`.
-
-**VR30 – Extra Payment Range** *(ĐÃ IMPLEMENT)*  
+**VR28 – Extra Payment Range** 
 `monthlyExtraPayment` phải nằm trong khoảng `[0, monthlyIncome - expense - totalMinimumPayment]`.
 Server tính `maxAllowedExtraPayment` và validate. Nếu vượt → trả lỗi `EXTRA_PAYMENT_EXCEEDS_MAX`.
 Response `/compare` trả về `maxAllowedExtraPayment` để frontend hiển thị ngưỡng cho user.

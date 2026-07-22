@@ -23,7 +23,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
-import java.util.Comparator;
+import java.util.Collections;
 import java.util.List;
 
 @Service
@@ -123,15 +123,16 @@ public class PaymentService {
                 debtId, user.getId(), dateFrom, dateTo);
 
         // Sort in-memory
-        Comparator<Payment> comparator = switch (sortBy) {
-            case "amount" -> Comparator.comparing(Payment::getAmount);
-            case "createdAt" -> Comparator.comparing(Payment::getCreatedAt);
-            default -> Comparator.comparing(Payment::getPaymentDate);
-        };
-        if ("desc".equalsIgnoreCase(sortDir)) {
-            comparator = comparator.reversed();
+        if ("amount".equals(sortBy)) {
+            payments.sort((currentPayment, nextPayment) -> currentPayment.getAmount().compareTo(nextPayment.getAmount()));
+        } else if ("createdAt".equals(sortBy)) {
+            payments.sort((currentPayment, nextPayment) -> currentPayment.getCreatedAt().compareTo(nextPayment.getCreatedAt()));
+        } else {
+            payments.sort((currentPayment, nextPayment) -> currentPayment.getPaymentDate().compareTo(nextPayment.getPaymentDate()));
         }
-        payments.sort(comparator);
+        if ("desc".equalsIgnoreCase(sortDir)) {
+            Collections.reverse(payments);
+        }
 
         List<PaymentListItem> items = new ArrayList<>();
         for (Payment payment : payments) {

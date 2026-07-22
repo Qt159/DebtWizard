@@ -49,19 +49,19 @@ CREATE DATABASE debtwizard;
 ### 3. Configure Environment Variables
 Tạo file .env tại thư mục gốc:
 ```bash
-# Database Configuration (Required)
+# Database Configuration 
 DB_PASSWORD=your_postgres_password
 
-# JWT Configuration (Required)
+# JWT Configuration
 JWT_SECRET=your_jwt_secret_key_at_least_32_chars
 
-# Database Configuration (Optional - có default)
+# Database Configuration
 DB_HOST=localhost                # Default: localhost
 DB_PORT=5432                     # Default: 5432
 DB_NAME=debtwizard              # Default: debtwizard
 DB_USERNAME=postgres            # Default: postgres
 
-# JWT Configuration (Optional - có default)
+# JWT Configuration
 JWT_ACCESS_EXPIRATION=900000     # Default: 900000 (15 phút)
 JWT_REFRESH_EXPIRATION=604800000 # Default: 604800000 (7 ngày)
 ```

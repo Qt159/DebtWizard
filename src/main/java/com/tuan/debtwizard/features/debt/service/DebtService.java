@@ -90,14 +90,14 @@ public class DebtService {
         }
 
         // Sort in-memory
-        Comparator<Debt> comparator = "remainingPrincipal".equals(sortBy)
-                ? Comparator.comparing(Debt::getRemainingPrincipal)
-                : Comparator.comparing(Debt::getCreatedAt);
-
-        if ("desc".equalsIgnoreCase(sortDir)) {
-            comparator = comparator.reversed();
+        if ("remainingPrincipal".equals(sortBy)) {
+            debts.sort((currentDebt, nextDebt) -> currentDebt.getRemainingPrincipal().compareTo(nextDebt.getRemainingPrincipal()));
+        } else {
+            debts.sort((currentDebt, nextDebt) -> currentDebt.getCreatedAt().compareTo(nextDebt.getCreatedAt()));
         }
-        debts.sort(comparator);
+        if ("desc".equalsIgnoreCase(sortDir)) {
+            Collections.reverse(debts);
+        }
 
         List<DebtListItemResponse> result = new ArrayList<>();
         for (Debt debt : debts) {
