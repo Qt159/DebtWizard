@@ -54,7 +54,7 @@ public class UserService {
         if (!passwordEncoder.matches(request.getOldPassword(), user.getPassword())) {
             throw new AppException(ErrorCode.INVALID_PASSWORD);
         }
-        if (!passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
+        if (passwordEncoder.matches(request.getNewPassword(), user.getPassword())) {
             throw new AppException(ErrorCode.NEW_PASSWORD_SAME_AS_OLD);
         }
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
