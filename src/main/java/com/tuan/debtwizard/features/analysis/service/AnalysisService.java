@@ -9,6 +9,7 @@ import com.tuan.debtwizard.features.user.repository.UserRepository;
 import com.tuan.debtwizard.features.debt.model.DebtStatus;
 import com.tuan.debtwizard.features.debt.repository.DebtRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -25,6 +26,7 @@ public class AnalysisService {
         this.userRepo = userRepo;
         this.debtRepository = debtRepository;
     }
+    @Transactional(readOnly = true)
     public AnalysisResponse calculateAllAnalysis(String username){
         User user = userRepo.findByUsername(username)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));

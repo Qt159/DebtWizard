@@ -14,7 +14,6 @@ public class CompareRequest {
     @NotEmpty(message = "Danh sách khoản nợ không được để trống")
     @Size(max = 50, message = "Chỉ được so sánh tối đa 50 khoản nợ")
 
-    @NotEmpty(message = "ID khoản nợ không được để trống")
     private List<
     @Positive(message = "ID khoản nợ phải lớn hơn 0")
     Long> debtIds;

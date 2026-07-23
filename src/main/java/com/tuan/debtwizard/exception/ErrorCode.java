@@ -44,7 +44,8 @@ public enum ErrorCode {
     DATA_INTEGRITY_VIOLATION(HttpStatus.BAD_REQUEST, "Vi phạm ràng buộc dữ liệu"),
     INVALID_INTEREST_SETTINGS(HttpStatus.BAD_REQUEST, "Thông tin lãi suất không hợp lệ"),
     STRATEGY_MISSING(HttpStatus.BAD_REQUEST, "Vui lòng chọn chiến lược trả nợ"),
-    STRATEGY_DUPLICATE(HttpStatus.BAD_REQUEST, "Hai chiến lược phải khác nhau");
+    STRATEGY_DUPLICATE(HttpStatus.BAD_REQUEST, "Hai chiến lược phải khác nhau"),
+    DUPLICATE_DEBT(HttpStatus.BAD_REQUEST, "Có khoản nợ trùng lặp");
 
     private final HttpStatus status;
     private final String message;

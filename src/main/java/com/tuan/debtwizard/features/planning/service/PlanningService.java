@@ -3,6 +3,7 @@ package com.tuan.debtwizard.features.planning.service;
 import com.tuan.debtwizard.exception.AppException;
 import com.tuan.debtwizard.exception.ErrorCode;
 import com.tuan.debtwizard.features.debt.model.Debt;
+import com.tuan.debtwizard.features.debt.model.DebtStatus;
 import com.tuan.debtwizard.features.debt.repository.DebtRepository;
 import com.tuan.debtwizard.features.planning.dto.CompareRequest;
 import com.tuan.debtwizard.features.planning.dto.CompareResponse;
@@ -24,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 
 @Service
@@ -154,16 +156,24 @@ public class PlanningService {
         }
     }
 
-    @Transactional(readOnly = true)
     protected List<Debt> loadAndVerifyDebts(List<Long> debtIds, Long userId) {
-
+        validateDuplicateDebtIds(debtIds);
         List<Debt> debts = debtRepository.findAllByIdWithUser(debtIds);
         if (debts.size() != debtIds.size()) {
             throw new AppException(ErrorCode.DEBT_NOT_FOUND);}
         for (Debt debt : debts) {
             if (!debt.getUser().getId().equals(userId)) {
                 throw new AppException(ErrorCode.UNAUTHORIZED);}
+            if (debt.getStatus() == DebtStatus.PAID_OFF) {
+                throw new AppException(ErrorCode.DEBT_ALREADY_PAID_OFF);
+            }
+
         }
         return debts;
+    }
+    private void validateDuplicateDebtIds(List<Long> debtIds) {
+        if (debtIds.size() != new HashSet<>(debtIds).size()) {
+            throw new AppException(ErrorCode.DUPLICATE_DEBT);
+        }
     }
 }

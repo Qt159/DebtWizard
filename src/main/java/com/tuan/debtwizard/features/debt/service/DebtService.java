@@ -51,7 +51,6 @@ public class DebtService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
 
-    @Transactional
     public DebtResponse createDebt(CreateDebtRequest request, UserDetails userDetails) {
         User currentUser = findUserOrThrow(userDetails);
         Debt debt = debtMapper.toEntity(request, request.getInterestSettings());
