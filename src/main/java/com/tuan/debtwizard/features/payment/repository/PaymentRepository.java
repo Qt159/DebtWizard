@@ -18,7 +18,9 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     List<Payment> findByDebtIdAndDeletedFalse(Long debtId);
 
     @Query("""
-    SELECT p FROM Payment p
+    SELECT p 
+    FROM Payment p
+    JOIN FETCH p.debt
     WHERE p.debt.id = :debtId
     AND p.debt.user.id = :userId
     AND p.deleted = false
@@ -33,7 +35,9 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     );
 
     @Query("""
-    SELECT p FROM Payment p
+    SELECT p 
+    FROM Payment p
+    JOIN FETCH p.debt
     WHERE p.debt.user.id = :userId
     AND p.deleted = false
     ORDER BY p.paymentDate DESC

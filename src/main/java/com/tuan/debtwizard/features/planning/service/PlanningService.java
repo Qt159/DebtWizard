@@ -126,8 +126,7 @@ public class PlanningService {
     @Transactional(readOnly = true)
     public SavedPlanResponse getSavedPlan(UserDetails userDetails) {
         User user = getUser(userDetails.getUsername());
-
-        SavedPlan plan = savedPlanRepository.findByUserId(user.getId())
+        SavedPlan plan = savedPlanRepository.findDetailByUserId(user.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.PLAN_NOT_FOUND));
         return savedPlanMapper.toResponse(plan);
     }
