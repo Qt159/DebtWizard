@@ -124,7 +124,7 @@ public class Debt {
             return;}
 
         if (amount.compareTo(this.remainingPrincipal) > 0) {
-            throw new AppException(ErrorCode.EXTRA_PAYMENT_EXCEEDS_MAX);}
+            throw new AppException(ErrorCode.PAYMENT_EXCEEDS_DEBT_BALANCE);}
         this.remainingPrincipal = this.remainingPrincipal.subtract(amount);
     }
 

@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.InsufficientAuthenticationException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -24,6 +25,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(errorCode.getStatus())
                 .body(ApiResponse.builder()
+                        .code(errorCode.name())
                         .message(errorCode.getMessage())
                         .build());
     }
@@ -35,6 +37,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(ApiResponse.builder()
+                        .code(ErrorCode.INVALID_CREDENTIALS.name())
                         .message(ErrorCode.INVALID_CREDENTIALS.getMessage())
                         .build());
     }
@@ -46,6 +49,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(ApiResponse.builder()
+                        .code(ErrorCode.UNAUTHENTICATED.name())
                         .message(ErrorCode.UNAUTHENTICATED.getMessage())
                         .build());
     }
@@ -62,8 +66,22 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
                 .body(ApiResponse.<Map<String, String>>builder()
+                        .code(ErrorCode.INVALID_INPUT.name())
                         .message("Dữ liệu không hợp lệ")
                         .result(errors)
+                        .build());
+    }
+    // lỗi gửi ko đúng định dạng enum, hay kiểu dữ liệu
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ApiResponse<?>> handleHttpMessageNotReadable(
+            HttpMessageNotReadableException ex) {
+        logger.warn("Invalid request body: {}", ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.builder()
+                        .code(ErrorCode.INVALID_INPUT.name())
+                        .message("Dữ liệu gửi lên không đúng định dạng")
                         .build());
     }
 
@@ -74,6 +92,7 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.builder()
+                        .code(ErrorCode.INTERNAL_SERVER_ERROR.name())
                         .message(ErrorCode.INTERNAL_SERVER_ERROR.getMessage())
                         .build());
     }

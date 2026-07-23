@@ -70,7 +70,7 @@ public class PlanningService {
         List<DebtSnapshot> snapshots = snapshotMapper.toSnapshots(debts);
         BigDecimal maxAllowed = simulationHelper.calculateMonthlyExtraBudget(user, snapshots);
         if (request.getMonthlyExtraPayment().compareTo(maxAllowed) > 0) {
-            throw new AppException(ErrorCode.EXTRA_PAYMENT_EXCEEDS_MAX);
+            throw new AppException(ErrorCode.EXTRA_PAYMENT_EXCEEDS_BUDGET);
         }
 
         List<DebtSnapshot> firstPlanDebts = new ArrayList<>();
@@ -104,7 +104,7 @@ public class PlanningService {
         BigDecimal maxAllowed = simulationHelper.calculateMonthlyExtraBudget(user, snapshots);
 
         if (request.getMonthlyExtraPayment().compareTo(maxAllowed) > 0) {
-            throw new AppException(ErrorCode.EXTRA_PAYMENT_EXCEEDS_MAX);
+            throw new AppException(ErrorCode.EXTRA_PAYMENT_EXCEEDS_BUDGET);
         }
 
         PlanComparisonDto result = simulationEngine.simulate(snapshots, request.getStrategy(), request.getMonthlyExtraPayment());
@@ -148,10 +148,10 @@ public class PlanningService {
 
     private void validateStrategy(CompareRequest request) {
         if (request.getFirstStrategy() == null || request.getSecondStrategy() == null) {
-            throw new AppException(ErrorCode.INVALID_STRATEGY);
+            throw new AppException(ErrorCode.STRATEGY_MISSING);
         }
         if (request.getFirstStrategy().equals(request.getSecondStrategy())) {
-            throw new AppException(ErrorCode.INVALID_STRATEGY);
+            throw new AppException(ErrorCode.STRATEGY_DUPLICATE);
         }
     }
 

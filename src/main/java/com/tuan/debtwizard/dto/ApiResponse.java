@@ -9,10 +9,12 @@ import lombok.Setter;
 @Builder
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ApiResponse<T> {
+    private String code;
     private String message;
     private T result;
     public static <T> ApiResponse<T> success(T result) {
         return ApiResponse.<T>builder()
+                .code("SUCCESS")
                 .message("Success")
                 .result(result)
                 .build();
@@ -20,6 +22,7 @@ public class ApiResponse<T> {
 
     public static ApiResponse<Void> success() {
         return ApiResponse.<Void>builder()
+                .code("SUCCESS")
                 .message("Success")
                 .build();
     }

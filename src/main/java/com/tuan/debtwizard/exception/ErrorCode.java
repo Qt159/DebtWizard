@@ -35,14 +35,16 @@ public enum ErrorCode {
 
     // Planning
     PLAN_NOT_FOUND(HttpStatus.NOT_FOUND, "Không tìm thấy kế hoạch đã lưu"),
-    EXTRA_PAYMENT_EXCEEDS_MAX(HttpStatus.BAD_REQUEST, "Số tiền trả thêm vượt quá ngưỡng tối đa cho phép"),
+    EXTRA_PAYMENT_EXCEEDS_BUDGET(HttpStatus.BAD_REQUEST, "Số tiền trả thêm vượt quá ngân sách cho phép"),
+    PAYMENT_EXCEEDS_DEBT_BALANCE(HttpStatus.BAD_REQUEST, "Số tiền thanh toán vượt quá số dư nợ"),
     SIMULATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "Quy trình mô phỏng thất bại"),
 
     // General validation
     INVALID_INPUT(HttpStatus.BAD_REQUEST, "Dữ liệu không hợp lệ"),
     DATA_INTEGRITY_VIOLATION(HttpStatus.BAD_REQUEST, "Vi phạm ràng buộc dữ liệu"),
-    INTEREST_CALCULATION_METHOD_NULL(HttpStatus.BAD_REQUEST, "Phương thức tính lãi không thể bỏ trống"),
-    INVALID_STRATEGY(HttpStatus.BAD_REQUEST, "Chiến lược trả nợ không hợp lệ");
+    INVALID_INTEREST_SETTINGS(HttpStatus.BAD_REQUEST, "Thông tin lãi suất không hợp lệ"),
+    STRATEGY_MISSING(HttpStatus.BAD_REQUEST, "Vui lòng chọn chiến lược trả nợ"),
+    STRATEGY_DUPLICATE(HttpStatus.BAD_REQUEST, "Hai chiến lược phải khác nhau");
 
     private final HttpStatus status;
     private final String message;

@@ -20,7 +20,7 @@ public class InterestCalculationStrategyFactory {
 
     public InterestCalculationStrategy get(InterestCalculationMethod method) {
         if (method == null) {
-            throw new AppException(ErrorCode.INTEREST_CALCULATION_METHOD_NULL);
+            throw new AppException(ErrorCode.INVALID_INTEREST_SETTINGS);
         }
         return switch (method) {
             case FLAT -> flat;
