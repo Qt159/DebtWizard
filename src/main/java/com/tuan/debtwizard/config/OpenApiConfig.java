@@ -10,15 +10,30 @@ import org.springframework.context.annotation.Configuration;
 @OpenAPIDefinition(
         info = @Info(
                 title = "DebtWizard API",
-                version = "1.0.0",
-                description = "Biến áp lực tài chính thành lộ trình tự do.\n\n" +
-                        "DebtWizard API cung cấp hệ thống dịch vụ RESTful hoàn chỉnh giúp người dùng làm chủ tài chính cá nhân thông qua các tính năng cốt lõi:\n\n" +
-                        "* Quản lý nợ thông minh: Theo dõi chi tiết các khoản nợ, chủ nợ, kỳ hạn và biến động lãi suất.\n" +
-                        "* Thanh toán: Thiết lập lịch trình trả nợ định kỳ, tránh phát sinh chi phí phạt.\n" +
-                        "* Chiến lược tối ưu: Phân tích dòng tiền và gợi ý kế hoạch trả nợ.\n\n" +
-                        "---\n" +
-                        "*Tất cả các API yêu cầu bảo mật cần đính kèm Bearer Token trong Header trước khi gọi.*",
-                contact = @Contact(name = "DebtWizard Team") ),
+                version = "1.1.0",
+                description = """
+                DebtWizard là hệ thống RESTful hỗ trợ quản lý nợ cá nhân và lập kế hoạch trả nợ.
+
+                ## Chức năng chính
+                    - Quản lý khoản nợ và cấu hình lãi suất.
+                    - Ghi nhận thanh toán và tự động phân bổ tiền vào lãi/gốc.
+                    - Mô phỏng và so sánh nhiều chiến lược trả nợ.
+                    - Phân tích sức khỏe tài chính (DTI, Interest Ratio, Overdue Ratio, Estimated Payoff).
+                    - Theo dõi tổng quan tài chính qua Dashboard.
+                    - Scheduler tự động tính lãi hằng ngày.
+
+                ## Authentication
+                    Ngoại trừ các API đăng ký, đăng nhập và refresh token,
+                    tất cả endpoint đều yêu cầu Bearer JWT Token.
+
+                    Authorization: Bearer <access_token>
+
+                ## Business Notes
+                    - Chỉ khoản nợ ACTIVE được đưa vào mô phỏng.
+                    - Extra Payment không được vượt quá ngân sách khả dụng.
+                    - Scheduler chạy hằng ngày để cập nhật lãi và trạng thái khoản nợ.
+                    """,
+                contact = @Contact(name = "Tuan Pham") ),
         servers = { @Server(url = "http://13.212.48.231:8080", description = "Production Server"),
                     @Server(url = "http://localhost:8080", description = "Local Development Server") } )
 @SecurityScheme(
