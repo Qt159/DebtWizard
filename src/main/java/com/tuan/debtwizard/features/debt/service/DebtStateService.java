@@ -2,6 +2,8 @@ package com.tuan.debtwizard.features.debt.service;
 
 import com.tuan.debtwizard.features.debt.model.Debt;
 import com.tuan.debtwizard.features.debt.model.DebtStatus;
+import com.tuan.debtwizard.features.notification.model.NotificationType;
+import com.tuan.debtwizard.features.notification.service.NotificationService;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -9,9 +11,19 @@ import java.time.LocalDate;
 
 @Service
 public class DebtStateService {
+    private final NotificationService notificationService;
+
+    public DebtStateService(NotificationService notificationService) {
+        this.notificationService = notificationService;
+    }
+
     public void refreshDebtStatus(Debt debt){
         if(debt.getTotalOutstanding().compareTo(BigDecimal.ZERO) <= 0){
             debt.setStatus(DebtStatus.PAID_OFF);
+            notificationService.createNotification(
+                    debt.getUser(),"Debt Paid Off", "Your debt has been fully paid off",
+                    NotificationType.DEBT_PAID_OFF
+            );
             return;
         }
         if (debt.getNextDueDate() != null && LocalDate.now().isAfter(debt.getNextDueDate())) {

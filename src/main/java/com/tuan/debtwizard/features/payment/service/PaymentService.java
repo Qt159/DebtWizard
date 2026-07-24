@@ -7,6 +7,8 @@ import com.tuan.debtwizard.features.debt.model.DebtStatus;
 import com.tuan.debtwizard.features.debt.repository.DebtRepository;
 import com.tuan.debtwizard.features.debt.service.DebtStateService;
 import com.tuan.debtwizard.features.debt.service.interest.InterestAccrualService;
+import com.tuan.debtwizard.features.notification.model.NotificationType;
+import com.tuan.debtwizard.features.notification.service.NotificationService;
 import com.tuan.debtwizard.features.payment.dto.PaymentListItem;
 import com.tuan.debtwizard.features.payment.dto.PaymentRequest;
 import com.tuan.debtwizard.features.payment.dto.PaymentResponse;
@@ -35,19 +37,21 @@ public class PaymentService {
     private final UserRepository userRepository;
     private final DebtStateService debtStateService;
     private final InterestAccrualService interestAccrualService;
+    private final NotificationService notificationService;
 
     public PaymentService(PaymentRepository paymentRepository,
                           DebtRepository debtRepository,
                           PaymentMapper paymentMapper,
                           UserRepository userRepository,
                           DebtStateService debtStateService,
-                          InterestAccrualService interestAccrualService) {
+                          InterestAccrualService interestAccrualService, NotificationService notificationService) {
         this.paymentRepository = paymentRepository;
         this.debtRepository = debtRepository;
         this.paymentMapper = paymentMapper;
         this.userRepository = userRepository;
         this.debtStateService = debtStateService;
         this.interestAccrualService = interestAccrualService;
+        this.notificationService = notificationService;
     }
 
     @Transactional
@@ -95,7 +99,9 @@ public class PaymentService {
         payment.setPrincipalPaid(principalPaid);
 
         Payment savedPayment = paymentRepository.save(payment);
-
+        notificationService.createNotification(
+                user,"Payment successful", "Your payment has been recorded",
+                NotificationType.PAYMENT_SUCCESS);
         return paymentMapper.toResponse(savedPayment);
     }
 
