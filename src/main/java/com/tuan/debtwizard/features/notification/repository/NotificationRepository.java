@@ -1,6 +1,5 @@
 package com.tuan.debtwizard.features.notification.repository;
 
-import com.tuan.debtwizard.features.notification.dto.NotificationResponse;
 import com.tuan.debtwizard.features.notification.model.Notification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -16,4 +15,6 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     Optional<Notification> findByIdAndUserIdAndDeletedFalse(Long notificationId, Long userId);
 
     List<Notification> findByUserIdAndDeletedFalse(Long id);
+
+    boolean existsByReferenceKey(String referenceKey);
 }

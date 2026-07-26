@@ -2,6 +2,7 @@ package com.tuan.debtwizard.features.notification.service;
 
 import com.tuan.debtwizard.exception.AppException;
 import com.tuan.debtwizard.exception.ErrorCode;
+import com.tuan.debtwizard.features.debt.model.Debt;
 import com.tuan.debtwizard.features.notification.dto.NotificationResponse;
 import com.tuan.debtwizard.features.notification.mapper.NotificationMapper;
 import com.tuan.debtwizard.features.notification.model.Notification;
@@ -56,5 +57,22 @@ public class NotificationService {
         for(Notification notification : notifications){
             notification.setRead(true);
         }
+    }
+    @Transactional
+    public void createPaymentReminder(Debt debt){
+        String referenceKey = "PAYMENT_REMINDER_" + debt.getId() + "_" + debt.getNextDueDate();
+        if(notificationRepository.existsByReferenceKey(referenceKey)){
+            return;
+        }
+        Notification notification = new Notification();
+        notification.setUser(debt.getUser());
+        notification.setTitle("Payment Reminder");
+        notification.setMessage("Khoản nợ " + debt.getLenderName() +
+                " sẽ đến hạn vào ngày " + debt.getNextDueDate() +
+                ". Số tiền cần trả: "+ debt.getExpectedMonthlyPayment() +" VNĐ");
+        notification.setType(NotificationType.PAYMENT_REMINDER);
+        notification.setRead(false);
+        notification.setReferenceKey(referenceKey);
+        notificationRepository.save(notification);
     }
 }

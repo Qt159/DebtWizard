@@ -29,8 +29,11 @@ public class Notification {
     private boolean deleted = false;
 
     private boolean isRead = false;
-    @Column(nullable =false)
+    @Column(nullable =false, updatable = false)
     private LocalDateTime createdAt;
+
+    @Column(unique = true)
+    private String referenceKey;
     @PrePersist
     public void prePersist() {
         this.createdAt = LocalDateTime.now();

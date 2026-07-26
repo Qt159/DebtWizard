@@ -12,15 +12,15 @@ public class NotificationResponse {
     private Long id;
     private String title;
     private String message;
-    private NotificationType notificationType;
+    private NotificationType type;
     private boolean isRead;
     private LocalDateTime createdAt;
     public NotificationResponse(Long id, String title, String message,
-                                NotificationType notificationType, boolean isRead, LocalDateTime createdAt) {
+                                NotificationType type, boolean isRead, LocalDateTime createdAt) {
         this.id = id;
         this.title = title;
         this.message = message;
-        this.notificationType = notificationType;
+        this.type = type;
         this.isRead = isRead;
         this.createdAt = createdAt;
     }

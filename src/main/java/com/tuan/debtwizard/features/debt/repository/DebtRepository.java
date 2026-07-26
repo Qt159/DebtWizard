@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -105,4 +106,7 @@ public interface DebtRepository extends JpaRepository<Debt, Long> {
     WHERE d.id IN :ids
     """)
     List<Debt> findAllByIdWithUser(@Param("ids") List<Long> ids);
+
+
+    List<Debt> findByNextDueDateAndStatus(LocalDate reminderDate, DebtStatus debtStatus);
 }
