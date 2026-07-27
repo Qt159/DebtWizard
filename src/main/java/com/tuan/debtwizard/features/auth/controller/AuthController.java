@@ -3,10 +3,7 @@ package com.tuan.debtwizard.features.auth.controller;
 import com.tuan.debtwizard.dto.ApiResponse;
 import com.tuan.debtwizard.exception.AppException;
 import com.tuan.debtwizard.exception.ErrorCode;
-import com.tuan.debtwizard.features.auth.dto.LoginRequest;
-import com.tuan.debtwizard.features.auth.dto.LoginResponse;
-import com.tuan.debtwizard.features.auth.dto.RegisterRequest;
-import com.tuan.debtwizard.features.auth.dto.RegisterResponse;
+import com.tuan.debtwizard.features.auth.dto.*;
 import com.tuan.debtwizard.features.auth.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.security.core.Authentication;
@@ -35,8 +32,8 @@ public class AuthController {
         return ApiResponse.success(authService.login(loginRequest));
     }
     @PostMapping("/refresh")
-    public ApiResponse<LoginResponse> refreshToken(@Valid @RequestBody String refreshToken) {
-        return ApiResponse.success(authService.refresh(refreshToken));
+    public ApiResponse<LoginResponse> refreshToken(@Valid @RequestBody RefreshTokenRequest refreshTokenRequest) {
+        return ApiResponse.success(authService.refresh(refreshTokenRequest));
     }
     @PostMapping("/logout")
     public ApiResponse<Void> logout(@AuthenticationPrincipal UserDetails userDetails) {

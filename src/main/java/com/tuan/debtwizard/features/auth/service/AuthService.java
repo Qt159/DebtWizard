@@ -1,13 +1,10 @@
 package com.tuan.debtwizard.features.auth.service;
 
+import com.tuan.debtwizard.features.auth.dto.*;
 import com.tuan.debtwizard.features.auth.model.RefreshToken;
 import com.tuan.debtwizard.features.user.model.User;
 import com.tuan.debtwizard.features.auth.repository.RefreshTokenRepository;
 import com.tuan.debtwizard.features.user.repository.UserRepository;
-import com.tuan.debtwizard.features.auth.dto.LoginRequest;
-import com.tuan.debtwizard.features.auth.dto.LoginResponse;
-import com.tuan.debtwizard.features.auth.dto.RegisterRequest;
-import com.tuan.debtwizard.features.auth.dto.RegisterResponse;
 import com.tuan.debtwizard.exception.AppException;
 import com.tuan.debtwizard.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -79,8 +76,8 @@ public class AuthService {
     }
 
     @Transactional
-    public LoginResponse refresh(String refreshToken) {
-        RefreshToken tokenEntity = refreshTokenRepository.findByToken(refreshToken)
+    public LoginResponse refresh(RefreshTokenRequest request) {
+        RefreshToken tokenEntity = refreshTokenRepository.findByToken(request.getRefreshToken())
                 .orElseThrow(() -> new AppException(ErrorCode.INVALID_TOKEN));
 
         User user = tokenEntity.getUser();

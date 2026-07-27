@@ -7,5 +7,5 @@ import jakarta.validation.constraints.NotBlank;
 @Setter
 public class RefreshTokenRequest{
     @NotBlank(message = "Refresh token không được để trống")
-    private String RefreshToken;
+    private String refreshToken;
 }

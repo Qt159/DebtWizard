@@ -75,4 +75,14 @@ public class NotificationService {
         notification.setReferenceKey(referenceKey);
         notificationRepository.save(notification);
     }
+    @Transactional
+    public void createNotification(User user, String title, String message, NotificationType notificationType) {
+        Notification notification = new Notification();
+        notification.setUser(user);
+        notification.setTitle(title);
+        notification.setMessage(message);
+        notification.setType(notificationType);
+        notification.setRead(false);
+        notificationRepository.save(notification);
+    }
 }
