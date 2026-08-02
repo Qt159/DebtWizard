@@ -12,7 +12,7 @@ Giá trị `monthlyExtraPayment` phải nằm trong khoảng:
 - `extraPaymentMin = 0`
 - `extraPaymentMax = monthlyIncome - expense - totalMinimumPayment` (của các debt được chọn)
 
-Server **tính toán và validate** ngưỡng max này. Nếu user nhập vượt quá → trả lỗi `EXTRA_PAYMENT_EXCEEDS_MAX`.
+Server **tính toán và validate** ngưỡng max này. Nếu user nhập vượt quá → trả lỗi `EXTRA_PAYMENT_EXCEEDS_BUDGET`.
 Response của `/compare` trả về `maxAllowedExtraPayment` để frontend hiển thị ngưỡng cho user.
 
 Nếu `maxAllowedExtraPayment ≤ 0` → user không có khả năng trả thêm, frontend nên cảnh báo.

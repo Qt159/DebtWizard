@@ -148,7 +148,7 @@ Lưu chi tiết phân bổ thanh toán cho từng khoản nợ trong mỗi thán
 |-----|------|-----------|-------|
 | `id` | BIGINT | PK, AUTO_INCREMENT | Khóa chính |
 | `schedule_id` | BIGINT | NOT NULL, FK → `plan_monthly_schedules.id` | Tháng chứa bản ghi này |
-| `debt_id` | BIGINT | NOT NULL, FK → `debts.id` | Khoản nợ được phân bổ |
+| `debt_id` | BIGINT | NOT NULL, FK → `debts.id` | Khoản nợ được phân bổ (tham chiếu trực tiếp qua `@ManyToOne`) |
 | `debt_name` | VARCHAR | NOT NULL | Tên khoản nợ được chép lại tại thời điểm lưu kế hoạch |
 | `minimum_paid` | DECIMAL(15,2) | NOT NULL | Phần thanh toán tối thiểu |
 | `extra_paid` | DECIMAL(15,2) | NOT NULL | Phần thanh toán thêm vào khoản nợ này |
@@ -158,6 +158,8 @@ Lưu chi tiết phân bổ thanh toán cho từng khoản nợ trong mỗi thán
 | `paid_off` | BOOLEAN | NOT NULL | Khoản nợ này được tất toán trong tháng này hay không |
 
 > **Lưu ý thiết kế:** `debt_name` được chép trực tiếp từ `lenderName` tại thời điểm lưu kế hoạch và không thay đổi theo sau đó. Điều này đảm bảo kế hoạch hiển thị đúng tên khoản nợ như lúc user lập kế hoạch, dù user có đổi tên khoản nợ về sau.
+>
+> `debt_id` là FK duy nhất cho `debts.id`, được map qua quan hệ `@ManyToOne` — không có thêm cột `Long debtId` riêng lẻ trong entity.
 
 ---
 

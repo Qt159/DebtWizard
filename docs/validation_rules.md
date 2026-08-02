@@ -38,7 +38,7 @@ Không được để trống, phải lớn hơn hoặc bằng 0.
 Không được để trống, độ dài từ 3–50 ký tự.
 
 **VR10 – Login Password**  
-Không được để trống, tối thiểu 6 ký tự.
+Không được để trống, tối thiểu 8 ký tự.
 
 ---
 
@@ -106,6 +106,15 @@ Không được để trống.
 
 **VR28 – Extra Payment Range** 
 `monthlyExtraPayment` phải nằm trong khoảng `[0, monthlyIncome - expense - totalMinimumPayment]`.
-Server tính `maxAllowedExtraPayment` và validate. Nếu vượt → trả lỗi `EXTRA_PAYMENT_EXCEEDS_MAX`.
+Server tính `maxAllowedExtraPayment` và validate. Nếu vượt → trả lỗi `EXTRA_PAYMENT_EXCEEDS_BUDGET`.
 Response `/compare` trả về `maxAllowedExtraPayment` để frontend hiển thị ngưỡng cho user.
 Nếu `maxAllowedExtraPayment ≤ 0` → user không có khả năng trả thêm với thu chi hiện tại.
+
+**VR29 – Debt IDs không trùng lặp (Planning)**  
+Danh sách `debtIds` trong `/compare` và `/save` không được chứa ID trùng lặp. Nếu có → trả lỗi `DUPLICATE_DEBT`.
+
+**VR30 – Debt phải ACTIVE khi lập kế hoạch**  
+Các khoản nợ trong `debtIds` phải có trạng thái `ACTIVE` hoặc `OVERDUE`. Nếu khoản nợ đã `PAID_OFF` → trả lỗi `DEBT_ALREADY_PAID_OFF`.
+
+**VR31 – Hai chiến lược Compare phải khác nhau**  
+`firstStrategy` và `secondStrategy` không được giống nhau. Nếu trùng → trả lỗi `STRATEGY_DUPLICATE`.
