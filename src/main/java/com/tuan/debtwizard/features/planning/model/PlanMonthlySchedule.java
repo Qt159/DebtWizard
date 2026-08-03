@@ -39,5 +39,6 @@ public class PlanMonthlySchedule {
     private BigDecimal cashflowReleased;
 
     @OneToMany(mappedBy = "schedule", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("id ASC")
     private List<PlanDebtPayment> debtPayments = new ArrayList<>();
 }

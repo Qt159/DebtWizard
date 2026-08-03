@@ -128,8 +128,12 @@ public class PlanningService {
     @Transactional(readOnly = true)
     public SavedPlanResponse getSavedPlan(UserDetails userDetails) {
         User user = getUser(userDetails.getUsername());
-        SavedPlan plan = savedPlanRepository.findDetailByUserId(user.getId())
+        SavedPlan plan = savedPlanRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.PLAN_NOT_FOUND));
+        // Force-load cả 2 collection trong cùng transaction để tránh LazyInitializationException
+        plan.getMonthlySchedules().forEach(schedule ->
+                schedule.getDebtPayments().forEach(dp -> dp.getDebt().getId())
+        );
         return savedPlanMapper.toResponse(plan);
     }
 

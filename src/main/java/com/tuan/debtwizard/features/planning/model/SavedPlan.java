@@ -44,6 +44,7 @@ public class SavedPlan {
     private LocalDateTime savedAt;
 
     @OneToMany(mappedBy = "savedPlan", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("monthIndex ASC")
     private List<PlanMonthlySchedule> monthlySchedules = new ArrayList<>();
 
     @PrePersist

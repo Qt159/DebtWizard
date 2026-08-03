@@ -31,6 +31,8 @@ HELP.md
 # Nếu bạn muốn Git theo dõi file .env, hãy để nguyên như dòng dưới:
 .env
 
+swagger_test_guild.md
+
 # Local dev config — chứa secrets, không commit
 src/main/resources/application-local.properties
 

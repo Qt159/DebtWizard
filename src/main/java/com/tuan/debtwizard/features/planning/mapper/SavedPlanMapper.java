@@ -57,7 +57,6 @@ public class SavedPlanMapper {
 
     private DebtPaymentDetailDto toDebtPaymentDto(PlanDebtPayment payment) {
         DebtPaymentDetailDto dto = new DebtPaymentDetailDto();
-
         dto.setDebtId(payment.getDebt().getId());
         dto.setDebtName(payment.getDebtName());
         dto.setMinimumPaid(payment.getMinimumPaid());
