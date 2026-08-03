@@ -25,6 +25,7 @@ public class PaymentMapper {
     public PaymentResponse toResponse(Payment payment) {
         PaymentResponse response = new PaymentResponse();
         Debt debt = payment.getDebt();
+        response.setId(payment.getId());
         if (debt != null) {
             response.setDebtId(debt.getId());
             response.setLenderName(debt.getLenderName());
@@ -44,9 +45,12 @@ public class PaymentMapper {
         Debt debt = payment.getDebt();
         item.setId(payment.getId());
         if (debt != null) {
-            item.setDebtId(debt.getId());}
-
+            item.setDebtId(debt.getId());
+            item.setLenderName(debt.getLenderName());
+        }
         item.setAmount(payment.getAmount());
+        item.setPrincipalPaid(payment.getPrincipalPaid());
+        item.setInterestPaid(payment.getInterestPaid());
         item.setPaymentMethod(payment.getPaymentMethod());
         item.setNote(payment.getNote());
         item.setPaymentDate(payment.getPaymentDate());

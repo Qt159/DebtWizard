@@ -20,12 +20,12 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     @Query("""
     SELECT p 
     FROM Payment p
-    JOIN FETCH p.debt
-    WHERE p.debt.id = :debtId
-    AND p.debt.user.id = :userId
+    JOIN FETCH p.debt d
+    WHERE d.id = :debtId
+    AND d.user.id = :userId
     AND p.deleted = false
-    AND (:dateFrom IS NULL OR p.paymentDate >= :dateFrom)
-    AND (:dateTo IS NULL OR p.paymentDate <= :dateTo)
+    AND (p.paymentDate >= COALESCE(:dateFrom, p.paymentDate))
+    AND (p.paymentDate <= COALESCE(:dateTo, p.paymentDate))
     """)
     List<Payment> findByDebtIdAndUserId(
             @Param("debtId") Long debtId,
