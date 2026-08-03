@@ -5,8 +5,8 @@ import com.tuan.debtwizard.exception.AppException;
 import com.tuan.debtwizard.exception.ErrorCode;
 import com.tuan.debtwizard.features.auth.dto.*;
 import com.tuan.debtwizard.features.auth.service.AuthService;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
@@ -36,10 +36,11 @@ public class AuthController {
         return ApiResponse.success(authService.refresh(refreshTokenRequest));
     }
     @PostMapping("/logout")
+    @SecurityRequirement(name = "Bearer Authentication")
     public ApiResponse<Void> logout(@AuthenticationPrincipal UserDetails userDetails) {
-         if (userDetails == null) {
+        if (userDetails == null) {
             throw new AppException(ErrorCode.UNAUTHENTICATED);
-    }
+        }
         authService.logout(userDetails.getUsername());
         return ApiResponse.success();
     }
