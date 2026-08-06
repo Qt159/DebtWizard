@@ -25,7 +25,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@Transactional
 public class DebtService {
 
     private final DebtRepository debtRepository;
@@ -51,6 +50,7 @@ public class DebtService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
 
+    @Transactional
     public DebtResponse createDebt(CreateDebtRequest request, UserDetails userDetails) {
         User currentUser = findUserOrThrow(userDetails);
         Debt debt = debtMapper.toEntity(request, request.getInterestSettings());
@@ -114,6 +114,7 @@ public class DebtService {
         return debtMapper.toResponse(debt);
     }
 
+    @Transactional
     public DebtResponse updateDebt(Long id, UpdateDebtRequest request, UserDetails userDetails) {
         User currentUser = findUserOrThrow(userDetails);
         Debt debt = debtRepository.findByIdAndUserIdAndDeletedFalse(id, currentUser.getId())
@@ -124,6 +125,7 @@ public class DebtService {
         return debtMapper.toResponse(debtRepository.save(debt));
     }
 
+    @Transactional
     public void deleteDebt(Long id, UserDetails userDetails) {
         User currentUser = findUserOrThrow(userDetails);
         Debt debt = debtRepository.findByIdAndUserIdAndDeletedFalse(id, currentUser.getId())
