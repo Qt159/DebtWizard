@@ -18,17 +18,18 @@ import java.math.RoundingMode;
 @Service
 public class AnalysisService {
 
-    private final UserRepository userRepo;
+    private final UserRepository userRepository;
     private final DebtRepository debtRepository;
 
-    public AnalysisService( UserRepository userRepo,
+    public AnalysisService(UserRepository userRepository,
                            DebtRepository debtRepository) {
-        this.userRepo = userRepo;
+        this.userRepository = userRepository;
         this.debtRepository = debtRepository;
     }
+
     @Transactional(readOnly = true)
-    public AnalysisResponse calculateAllAnalysis(String username){
-        User user = userRepo.findByUsername(username)
+    public AnalysisResponse calculateAllAnalysis(String username) {
+        User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         DtiResponse dti = calculateCurrentDti(user);

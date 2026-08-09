@@ -1,6 +1,6 @@
 package com.tuan.debtwizard.features.user.service;
 
-import com.tuan.debtwizard.exception.AppException;
+import  com.tuan.debtwizard.exception.AppException;
 import com.tuan.debtwizard.exception.ErrorCode;
 import com.tuan.debtwizard.features.user.dto.ChangePasswordRequest;
 import com.tuan.debtwizard.features.user.dto.UpdateUserRequest;

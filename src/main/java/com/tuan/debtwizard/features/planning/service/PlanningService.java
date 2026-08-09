@@ -60,7 +60,7 @@ public class PlanningService {
         this.simulationHelper = simulationHelper;
     }
 
-    @Transactional(readOnly = true)
+    @Transactional(readOnly = true, timeout = 30)
     public CompareResponse comparePlans(
             CompareRequest request,
             UserDetails userDetails) {
