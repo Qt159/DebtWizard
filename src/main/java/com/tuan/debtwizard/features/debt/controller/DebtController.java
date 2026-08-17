@@ -12,6 +12,7 @@ import com.tuan.debtwizard.features.payment.dto.PaymentListItem;
 import com.tuan.debtwizard.features.payment.service.PaymentService;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import jakarta.validation.Valid;
+import org.springframework.data.domain.Page;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -76,13 +77,15 @@ public class DebtController {
     }
 
     @GetMapping("/{debtId}/payments")
-    public ApiResponse<List<PaymentListItem>> getPayments(
+    public ApiResponse<Page<PaymentListItem>> getPaymentsByDebtId(
             @PathVariable Long debtId,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateFrom,
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate dateTo,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int pageSize,
             @RequestParam(defaultValue = "paymentDate") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir,
             @AuthenticationPrincipal UserDetails userDetails) {
-        return ApiResponse.success(paymentService.getPayments(userDetails, debtId, dateFrom, dateTo, sortBy, sortDir));
+        return ApiResponse.success(paymentService.getPaymentsByDebtId(userDetails, debtId, dateFrom, dateTo, page, pageSize, sortBy, sortDir));
     }
 }
