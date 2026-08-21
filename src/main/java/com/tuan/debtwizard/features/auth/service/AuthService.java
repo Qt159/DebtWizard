@@ -2,12 +2,14 @@ package com.tuan.debtwizard.features.auth.service;
 
 import com.tuan.debtwizard.features.auth.dto.*;
 import com.tuan.debtwizard.features.auth.model.RefreshToken;
+import com.tuan.debtwizard.features.financeprofile.service.FinanceProfileService;
 import com.tuan.debtwizard.features.user.model.User;
 import com.tuan.debtwizard.features.auth.repository.RefreshTokenRepository;
 import com.tuan.debtwizard.features.user.repository.UserRepository;
 import com.tuan.debtwizard.exception.AppException;
 import com.tuan.debtwizard.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -16,8 +18,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.time.Duration;
 import java.time.Instant;
 
 @Service
@@ -30,6 +30,9 @@ public class AuthService {
     private final CustomUserDetailsService userDetailsService;
     private final JwtService jwtService;
     private final RefreshTokenRepository refreshTokenRepository;
+    private final FinanceProfileService profileService;
+    @Value("${jwt.refresh-expiration}")
+    private long refreshExpiration;
 
     @Transactional
     public RegisterResponse register(RegisterRequest request) {
@@ -45,8 +48,8 @@ public class AuthService {
         user.setFullName(request.getFullName());
         user.setEmail(request.getEmail());
         user.setPassword(passwordEncoder.encode(request.getPassword()));
-        user.setMonthlyIncome(request.getMonthlyIncome() != null ? request.getMonthlyIncome() : BigDecimal.ZERO);
         User savedUser = userRepository.save(user);
+        profileService.createDefault(savedUser);
 
         return new RegisterResponse(savedUser.getId(), savedUser.getUsername(), savedUser.getFullName());
     }
@@ -69,7 +72,7 @@ public class AuthService {
         RefreshToken rt = new RefreshToken();
         rt.setToken(refreshToken);
         rt.setUser(user);
-        rt.setExpiryDate(Instant.now().plus(Duration.ofDays(7)));
+        rt.setExpiryDate(Instant.now().plusMillis(refreshExpiration));
 
         refreshTokenRepository.save(rt);
         return new LoginResponse(accessToken, refreshToken);
@@ -98,7 +101,8 @@ public class AuthService {
         RefreshToken newRt = new RefreshToken();
         newRt.setToken(newRefreshToken);
         newRt.setUser(user);
-        newRt.setExpiryDate(Instant.now().plus(Duration.ofDays(7)));
+        newRt.setExpiryDate(
+                Instant.now().plusMillis(refreshExpiration));
         refreshTokenRepository.save(newRt);
 
         return new LoginResponse(newAccessToken, newRefreshToken);

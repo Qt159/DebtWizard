@@ -35,11 +35,7 @@ public class UserService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         user.setFullName(request.getFullName());
-        if (request.getMonthlyIncome() != null) {
-            user.setMonthlyIncome(request.getMonthlyIncome());}
-        if (request.getMonthlyExpense() != null) {
-            user.setMonthlyExpense(request.getMonthlyExpense());
-        }
+
 
         return mapToResponse(userRepository.save(user));
     }
@@ -62,6 +58,6 @@ public class UserService {
 
     private UserResponse mapToResponse(User user) {
         return new UserResponse(user.getId(), user.getUsername(),
-                user.getFullName(), user.getEmail(), user.getMonthlyIncome(), user.getMonthlyExpense());
+                user.getFullName(), user.getEmail());
     }
 }

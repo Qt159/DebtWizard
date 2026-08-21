@@ -16,7 +16,8 @@ public class RegisterRequest {
     private String username;
 
     @NotBlank(message = "Mật khẩu không được để trống")
-    @Size(min = 8, message = "Mật khẩu phải có ít nhất 8 ký tự")
+    @Size(min = 8, max = 100,
+            message = "Mật khẩu phải từ 8 đến 100 ký tự")
     private String password;
 
     @NotBlank(message = "Họ tên không được để trống")
@@ -25,10 +26,7 @@ public class RegisterRequest {
 
     @NotBlank(message = "Email không được để trống")
     @Email(message = "Định dạng email không hợp lệ")
-    @Size(max = 255)
+    @Size(max = 100)
     private String email;
 
-    @NotNull(message = "Thu nhập không được để trống")
-    @PositiveOrZero(message = "Thu nhập không được âm")
-    private BigDecimal monthlyIncome;
 }

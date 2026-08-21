@@ -1,13 +1,11 @@
 package com.tuan.debtwizard.features.user.model;
 
-import com.tuan.debtwizard.features.debt.model.Debt;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Collection;
 import java.util.List;
@@ -34,18 +32,11 @@ public class User implements UserDetails {
     @Column(nullable = false, length = 100)
     private String fullName;
 
-    @Column(precision = 15, scale = 2)
-    private BigDecimal monthlyIncome = BigDecimal.ZERO;
-
-    @Column(precision = 15, scale = 2)
-    private BigDecimal monthlyExpense = BigDecimal.ZERO;
     @Column(nullable = false, updatable = false)
     private LocalDateTime createdAt;
 
     @Column(nullable = false)
     private LocalDateTime updatedAt;
-    @OneToMany(mappedBy = "user", fetch =  FetchType.LAZY)
-    private List<Debt> debts;
 
 
     @Override
@@ -56,20 +47,17 @@ public class User implements UserDetails {
     protected void onCreate() {
         this.createdAt = LocalDateTime.now();
         this.updatedAt = LocalDateTime.now();
-        if (this.monthlyIncome == null) this.monthlyIncome = BigDecimal.ZERO;
     }
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = LocalDateTime.now();
     }
     public User() {}
-    public User(String username, String email, String password, String fullName, BigDecimal monthlyIncome, BigDecimal monthlyExpense) {
+    public User(String username, String email, String password, String fullName) {
         this.username = username;
         this.email = email;
         this.password = password;
         this.fullName = fullName;
-        this.monthlyIncome = monthlyIncome;
-        this.monthlyExpense = monthlyExpense;
     }
     @Override
     public String getUsername() {

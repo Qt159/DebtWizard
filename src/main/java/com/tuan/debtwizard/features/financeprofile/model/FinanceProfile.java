@@ -36,9 +36,7 @@ public class FinanceProfile {
 
     public FinanceProfile() {}
 
-    public FinanceProfile(User user,
-                         BigDecimal monthlyIncome, 
-                        BigDecimal monthlyEssentialExpenses) {
+    public FinanceProfile(User user, BigDecimal monthlyIncome, BigDecimal monthlyEssentialExpenses) {
         this.user = user;
         this.monthlyIncome = monthlyIncome;
         this.monthlyEssentialExpenses = monthlyEssentialExpenses;
