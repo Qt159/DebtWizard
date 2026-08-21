@@ -46,7 +46,8 @@ public enum ErrorCode {
     STRATEGY_MISSING(HttpStatus.BAD_REQUEST, "Vui lòng chọn chiến lược trả nợ"),
     STRATEGY_DUPLICATE(HttpStatus.BAD_REQUEST, "Hai chiến lược phải khác nhau"),
     DUPLICATE_DEBT(HttpStatus.BAD_REQUEST, "Có khoản nợ trùng lặp"),
-    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Thông báo không tồn tại");
+    NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Thông báo không tồn tại"),
+    SORT_DIRECTION_INVALID(HttpStatus.BAD_REQUEST, "Hướng sắp xếp không hợp lệ"), INVALID_PAGINATION(HttpStatus.BAD_REQUEST, "Thông tin phân trang không hợp lệ");
 
     private final HttpStatus status;
     private final String message;
