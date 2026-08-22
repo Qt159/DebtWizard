@@ -1,5 +1,6 @@
 package com.tuan.debtwizard.features.planning.helper;
 
+import com.tuan.debtwizard.features.financeprofile.model.FinanceProfile;
 import com.tuan.debtwizard.features.planning.model.DebtSnapshot;
 import com.tuan.debtwizard.features.user.model.User;
 import org.springframework.stereotype.Component;
@@ -11,9 +12,9 @@ import java.util.List;
 @Component
 public class SimulationHelper {
 
-    public BigDecimal calculateMonthlyExtraBudget(User user, List<DebtSnapshot> debts) {
-        BigDecimal income = user.getMonthlyIncome();
-        BigDecimal expense = user.getMonthlyExpense();
+    public BigDecimal calculateMonthlyExtraBudget(User user,  FinanceProfile financeProfile, List<DebtSnapshot> debts) {
+        BigDecimal income = financeProfile.getMonthlyIncome();
+        BigDecimal expense = financeProfile.getMonthlyEssentialExpenses();
 
         BigDecimal total = income.subtract(expense);
         BigDecimal minPayment = calculateTotalMinimumPayment(debts);

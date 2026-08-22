@@ -5,6 +5,8 @@ import com.tuan.debtwizard.exception.ErrorCode;
 import com.tuan.debtwizard.features.debt.model.Debt;
 import com.tuan.debtwizard.features.debt.model.DebtStatus;
 import com.tuan.debtwizard.features.debt.repository.DebtRepository;
+import com.tuan.debtwizard.features.financeprofile.model.FinanceProfile;
+import com.tuan.debtwizard.features.financeprofile.repository.FinanceProfileRepository;
 import com.tuan.debtwizard.features.planning.dto.CompareRequest;
 import com.tuan.debtwizard.features.planning.dto.CompareResponse;
 import com.tuan.debtwizard.features.planning.dto.PlanComparisonDto;
@@ -39,6 +41,7 @@ public class PlanningService {
     private final SavedPlanMapper savedPlanMapper;
     private final PlanEntityMapper planEntityMapper;
     private final SimulationHelper simulationHelper;
+    private final FinanceProfileRepository financeProfileRepository;
 
     public PlanningService(
             SimulationEngine simulationEngine,
@@ -48,7 +51,7 @@ public class PlanningService {
             SnapshotMapper snapshotMapper,
             SavedPlanMapper savedPlanMapper,
             PlanEntityMapper planEntityMapper,
-            SimulationHelper simulationHelper) {
+            SimulationHelper simulationHelper, FinanceProfileRepository financeProfileRepository) {
 
         this.simulationEngine = simulationEngine;
         this.debtRepository = debtRepository;
@@ -58,6 +61,7 @@ public class PlanningService {
         this.savedPlanMapper = savedPlanMapper;
         this.planEntityMapper = planEntityMapper;
         this.simulationHelper = simulationHelper;
+        this.financeProfileRepository = financeProfileRepository;
     }
 
     @Transactional(readOnly = true, timeout = 30)
@@ -65,12 +69,13 @@ public class PlanningService {
             CompareRequest request,
             UserDetails userDetails) {
         User user = getUser(userDetails.getUsername());
+        FinanceProfile financeProfile = getFinanceProfile(user.getId());
         validateStrategy(request);
         List<Debt> debts = loadAndVerifyDebts(
                 request.getDebtIds(),
                 user.getId());
         List<DebtSnapshot> snapshots = snapshotMapper.toSnapshots(debts);
-        BigDecimal maxAllowed = simulationHelper.calculateMonthlyExtraBudget(user, snapshots);
+        BigDecimal maxAllowed = simulationHelper.calculateMonthlyExtraBudget(user, financeProfile, snapshots);
         if (request.getMonthlyExtraPayment().compareTo(maxAllowed) > 0) {
             throw new AppException(ErrorCode.EXTRA_PAYMENT_EXCEEDS_BUDGET);
         }
@@ -100,10 +105,11 @@ public class PlanningService {
     @Transactional
     public SavedPlanResponse savePlan(SavePlanRequest request, UserDetails userDetails) {
         User user = getUser(userDetails.getUsername());
+        FinanceProfile financeProfile = getFinanceProfile(user.getId());
         List<Debt> debts = loadAndVerifyDebts(request.getDebtIds(), user.getId());
 
         List<DebtSnapshot> snapshots = snapshotMapper.toSnapshots(debts);
-        BigDecimal maxAllowed = simulationHelper.calculateMonthlyExtraBudget(user, snapshots);
+        BigDecimal maxAllowed = simulationHelper.calculateMonthlyExtraBudget(user, financeProfile, snapshots);
 
         if (request.getMonthlyExtraPayment().compareTo(maxAllowed) > 0) {
             throw new AppException(ErrorCode.EXTRA_PAYMENT_EXCEEDS_BUDGET);
@@ -174,6 +180,10 @@ public class PlanningService {
 
         }
         return debts;
+    }
+    private FinanceProfile getFinanceProfile(Long userId) {
+        return financeProfileRepository.findByUserId(userId)
+                .orElseThrow(() -> new AppException(ErrorCode.FINANCE_PROFILE_NOT_FOUND));
     }
     private void validateDuplicateDebtIds(List<Long> debtIds) {
         if (debtIds.size() != new HashSet<>(debtIds).size()) {

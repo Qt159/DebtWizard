@@ -4,6 +4,8 @@ import com.tuan.debtwizard.exception.AppException;
 import com.tuan.debtwizard.exception.ErrorCode;
 import com.tuan.debtwizard.features.analysis.FinanceHealth;
 import com.tuan.debtwizard.features.analysis.dto.*;
+import com.tuan.debtwizard.features.financeprofile.model.FinanceProfile;
+import com.tuan.debtwizard.features.financeprofile.repository.FinanceProfileRepository;
 import com.tuan.debtwizard.features.user.model.User;
 import com.tuan.debtwizard.features.user.repository.UserRepository;
 import com.tuan.debtwizard.features.debt.model.DebtStatus;
@@ -20,27 +22,31 @@ public class AnalysisService {
 
     private final UserRepository userRepository;
     private final DebtRepository debtRepository;
+    private final FinanceProfileRepository financeProfileRepository;
 
     public AnalysisService(UserRepository userRepository,
-                           DebtRepository debtRepository) {
+                           DebtRepository debtRepository, FinanceProfileRepository financeProfileRepository) {
         this.userRepository = userRepository;
         this.debtRepository = debtRepository;
+        this.financeProfileRepository = financeProfileRepository;
     }
 
     @Transactional(readOnly = true)
     public AnalysisResponse calculateAllAnalysis(String username) {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
+        FinanceProfile financeProfile = financeProfileRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new AppException(ErrorCode.FINANCE_PROFILE_NOT_FOUND));
 
-        DtiResponse dti = calculateCurrentDti(user);
-        InterestRatioResponse interestRatio = calculateInterestRatio(user);
+        DtiResponse dti = calculateCurrentDti(user, financeProfile);
+        InterestRatioResponse interestRatio = calculateInterestRatio(user, financeProfile);
         OverdueRatioResponse overdueRatio = calculateOverdueRatio(user);
         RepaymentTimeResponse repaymentTime = calculateRepaymentTime(user);
         return new AnalysisResponse(dti, interestRatio, overdueRatio, repaymentTime);
     }
     //monthlyPayment / income
-    private DtiResponse calculateCurrentDti(User user) {
-        BigDecimal income = user.getMonthlyIncome();
+    private DtiResponse calculateCurrentDti(User user,FinanceProfile financeProfile) {
+        BigDecimal income = financeProfile.getMonthlyIncome();
         if (income == null || income.compareTo(BigDecimal.ZERO) <= 0) {
             return new DtiResponse(BigDecimal.ZERO,
                     BigDecimal.ZERO,
@@ -58,8 +64,8 @@ public class AnalysisService {
         return new DtiResponse(income, monthlyPayment, ratio,health,  health.getDefaultAdvice());
     }
     // ratio = totalInterest / income
-    private InterestRatioResponse calculateInterestRatio(User user){
-        BigDecimal income = user.getMonthlyIncome();
+    private InterestRatioResponse calculateInterestRatio(User user, FinanceProfile financeProfile) {
+        BigDecimal income = financeProfile.getMonthlyIncome();
         BigDecimal totalInterest = debtRepository.getTotalAccruedInterest(user.getId());
         BigDecimal totalPrincipal = debtRepository.getTotalDebt(user.getId());
 
