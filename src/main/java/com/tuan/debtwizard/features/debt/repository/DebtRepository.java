@@ -4,7 +4,6 @@ import com.tuan.debtwizard.features.debt.model.Debt;
 import com.tuan.debtwizard.features.debt.model.DebtStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -63,10 +62,8 @@ public interface DebtRepository extends JpaRepository<Debt, Long> {
             @Param("status") DebtStatus status
     );
 
-    Page<Debt> findByDeletedFalseAndStatusNot(
-            DebtStatus debtStatus,
-            Pageable pageable
-    );
+    List<Debt> findTop100ByIdGreaterThanAndDeletedFalseAndStatusNotOrderByIdAsc(
+            Long id, DebtStatus status);
     @Query("""
     SELECT d FROM Debt d 
     WHERE d.user.id = :userId 

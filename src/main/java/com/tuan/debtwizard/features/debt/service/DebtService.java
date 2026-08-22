@@ -19,10 +19,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 @Service
 public class DebtService {
@@ -72,38 +71,42 @@ public class DebtService {
 
         User currentUser = findUserOrThrow(userDetails);
 
-        List<Debt> debts = (search == null || search.isBlank())
-                ? debtRepository.findByUserIdAndDeletedFalse(currentUser.getId())
-                : debtRepository.findByUserIdWithSearch(currentUser.getId(), search);
-
-        // Filter enums in-memory to avoid JPQL enum null-check issues
-        if (status != null) {
-            debts = debts.stream()
-                    .filter(d -> d.getStatus() == status)
-                    .collect(java.util.stream.Collectors.toList());
+        List<Debt> debts = debtRepository.findByUserIdAndDeletedFalse(currentUser.getId());
+        if(search != null && !search.isBlank()) {
+            String keyword = search.toLowerCase();
+            debts.removeIf(debt ->!debt.getLenderName().toLowerCase().contains(keyword));
         }
-        if (interestMethod != null) {
-            debts = debts.stream()
-                    .filter(d -> d.getInterestSettings() != null
-                            && d.getInterestSettings().getInterestCalculationMethod() == interestMethod)
-                    .collect(java.util.stream.Collectors.toList());
+        // filter
+        if(status != null) {
+            debts.removeIf(debt->debt.getStatus() != status);
         }
-
-        // Sort in-memory
-        if ("remainingPrincipal".equals(sortBy)) {
-            debts.sort((currentDebt, nextDebt) -> currentDebt.getRemainingPrincipal().compareTo(nextDebt.getRemainingPrincipal()));
-        } else {
-            debts.sort((currentDebt, nextDebt) -> currentDebt.getCreatedAt().compareTo(nextDebt.getCreatedAt()));
+        if(interestMethod != null) {
+            debts.removeIf(debt -> debt.getInterestSettings()
+                            .getInterestCalculationMethod() != interestMethod);
         }
-        if ("desc".equalsIgnoreCase(sortDir)) {
-            Collections.reverse(debts);
+        Comparator<Debt> comparator;
+        switch (sortBy) {
+            case "createdAt":
+                comparator = Comparator.comparing(Debt::getCreatedAt);
+                break;
+            case "remainingPrincipal":
+                comparator = Comparator.comparing(Debt::getRemainingPrincipal);
+                break;
+            default: throw new IllegalArgumentException("Invalid sortBy. Allowed values: createdAt, remainingPrincipal");
         }
 
-        List<DebtListItemResponse> result = new ArrayList<>();
+        if("desc".equalsIgnoreCase(sortDir)) {
+            comparator = comparator.reversed();
+        }
+        else if(!"asc".equalsIgnoreCase(sortDir)) {
+            throw new IllegalArgumentException("Invalid sortDir. Allowed values: asc, desc");
+        }
+        debts.sort(comparator);
+        List<DebtListItemResponse> responses = new ArrayList<>();
         for (Debt debt : debts) {
-            result.add(debtMapper.toListItem(debt));
+            responses.add(debtMapper.toListItem(debt));
         }
-        return result;
+        return responses;
     }
 
     @Transactional(readOnly = true)

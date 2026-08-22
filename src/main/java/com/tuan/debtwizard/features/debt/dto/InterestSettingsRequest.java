@@ -20,5 +20,6 @@ public class InterestSettingsRequest {
     @NotNull(message = "Lãi suất không được để trống")
     @DecimalMin(value = "0.0", message = "Lãi suất phải lớn hơn hoặc bằng 0%")
     @DecimalMax(value = "100.0", message = "Lãi suất không được vượt quá 100%")
+    @Digits( integer = 6, fraction = 2, message = "Lãi suất tối đa 6 chữ số và 2 chữ số thập phân")
     private BigDecimal interestRate;
 }

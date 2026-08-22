@@ -18,7 +18,7 @@ public class CreateDebtRequest {
     private String lenderName;
 
     @NotNull(message = "Tổng nợ không được để trống")
-    @Positive(message = "Tổng nợ không được nhỏ hơn 0")
+    @Positive(message = "Tổng nợ phải lớn hơn 0")
     @Digits(integer = 15, fraction = 2, message = "Số tiền tối đa 15 chữ số và 2 chữ số thập phân")
     private BigDecimal totalPrincipal;
 
