@@ -113,10 +113,8 @@ public class DashboardService {
                 nextDebt = debt;
                 nextDueDate = dueDate;
             }}
-
         if (nextDebt == null) {
             return null;}
-
         long daysUntilDue = ChronoUnit.DAYS.between(today, nextDueDate);
         return new NextDueDebtInfo(nextDebt.getLenderName(), nextDueDate, daysUntilDue);
     }

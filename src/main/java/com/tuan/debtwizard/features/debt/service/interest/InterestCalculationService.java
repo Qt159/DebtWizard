@@ -2,6 +2,7 @@ package com.tuan.debtwizard.features.debt.service.interest;
 
 import com.tuan.debtwizard.features.debt.model.Debt;
 import com.tuan.debtwizard.features.debt.model.InterestSettings;
+
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
@@ -42,4 +43,13 @@ public class InterestCalculationService {
                 .calculateMonthlyPayment(principal,
                         debt.getTermMonths(), settings.getInterestRate());
     }
+    public BigDecimal calculateEstimateMonthlyInterest(Debt debt) {
+        if(debt == null) {
+            return BigDecimal.ZERO;
+        }
+        LocalDate fromDate = LocalDate.now();
+        LocalDate toDate = fromDate.plusMonths(1);
+        return calculateInterest(debt, fromDate, toDate);
+    }
+
 }
