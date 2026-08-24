@@ -17,6 +17,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 @Service
@@ -40,9 +41,7 @@ public class DashboardService {
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
 
         Long userId = user.getId();
-
-        List<Debt> activeDebts = debtRepository. findUnpaidDebtsByUserId(userId);
-
+        List<Debt> activeDebts = debtRepository.findByUserIdAndStatusAndDeletedFalse(userId, DebtStatus.ACTIVE);
         DashboardResponse response = new DashboardResponse();
 
         response.setTotalDebt(getTotalDebt(userId));
@@ -103,34 +102,23 @@ public class DashboardService {
     private NextDueDebtInfo getNextDueDebt(List<Debt> debts) {
         Debt nextDebt = null;
         LocalDate nextDueDate = null;
-        long minDays = Long.MAX_VALUE;
+        LocalDate today = LocalDate.now();
+
         for (Debt debt : debts) {
-            LocalDate dueDate = getNextDueDate(debt.getDueDay());
+            LocalDate dueDate = debt.getNextDueDate();
             if (dueDate == null) {
                 continue;
             }
-            long daysUntilDue = ChronoUnit.DAYS.between(LocalDate.now(), dueDate);
-            if (daysUntilDue < minDays) {
-                minDays = daysUntilDue;
+            if(nextDueDate == null || dueDate.isBefore(nextDueDate)) {
                 nextDebt = debt;
                 nextDueDate = dueDate;
             }}
-        if (nextDebt == null) {return null;}
-        return new NextDueDebtInfo(nextDebt.getLenderName(), nextDueDate, minDays);
-    }
 
-    private LocalDate getNextDueDate(Integer dueDay) {
-        if (dueDay == null) {return null;}
-        LocalDate today = LocalDate.now();
-        LocalDate nextDueDate = today.withDayOfMonth(
-                Math.min(dueDay, today.lengthOfMonth()));
+        if (nextDebt == null) {
+            return null;}
 
-        if (nextDueDate.isBefore(today)) {
-            LocalDate nextMonth = today.plusMonths(1);
-            nextDueDate = nextMonth.withDayOfMonth(
-                    Math.min(dueDay, nextMonth.lengthOfMonth()));
-        }
-        return nextDueDate;
+        long daysUntilDue = ChronoUnit.DAYS.between(today, nextDueDate);
+        return new NextDueDebtInfo(nextDebt.getLenderName(), nextDueDate, daysUntilDue);
     }
 
     private List<NextDueDebtInfo> getUpcomingDebts(List<Debt> debts) {
@@ -139,14 +127,15 @@ public class DashboardService {
         List<NextDueDebtInfo> upcomingDebts = new ArrayList<>();
 
         for (Debt debt : debts) {
-            LocalDate dueDate = getNextDueDate(debt.getDueDay());
+            LocalDate dueDate = debt.getNextDueDate();
             if (dueDate == null) {
                 continue;}
-
-            if (!dueDate.isBefore(today) && !dueDate.isAfter(limitDate)) {
-                long daysUntilDue = ChronoUnit.DAYS.between(today, dueDate);
-                upcomingDebts.add(new NextDueDebtInfo(debt.getLenderName(), dueDate, daysUntilDue));}
-        }
+            if(dueDate.isBefore(today) || dueDate.isAfter(limitDate)) {
+                continue;
+            }
+            long daysUntilDue = ChronoUnit.DAYS.between(today, dueDate);
+            upcomingDebts.add(new NextDueDebtInfo(debt.getLenderName(), dueDate, daysUntilDue));}
+            upcomingDebts.sort(Comparator.comparing(NextDueDebtInfo::getNextDueDate));
         return upcomingDebts;
     }
 }
