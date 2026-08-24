@@ -22,10 +22,53 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     WHERE d.id = :debtId
     AND d.user.id = :userId
     AND p.deleted = false
-    AND (:dateFrom IS NULL OR p.paymentDate >= :dateFrom)
-    AND (:dateTo IS NULL OR p.paymentDate <= :dateTo)
     """)
     Page<Payment> findByDebtIdAndUserId(
+            @Param("debtId") Long debtId,
+            @Param("userId") Long userId,
+            Pageable pageable
+    );
+    @Query("""
+    SELECT p
+    FROM Payment p
+    JOIN FETCH p.debt d
+    WHERE d.id = :debtId
+    AND d.user.id = :userId
+    AND p.deleted = false
+    AND p.paymentDate >= :dateFrom
+    """)
+    Page<Payment> findByDebtIdAndUserIdAndDateFrom(
+            @Param("debtId") Long debtId,
+            @Param("userId") Long userId,
+            @Param("dateFrom") LocalDate dateFrom,
+            Pageable pageable
+    );
+    @Query("""
+    SELECT p
+    FROM Payment p
+    JOIN FETCH p.debt d
+    WHERE d.id = :debtId
+    AND d.user.id = :userId
+    AND p.deleted = false
+    AND p.paymentDate <= :dateTo
+    """)
+    Page<Payment> findByDebtIdAndUserIdAndDateTo(
+            @Param("debtId") Long debtId,
+            @Param("userId") Long userId,
+            @Param("dateTo") LocalDate dateTo,
+            Pageable pageable
+    );
+    @Query("""
+    SELECT p
+    FROM Payment p
+    JOIN FETCH p.debt d
+    WHERE d.id = :debtId
+    AND d.user.id = :userId
+    AND p.deleted = false
+    AND p.paymentDate >= :dateFrom
+    AND p.paymentDate <= :dateTo
+    """)
+    Page<Payment> findByDebtIdAndUserIdAndDateRange(
             @Param("debtId") Long debtId,
             @Param("userId") Long userId,
             @Param("dateFrom") LocalDate dateFrom,

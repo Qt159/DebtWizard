@@ -48,7 +48,8 @@ public enum ErrorCode {
     DUPLICATE_DEBT(HttpStatus.BAD_REQUEST, "Có khoản nợ trùng lặp"),
     NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "Thông báo không tồn tại"),
     SORT_DIRECTION_INVALID(HttpStatus.BAD_REQUEST, "Hướng sắp xếp không hợp lệ"), INVALID_PAGINATION(HttpStatus.BAD_REQUEST, "Thông tin phân trang không hợp lệ"),
-    FINANCE_PROFILE_NOT_FOUND(HttpStatus.NOT_FOUND,"Không tìm thấy thông tin tài chính" );
+    FINANCE_PROFILE_NOT_FOUND(HttpStatus.NOT_FOUND,"Không tìm thấy thông tin tài chính" ),
+    INVALID_DATE_RANGE(HttpStatus.BAD_REQUEST, "Khoảng ngày không hợp lệ");
 
     private final HttpStatus status;
     private final String message;

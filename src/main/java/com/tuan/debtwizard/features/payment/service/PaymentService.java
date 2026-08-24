@@ -126,8 +126,24 @@ public class PaymentService {
         }
 
         Pageable pageable = PageRequest.of(page, pageSize, buildSort(sortBy, sortDir));
-        Page<Payment> payments = paymentRepository.findByDebtIdAndUserId(
-                debtId, user.getId(), dateFrom, dateTo, pageable);
+        Page<Payment> payments;
+        if(dateFrom == null && dateTo == null) {
+            payments = paymentRepository.findByDebtIdAndUserId(debtId, user.getId(), pageable);
+        }
+        else if(dateFrom != null &&dateTo == null) {
+            payments = paymentRepository.findByDebtIdAndUserIdAndDateFrom(debtId, user.getId(), dateFrom, pageable);
+        }
+        else if (dateFrom == null) {
+            payments = paymentRepository.findByDebtIdAndUserIdAndDateTo(debtId, user.getId(),
+                                                                        dateTo, pageable);
+        }
+        else{
+            if (dateFrom.isAfter(dateTo)) {
+                throw new AppException(ErrorCode.INVALID_DATE_RANGE);
+            }
+            payments = paymentRepository.findByDebtIdAndUserIdAndDateRange(
+                    debtId, user.getId(), dateFrom, dateTo, pageable);
+        }
         return payments.map(paymentMapper::toListItem);
     }
 
