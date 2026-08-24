@@ -18,7 +18,7 @@ public interface PaymentRepository extends JpaRepository<Payment, Long> {
     @Query("""
     SELECT p 
     FROM Payment p
-    JOIN FETCH p.debt d
+    JOIN p.debt d
     WHERE d.id = :debtId
     AND d.user.id = :userId
     AND p.deleted = false

@@ -43,7 +43,7 @@ public class InterestCalculationService {
                 .calculateMonthlyPayment(principal,
                         debt.getTermMonths(), settings.getInterestRate());
     }
-    public BigDecimal calculateEstimateMonthlyInterest(Debt debt) {
+    public BigDecimal calculateEstimatedMonthlyInterest(Debt debt) {
         if(debt == null) {
             return BigDecimal.ZERO;
         }

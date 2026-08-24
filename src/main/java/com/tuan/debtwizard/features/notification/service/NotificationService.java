@@ -2,7 +2,6 @@ package com.tuan.debtwizard.features.notification.service;
 
 import com.tuan.debtwizard.exception.AppException;
 import com.tuan.debtwizard.exception.ErrorCode;
-import com.tuan.debtwizard.features.debt.model.Debt;
 import com.tuan.debtwizard.features.event.PaymentCompletedEvent;
 import com.tuan.debtwizard.features.event.PaymentReminderEvent;
 import com.tuan.debtwizard.features.notification.dto.NotificationResponse;
