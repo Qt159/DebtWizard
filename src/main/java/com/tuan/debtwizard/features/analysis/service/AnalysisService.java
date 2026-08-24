@@ -4,6 +4,8 @@ import com.tuan.debtwizard.exception.AppException;
 import com.tuan.debtwizard.exception.ErrorCode;
 import com.tuan.debtwizard.features.analysis.FinanceHealth;
 import com.tuan.debtwizard.features.analysis.dto.*;
+import com.tuan.debtwizard.features.debt.model.Debt;
+import com.tuan.debtwizard.features.debt.service.interest.InterestCalculationService;
 import com.tuan.debtwizard.features.financeprofile.model.FinanceProfile;
 import com.tuan.debtwizard.features.financeprofile.repository.FinanceProfileRepository;
 import com.tuan.debtwizard.features.user.model.User;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.List;
 
 
 @Service
@@ -23,12 +26,14 @@ public class AnalysisService {
     private final UserRepository userRepository;
     private final DebtRepository debtRepository;
     private final FinanceProfileRepository financeProfileRepository;
+    private final InterestCalculationService interestCalculationService;
 
     public AnalysisService(UserRepository userRepository,
-                           DebtRepository debtRepository, FinanceProfileRepository financeProfileRepository) {
+                           DebtRepository debtRepository, FinanceProfileRepository financeProfileRepository, InterestCalculationService interestCalculationService) {
         this.userRepository = userRepository;
         this.debtRepository = debtRepository;
         this.financeProfileRepository = financeProfileRepository;
+        this.interestCalculationService = interestCalculationService;
     }
 
     @Transactional(readOnly = true)
@@ -63,31 +68,22 @@ public class AnalysisService {
         FinanceHealth health = FinanceClassifier.byRatio(ratio, 30, 50);
         return new DtiResponse(income, monthlyPayment, ratio,health,  health.getDefaultAdvice());
     }
-    // ratio = totalInterest / income
+    // ratio = monthlyInterest / monthlyIncome
     private InterestRatioResponse calculateInterestRatio(User user, FinanceProfile financeProfile) {
-        BigDecimal income = financeProfile.getMonthlyIncome();
-        BigDecimal totalInterest = debtRepository.getTotalAccruedInterest(user.getId());
-        BigDecimal totalPrincipal = debtRepository.getTotalDebt(user.getId());
-
-        if (income == null || income.compareTo(BigDecimal.ZERO) <= 0) {
-            return new InterestRatioResponse(BigDecimal.ZERO,
+        BigDecimal monthlyIncome = financeProfile.getMonthlyIncome();
+        if (monthlyIncome == null || monthlyIncome.compareTo(BigDecimal.ZERO) <= 0) {
+            return new InterestRatioResponse(
                     BigDecimal.ZERO,
                     BigDecimal.ZERO, 0.0,
                     FinanceHealth.INCOMPLETE,
                     "Vui lòng cập nhật thu nhập để tính toán !");}
 
-        if (totalInterest == null || totalInterest.compareTo(BigDecimal.ZERO) <= 0) {
-            return new InterestRatioResponse(
-                    totalPrincipal == null ? BigDecimal.ZERO : totalPrincipal,
-                    BigDecimal.ZERO,
-                    BigDecimal.ZERO, 0.0,
-                    FinanceHealth.GOOD, "Không có tiền lãi phải trả");}
-
-        double ratio = totalInterest.divide(income, 2, RoundingMode.HALF_UP)
-                .multiply(new BigDecimal("100")).doubleValue();
+        BigDecimal monthlyInterest = calculateTotalMonthlyInterest(user);
+        double ratio = monthlyInterest.divide(monthlyIncome, 2, RoundingMode.HALF_UP)
+                .multiply(BigDecimal.valueOf(100)).doubleValue();
         //lãi < 10% là GOOD, < 20% là WARNING, còn lại là CRITICAL
         FinanceHealth health = FinanceClassifier.byRatio(ratio, 10.0, 20.0);
-        return new InterestRatioResponse(totalPrincipal, totalInterest, income, ratio, health, health.getDefaultAdvice());
+        return new InterestRatioResponse(monthlyInterest, monthlyIncome, ratio, health, health.getDefaultAdvice());
     }
     // overdueDebts/ totalDebts
     private OverdueRatioResponse calculateOverdueRatio(User user){
@@ -125,6 +121,18 @@ public class AnalysisService {
                 .divide(monthlyPayment, 0, RoundingMode.CEILING)
                 .intValue();
         return new RepaymentTimeResponse(activeDebtCount, estimatedMonths);
+    }
+    private BigDecimal calculateTotalMonthlyInterest(User user) {
+        List<Debt> debts = debtRepository.findByUserIdAndStatusAndDeletedFalse(user.getId(), DebtStatus.ACTIVE);
+        BigDecimal totalMonthlyInterest = BigDecimal.ZERO;
+
+        for (Debt debt : debts) {
+            BigDecimal monthlyInterest = interestCalculationService.calculateEstimatedMonthlyInterest(debt);
+            if (monthlyInterest != null) {
+                totalMonthlyInterest = totalMonthlyInterest.add(monthlyInterest);
+            }
+        }
+        return totalMonthlyInterest;
     }
 
 
