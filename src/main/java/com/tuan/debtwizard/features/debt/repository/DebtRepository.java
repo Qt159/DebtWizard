@@ -2,9 +2,11 @@ package com.tuan.debtwizard.features.debt.repository;
 
 import com.tuan.debtwizard.features.debt.model.Debt;
 import com.tuan.debtwizard.features.debt.model.DebtStatus;
+import jakarta.persistence.LockModeType;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -33,6 +35,17 @@ public interface DebtRepository extends JpaRepository<Debt, Long> {
 
     Optional<Debt> findByIdAndUserIdAndDeletedFalse(Long id, Long userId);
 
+
+    @Lock(LockModeType.PESSIMISTIC_WRITE)
+    @Query("""
+    SELECT d 
+    FROM Debt d
+    WHERE d.id = :debtId
+    AND d.user.id = :userId
+    AND d.deleted = false
+    """)
+    Optional<Debt> findByIdAndUserIdAndDeletedFalseForUpdate(@Param("debtId") Long debtId,
+                                                             @Param("userId") Long userId);
     @Query("""
     SELECT SUM(d.totalPrincipal)
     FROM Debt d

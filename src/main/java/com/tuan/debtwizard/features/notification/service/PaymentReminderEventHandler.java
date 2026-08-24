@@ -3,6 +3,8 @@ package com.tuan.debtwizard.features.notification.service;
 import com.tuan.debtwizard.features.event.PaymentReminderEvent;
 import org.springframework.context.event.EventListener;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.event.TransactionPhase;
+import org.springframework.transaction.event.TransactionalEventListener;
 
 @Component
 public class PaymentReminderEventHandler {
@@ -10,7 +12,7 @@ public class PaymentReminderEventHandler {
     public PaymentReminderEventHandler(NotificationService notificationService) {
         this.notificationService = notificationService;
     }
-    @EventListener
+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
     public void handlePaymentReminder(PaymentReminderEvent event) {
         notificationService.createPaymentReminder(event);
     }

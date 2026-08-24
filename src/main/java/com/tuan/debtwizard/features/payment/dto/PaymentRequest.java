@@ -21,7 +21,7 @@ public class PaymentRequest {
 
     @NotNull(message = "Số tiền thanh toán không được để trống")
     @Positive(message = "Số tiền thanh toán phải lớn hơn 0")
-    @Digits(integer = 15, fraction = 2, message = "Số tiền thanh toán tối đa 15 chữ số và 2 chữ số thập phân")
+    @Digits(integer = 13, fraction = 2, message = "Số tiền thanh toán tối đa 13 chữ số và 2 chữ số thập phân")
     private BigDecimal amount;
 
     @NotNull(message = "Phương thức thanh toán không được để trống")

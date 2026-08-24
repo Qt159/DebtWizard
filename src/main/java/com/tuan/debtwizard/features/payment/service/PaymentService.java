@@ -28,7 +28,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.Set;
 import java.util.UUID;
 
@@ -65,7 +64,7 @@ public class PaymentService {
         User user = getUserByUsername(userDetails.getUsername());
 
         Debt debt = debtRepository
-                .findByIdAndUserIdAndDeletedFalse(request.getDebtId(), user.getId())
+                .findByIdAndUserIdAndDeletedFalseForUpdate(request.getDebtId(), user.getId())
                 .orElseThrow(() -> new AppException(ErrorCode.DEBT_NOT_FOUND));
 
         if (debt.getStatus() == DebtStatus.PAID_OFF) {
@@ -94,9 +93,6 @@ public class PaymentService {
         debtStateService.moveNextDueDate(debt, request.getAmount());
         debtStateService.refreshDebtStatus(debt);
 
-        if (debt.getStatus() == DebtStatus.PAID_OFF) {
-            debt.setPaidOffAt(LocalDateTime.now());
-        }
         debtRepository.save(debt);
         Payment payment = paymentMapper.toEntity(request, debt);
         payment.setInterestPaid(interestPaid);
@@ -128,19 +124,8 @@ public class PaymentService {
         if (page < 0 || pageSize < 1 || pageSize > 100) {
             throw new AppException(ErrorCode.INVALID_PAGINATION);
         }
-        Sort.Direction direction;
-        if(sortDir.equalsIgnoreCase("asc")) {
-            direction = Sort.Direction.ASC;
-        }
-        else if(sortDir.equalsIgnoreCase("desc")){
-            direction = Sort.Direction.DESC;
-        }
-        else{ throw new AppException(ErrorCode.SORT_DIRECTION_INVALID);}
 
-        if(!ALLOWED_SORT_FIELDS.contains(sortBy)) {
-            sortBy = "paymentDate";
-        }
-        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(direction, sortBy));
+        Pageable pageable = PageRequest.of(page, pageSize, buildSort(sortBy, sortDir));
         Page<Payment> payments = paymentRepository.findByDebtIdAndUserId(
                 debtId, user.getId(), dateFrom, dateTo, pageable);
         return payments.map(paymentMapper::toListItem);
@@ -153,19 +138,9 @@ public class PaymentService {
         if (page < 0 || pageSize < 1 || pageSize > 100) {
             throw new AppException(ErrorCode.INVALID_PAGINATION);
         }
-        Sort.Direction direction;
-        if(sortDir.equalsIgnoreCase("asc")) {
-            direction = Sort.Direction.ASC;
-        }
-        else if(sortDir.equalsIgnoreCase("desc")){
-            direction = Sort.Direction.DESC;
-        }
-        else{ throw new AppException(ErrorCode.SORT_DIRECTION_INVALID);}
-        if(!ALLOWED_SORT_FIELDS.contains(sortBy)) {
-            sortBy = "paymentDate";
-        }
-        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(direction, sortBy));
 
+
+        Pageable pageable = PageRequest.of(page, pageSize, buildSort(sortBy, sortDir));
 
         Page<Payment> payments = paymentRepository.findAllByUserId(user.getId(), pageable);
         return payments.map(paymentMapper::toListItem);
@@ -185,4 +160,19 @@ public class PaymentService {
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new AppException(ErrorCode.USER_NOT_FOUND));
     }
+    private Sort buildSort(String sortBy, String sortDir){
+        if(sortBy == null || !ALLOWED_SORT_FIELDS.contains(sortBy)){
+            sortBy = "paymentDate";
+        }
+        Sort.Direction direction;
+        if("asc".equalsIgnoreCase(sortDir)){
+            direction = Sort.Direction.ASC;
+        }
+        else if("desc".equalsIgnoreCase(sortDir)){
+            direction = Sort.Direction.DESC;
+        }
+        else{ throw new AppException(ErrorCode.SORT_DIRECTION_INVALID);}
+        return Sort.by(direction, sortBy);
+    }
+
 }
