@@ -12,10 +12,9 @@ public class PaymentCompletedEventHandler {
     public PaymentCompletedEventHandler(NotificationService notificationService) {
         this.notificationService = notificationService;
     }
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @EventListener
     public void handlePaymentCompleted(PaymentCompletedEvent event) {
-        System.out.println(">>> PAYMENT COMPLETED EVENT RECEIVED: "
-                + event.paymentId());
+        System.out.println(">>> PAYMENT EVENT RECEIVED: " + event.paymentId());
         notificationService.createPaymentCompletedNotification(event);
     }
 }

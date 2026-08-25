@@ -81,6 +81,7 @@ public class NotificationService {
     }
     @Transactional
     public void createPaymentCompletedNotification(PaymentCompletedEvent event) {
+        System.out.println(">>> CREATING NOTIFICATION FOR USER: " + event.userId());
         String referenceKey = "PAYMENT_COMPLETED_" + event.paymentId();
         if(notificationRepository.existsByReferenceKey(referenceKey)) {
             return;
@@ -95,6 +96,7 @@ public class NotificationService {
         notification.setRead(false);
         notification.setReferenceKey(referenceKey);
         notificationRepository.save(notification);
+        System.out.println(">>> NOTIFICATION SAVED");
     }
     @Transactional
     public void createNotification(User user, String title, String message, NotificationType notificationType) {

@@ -12,7 +12,7 @@ public class PaymentReminderEventHandler {
     public PaymentReminderEventHandler(NotificationService notificationService) {
         this.notificationService = notificationService;
     }
-    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+    @EventListener
     public void handlePaymentReminder(PaymentReminderEvent event) {
         notificationService.createPaymentReminder(event);
     }
