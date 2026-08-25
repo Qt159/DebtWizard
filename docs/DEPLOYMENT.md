@@ -1,350 +1,167 @@
 # Deployment Guide — DebtWizard
 
-## 1. Deployment Overview
+---
 
-DebtWizard Backend được triển khai trên AWS với kiến trúc:
+## 1. Tổng quan Kiến trúc Triển khai (Deployment Overview)
 
-![AWSInfrastructure](images/AWSInfrastructureArchitecture.drawio.png)
+DebtWizard Backend được triển khai trên nền tảng đám mây **Amazon Web Services (AWS)** với mô hình phân tách giữa tầng ứng dụng và tầng cơ sở dữ liệu:
 
-Hệ thống chỉ triển khai Backend và Database.
+![AWS Infrastructure Architecture](images/AWSInfrastructureArchitecture.drawio.png)
 
-- Backend: Spring Boot Application chạy trên Amazon EC2.
-- Database: PostgreSQL chạy trên Amazon RDS.
-- EC2 chịu trách nhiệm xử lý REST API và kết nối đến RDS thông qua JDBC.
-- Runtime:
-  + Java 17
-  + Spring Boot 3.x
-  + PostgreSQL
+- **Backend Server:** Ứng dụng Spring Boot chạy trên máy chủ ảo **Amazon EC2 (Ubuntu 22.04 LTS)** đặt trong Public Subnet.
+- **Database Server:** Cơ sở dữ liệu **PostgreSQL** chạy trên dịch vụ quản lý **Amazon RDS**, đặt trong Private Subnets đa vùng sẵn sàng (Multi-AZ DB Subnet Group), không thể truy cập trực tiếp từ Internet.
+- **Giao tiếp:** EC2 kết nối an toàn đến Amazon RDS thông qua giao thức JDBC (Port 5432) trong nội bộ mạng AWS VPC.
+- **Môi trường Runtime:** Java 17 (OpenJDK), Spring Boot 3.2.4, Maven 3.8+, PostgreSQL 14+.
 
 ---
 
-# 2. AWS Infrastructure Setup
+## 2. Thiết lập Hạ tầng AWS (AWS Infrastructure Setup)
 
-## 2.1 Create VPC
+### 2.1 Tạo Custom VPC
+Tạo một Virtual Private Cloud (VPC) để cô lập mạng lưới:
+- **IPv4 CIDR Block:** `10.0.0.0/16`
+- **Tên VPC:** `debtwizard-vpc`
 
-Tạo một Custom VPC để quản lý network của hệ thống.
+### 2.2 Tạo Subnets & Route Tables
+Hệ thống sử dụng tối thiểu 3 Subnets thuộc ít nhất 2 Availability Zones (AZs):
 
-Example:
-
-```
-VPC CIDR:
-10.0.0.0/16
-```
-
----
-
-## 2.2 Create Subnets
-
-Hệ thống sử dụng 3 Subnets:
-
-### Public Subnet
-
-Mục đích:
-
-- Chạy EC2 Instance.
-- Cho phép SSH truy cập từ Internet.
-
-Architecture:
-
-```text
-Public Subnet
-      |
-      |
-     EC2
-```
+1. **Public Subnet (AZ-a):**
+   - **CIDR:** `10.0.1.0/24`
+   - **Mục đích:** Chứa EC2 Instance, gán Public IPv4.
+   - **Route Table:** Gắn `0.0.0.0/0` trỏ đến **Internet Gateway (IGW)**.
+2. **Private Subnet 1 (AZ-a):**
+   - **CIDR:** `10.0.2.0/24`
+   - **Mục đích:** Chứa nút chính của Amazon RDS PostgreSQL.
+3. **Private Subnet 2 (AZ-b):**
+   - **CIDR:** `10.0.3.0/24`
+   - **Mục đích:** Dự phòng cho Amazon RDS (DB Subnet Group).
+   - **Route Table:** Nội bộ VPC (`10.0.0.0/16` -> `local`), tuyệt đối không mở route ra Internet Gateway.
 
 ---
 
-### Private Subnets
+## 3. Cấu hình Nhóm Bảo mật (Security Groups)
 
-Mục đích:
+### 3.1 EC2 Security Group (`debtwizard-ec2-sg`)
+Kiểm soát traffic đi vào máy chủ ứng dụng:
 
-- Chứa Amazon RDS PostgreSQL.
-- Không expose Database trực tiếp ra Internet.
-- Amazon RDS sử dụng DB Subnet Group chứa các subnet thuộc nhiều Availability Zone khác nhau để hỗ trợ khả năng sẵn sàng cao (High Availability) và cho phép triển khai Multi-AZ khi cần thiết.
+| Loại traffic | Giao thức | Port | Nguồn (Source) | Mục đích |
+|---|---|---|---|---|
+| SSH | TCP | 22 | `My IP` (hoặc Bastion IP) | Quản trị từ xa an toàn |
+| HTTP | TCP | 80 | `0.0.0.0/0` | Web Traffic (hoặc Nginx Reverse Proxy) |
+| Custom TCP | TCP | 8080 | `0.0.0.0/0` | Spring Boot REST API & Swagger UI |
+| Outbound | Tất cả | Tất cả | `0.0.0.0/0` | Cho phép EC2 tải package và pull git |
 
-Trong hệ thống này, RDS PostgreSQL được đặt trong các Private Subnet thuộc hai Availability Zone khác nhau nhằm tăng khả năng mở rộng và đảm bảo database không bị expose trực tiếp ra Internet.
+### 3.2 RDS Security Group (`debtwizard-rds-sg`)
+Bảo vệ cơ sở dữ liệu chỉ chấp nhận kết nối từ Backend:
 
-Architecture:
-
-```text
-Private Subnet A (AZ-a)
-
-Private Subnet B (AZ-b)
-
-          |
-          |
-    DB Subnet Group
-
-          |
-          |
-
-Amazon RDS PostgreSQL
-```
+| Loại traffic | Giao thức | Port | Nguồn (Source) | Mục đích |
+|---|---|---|---|---|
+| PostgreSQL | TCP | 5432 | `debtwizard-ec2-sg` (Security Group ID của EC2) | Chỉ EC2 được phép truy vấn Database |
+| Outbound | Tất cả | Tất cả | `0.0.0.0/0` | Mặc định |
 
 ---
 
-## 2.3 Internet Gateway
+## 4. Khởi tạo Amazon RDS PostgreSQL
 
-Tạo và attach Internet Gateway vào VPC.
-
-Route Table cho Public Subnet:
-
-```text
-Destination        Target
-
-0.0.0.0/0          Internet Gateway
-```
-
-Route này cho phép EC2 truy cập Internet để cài đặt package và pull source code.
+1. Điều hướng tới **Amazon RDS** -> **Create Database**.
+2. **Engine:** PostgreSQL (Phiên bản 14 trở lên).
+3. **Template:** Free Tier (hoặc Production Multi-AZ tùy nhu cầu).
+4. **VPC:** Chọn `debtwizard-vpc`.
+5. **DB Subnet Group:** Tạo nhóm chứa `Private Subnet 1` và `Private Subnet 2`.
+6. **Public Access:** Chọn **No** (Không mở ra Internet).
+7. **VPC Security Group:** Chọn `debtwizard-rds-sg`.
+8. Sau khi tạo xong, lưu lại **RDS Endpoint** (ví dụ: `debtwizard-db.xxxx.ap-southeast-1.rds.amazonaws.com`).
 
 ---
 
-# 3. Security Group Configuration
+## 5. Cài đặt & Cấu hình Máy chủ EC2
 
-## 3.1 EC2 Security Group
-
-Security Group kiểm soát traffic đến Backend Server.
-
-Inbound Rules:
-
-| Type       | Port | Source        |
-|------------|------|---------------|
-| SSH        | 22   | My IP         |
-| HTTP       | 80   | 0.0.0.0/0     |
-| Custom TCP | 8080 | 0.0.0.0/0     |
-
-Outbound:
-
-```
-Allow all traffic
-```
-
----
-
-## 3.2 RDS Security Group
-
-Security Group bảo vệ Database.
-
-Inbound Rules:
-
-| Type | Port | Source |
-|------|------|--------|
-| PostgreSQL | 5432 | EC2 Security Group |
-
-Chỉ EC2 Instance được phép kết nối đến RDS.
-
----
-
-# 4. Launch EC2 Instance
-
-Tạo EC2 Instance:
-
-Configuration:
-
-- OS: Ubuntu
-- Instance Type: Free Tier compatible
-- Subnet: Public Subnet
-- Security Group: EC2 Security Group
-
-Sau khi tạo EC2, sử dụng SSH Key Pair để truy cập server.
-
----
-
-# 5. Create Amazon RDS PostgreSQL
-
-Tạo PostgreSQL Database trên Amazon RDS.
-
-Configuration:
-
-- Engine: PostgreSQL
-- VPC: Custom VPC
-- Public Access: No
-- DB Subnet Group:
-    - Private Subnet A
-    - Private Subnet B
-- Security Group: RDS Security Group
-
-Sau khi tạo thành công, lấy thông tin:
-
-```
-RDS Endpoint
-Port: 5432
-```
-
----
-
-# 6. Connect to EC2
-
-SSH vào EC2:
-
+### 5.1 Kết nối SSH vào EC2
 ```bash
-ssh -i <key.pem> ubuntu@<ec2-public-ip>
+ssh -i /path/to/your-key.pem ubuntu@<EC2-PUBLIC-IP>
 ```
 
----
-
-# 7. Install Required Dependencies
-
-Update package:
-
+### 5.2 Cài đặt các gói phụ thuộc
 ```bash
-sudo apt update
-```
+# Cập nhật hệ thống
+sudo apt update && sudo apt upgrade -y
 
-## Install Git
+# Cài đặt Git, Java 17, Maven và PostgreSQL Client
+sudo apt install -y git openjdk-17-jre-headless maven postgresql-client
 
-```bash
-sudo apt install git
-```
-
-Verify:
-
-```bash
-git --version
-```
-
----
-
-## Install Java
-
-```bash
-sudo apt install openjdk-17-jre-headless
-```
-
-Verify:
-
-```bash
+# Kiểm tra phiên bản
 java -version
-```
-
----
-
-## Install Maven
-
-```bash
-sudo apt install maven
-```
-
-Verify:
-
-```bash
 mvn -version
+psql --version
 ```
 
----
-
-## Install PostgreSQL Client
-
-Cài PostgreSQL Client để kết nối đến Amazon RDS:
-
+### 5.3 Khởi tạo Cơ sở dữ liệu trên RDS
+Sử dụng `psql` từ EC2 để kết nối đến RDS Endpoint và tạo cơ sở dữ liệu:
 ```bash
-sudo apt install postgresql-client
+psql -h <RDS-ENDPOINT> -U postgres -d postgres
 ```
-
-Không cần cài PostgreSQL Server trên EC2 vì Database đã được triển khai trên Amazon RDS.
-
----
-
-# 8. Initialize Database
-
-Kết nối đến RDS:
-
-```bash
-psql -h <rds-endpoint> -U postgres -d postgres
-```
-
-Tạo database:
-
+Nhập mật khẩu RDS khi được yêu cầu, sau đó thực thi:
 ```sql
 CREATE DATABASE debtwizard;
-```
-
-Kiểm tra database:
-
-```sql
 \l
+\q
 ```
 
 ---
 
-# 9. Clone Backend Source Code
+## 6. Triển khai Ứng dụng Backend
 
-Clone repository:
-
+### 6.1 Clone mã nguồn dự án
 ```bash
-git clone <repository-url>
-```
-
-Di chuyển vào project:
-
-```bash
+cd /home/ubuntu
+git clone https://github.com/Qt159/DebtWizard.git
 cd DebtWizard
 ```
 
----
-
-# 10. Configure Environment Variables
-
-Tạo file `.env` trên EC2 để lưu các biến môi trường:
-
+### 6.2 Cấu hình Biến môi trường
+Tạo file cấu hình môi trường an toàn tại `/etc/debtwizard.env`:
 ```bash
 sudo nano /etc/debtwizard.env
 ```
 
-Nội dung file:
-
+Nhập các thông số thực tế của môi trường:
 ```properties
-DB_HOST=<rds-endpoint>
+# Database Configuration
+DB_HOST=<RDS-ENDPOINT>
 DB_PORT=5432
 DB_NAME=debtwizard
-DB_USERNAME=<username>
-DB_PASSWORD=<password>
-JWT_SECRET=<jwt-secret>
+DB_USERNAME=postgres
+DB_PASSWORD=YourSecureDatabasePassword
+
+# JWT Configuration
+JWT_SECRET=your_super_secret_jwt_key_at_least_32_characters_long_123456
 JWT_ACCESS_EXPIRATION=900000
 JWT_REFRESH_EXPIRATION=604800000
 ```
 
-Phân quyền file để bảo vệ thông tin nhạy cảm:
-
+Phân quyền bảo mật file (chỉ root và service đọc được):
 ```bash
 sudo chmod 600 /etc/debtwizard.env
 ```
 
----
-
-# 11. Build Application
-
-Build project bằng Maven:
-
+### 6.3 Đóng gói Ứng dụng (Build Jar)
 ```bash
 mvn clean package -DskipTests
 ```
-
-Sau khi build thành công:
-
-```
-target/DebtWizard-*.jar
-```
-
-được tạo ra.
+File thực thi `.jar` sẽ được tạo tại: `/home/ubuntu/DebtWizard/target/DebtWizard-0.0.1-SNAPSHOT.jar`.
 
 ---
 
-# 12. Run Application with systemd
+## 7. Quản trị Dịch vụ bằng Linux Systemd
 
-Sử dụng `systemd` để quản lý process — tự động restart khi crash hoặc EC2 reboot.
+Sử dụng `systemd` để ứng dụng chạy nền liên tục và tự khởi động lại khi gặp sự cố hoặc máy chủ reboot.
 
-## 12.1 Create systemd Service
-
-Tạo file service:
-
+### 7.1 Tạo Service File
 ```bash
 sudo nano /etc/systemd/system/debtwizard.service
 ```
 
-Nội dung:
-
+Nội dung cấu hình:
 ```ini
 [Unit]
 Description=DebtWizard Spring Boot Application
@@ -352,48 +169,59 @@ After=network.target
 
 [Service]
 User=ubuntu
+WorkingDirectory=/home/ubuntu/DebtWizard
 EnvironmentFile=/etc/debtwizard.env
 ExecStart=/usr/bin/java -jar /home/ubuntu/DebtWizard/target/DebtWizard-0.0.1-SNAPSHOT.jar
 SuccessExitStatus=143
 Restart=on-failure
 RestartSec=10
 
-
 [Install]
 WantedBy=multi-user.target
 ```
 
-## 12.2 Enable và Start Service
-
+### 7.2 Khởi động và Kích hoạt Dịch vụ
 ```bash
+# Nạp lại cấu hình daemon
 sudo systemctl daemon-reload
+
+# Kích hoạt tự khởi động cùng OS
 sudo systemctl enable debtwizard
+
+# Khởi chạy dịch vụ
 sudo systemctl start debtwizard
-```
 
-## 12.3 Kiểm tra trạng thái
-
-```bash
+# Kiểm tra trạng thái hoạt động
 sudo systemctl status debtwizard
 ```
 
-## 12.4 Xem logs
-
+### 7.3 Theo dõi Logs thời gian thực
 ```bash
 sudo journalctl -u debtwizard -f
 ```
 
-Backend chạy tại:
+Kiểm tra API trên trình duyệt hoặc Postman:
+- API Base URL: `http://<EC2-PUBLIC-IP>:8080`
+- Swagger UI: `http://<EC2-PUBLIC-IP>:8080/swagger-ui/index.html`
 
-```
-http://<ec2-public-ip>:8080
+---
+
+## 8. Quy trình Cập nhật Phiên bản (CI / CD & Update Workflow)
+
+Mỗi khi có cập nhật mã nguồn mới trên GitHub:
+```bash
+cd /home/ubuntu/DebtWizard
+git pull origin main
+mvn clean package -DskipTests
+sudo systemctl restart debtwizard
+sudo journalctl -u debtwizard -n 50 --no-pager
 ```
 
 ---
 
-# 13. Future Improvements
+## 9. Định hướng Mở rộng trong Tương lai (Future Improvements)
 
-- Containerize application using Docker.
-- Push Docker image to Amazon ECR.
-- Deploy using Amazon ECS/Fargate.
-- CI/CD with GitHub Actions.
+1. **Reverse Proxy & SSL:** Cấu hình **Nginx** làm Reverse Proxy kết hợp **Let's Encrypt** để kích hoạt HTTPS (Port 443).
+2. **Containerization:** Đóng gói ứng dụng thành **Docker Image**, đẩy lên **Amazon ECR**.
+3. **Container Orchestration:** Triển khai bằng **Amazon ECS (AWS Fargate)** kết hợp **Application Load Balancer (ALB)** để tự động mở rộng (Auto Scaling).
+4. **CI/CD Automation:** Xây dựng **GitHub Actions Workflow** để tự động chạy Unit Test, đóng gói Jar/Docker và deploy lên AWS khi push code vào nhánh `main`.

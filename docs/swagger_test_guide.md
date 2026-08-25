@@ -136,42 +136,59 @@ Swagger UI: http://localhost:8080/swagger-ui/index.html
 
 ---
 
-## 2. USER
+## 2. USER & FINANCE PROFILE
 
-### 2.1 Xem profile ✅
+### 2.1 Xem user profile ✅
 **GET** `/api/users/me`
 
-**Kết quả mong đợi:** 200, trả về thông tin user
+**Kết quả mong đợi:** 200, trả về thông tin user (`id`, `username`, `email`, `fullName`)
 
 ---
 
-### 2.2 Cập nhật profile ✅
+### 2.2 Cập nhật user profile ✅
 **PUT** `/api/users/me`
 ```json
 {
-  "fullName": "Nguyễn Văn Test Updated",
-  "monthlyIncome": 30000000,
-  "monthlyExpense": 8000000
+  "fullName": "Nguyễn Văn Test Updated"
 }
 ```
 **Kết quả mong đợi:** 200, `fullName` đã thay đổi
-> ⚠️ **Quan trọng:** `monthlyIncome - monthlyExpense = 22,000,000`. Budget dùng cho planning = 22M - tổng minimum payment của các debt
 
 ---
 
-### 2.3 Cập nhật — 400 Tên trống ❌
-**PUT** `/api/users/me`
+### 2.3 Xem hồ sơ tài chính ✅
+**GET** `/api/finance-profile`
+
+**Kết quả mong đợi:** 200, trả về `monthlyIncome` và `monthlyEssentialExpenses`
+
+---
+
+### 2.4 Cập nhật hồ sơ tài chính ✅
+**PUT** `/api/finance-profile`
 ```json
 {
-  "fullName": "",
-  "monthlyIncome": 20000000
+  "monthlyIncome": 30000000,
+  "monthlyEssentialExpenses": 8000000
 }
 ```
-**Kết quả mong đợi:** 400
+**Kết quả mong đợi:** 200, trả về thu nhập và chi phí sinh hoạt đã cập nhật
+> ⚠️ **Quan trọng:** `monthlyIncome - monthlyEssentialExpenses = 22,000,000`. Budget tối đa cho planning = 22M - tổng minimum payment của các debt.
 
 ---
 
-### 2.4 Đổi mật khẩu ✅
+### 2.5 Cập nhật hồ sơ tài chính — 400 Giá trị âm ❌
+**PUT** `/api/finance-profile`
+```json
+{
+  "monthlyIncome": -1000,
+  "monthlyEssentialExpenses": 8000000
+}
+```
+**Kết quả mong đợi:** 400, field error
+
+---
+
+### 2.6 Đổi mật khẩu ✅
 **POST** `/api/users/change-password`
 ```json
 {

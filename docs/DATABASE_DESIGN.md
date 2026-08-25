@@ -1,175 +1,189 @@
 # Database Design — DebtWizard
 
-## Sơ đồ quan hệ thực thể (ERD)
+---
+
+## 1. Sơ đồ Quan hệ Thực thể (ERD)
 
 ![Entity-Relationship Diagram](images/erd.png)
 
+### Bảng tổng hợp Quan hệ giữa các Thực thể
+
+| Quan hệ | Loại | Khóa ngoại (FK) | Hành vi / Mô tả |
+|---|---|---|---|
+| `users` → `finance_profiles` | 1:1 | `finance_profiles.user_id` | Mỗi người dùng có một hồ sơ tài chính ghi nhận thu nhập và chi phí thiết yếu. |
+| `users` → `refresh_token` | 1:1 | `refresh_token.user_id` | Mỗi người dùng duy trì tối đa 1 refresh token hiện hành (Token Rotation). |
+| `users` → `debts` | 1:N | `debts.user_id` | Một người dùng có thể sở hữu nhiều khoản nợ. |
+| `debts` → `payments` | 1:N | `payments.debt_id` | Một khoản nợ có nhiều lần ghi nhận thanh toán thực tế. |
+| `users` → `notifications` | 1:N | `notifications.user_id` | Một người dùng nhận nhiều thông báo thanh toán và nhắc nợ. |
+| `users` → `saved_plans` | 1:1 | `saved_plans.user_id` | Mỗi người dùng lưu tối đa một kế hoạch trả nợ tại một thời điểm. |
+| `saved_plans` → `plan_monthly_schedules` | 1:N | `plan_monthly_schedules.saved_plan_id` | Một kế hoạch gồm nhiều tháng thanh toán dự kiến. |
+| `plan_monthly_schedules` → `plan_debt_payments` | 1:N | `plan_debt_payments.schedule_id` | Mỗi tháng có bảng phân bổ thanh toán chi tiết cho từng khoản nợ. |
+| `debts` → `plan_debt_payments` | 1:N | `plan_debt_payments.debt_id` | Khoản nợ gốc được tham chiếu trong các tháng của kế hoạch. |
+
 ---
 
-# Quan hệ giữa các bảng
+## 2. Mô tả Chi tiết Schema các Bảng
 
-| Quan hệ | Loại | Mô tả |
-|---------|------|-------|
-| `users` → `debts` | 1:N | Một user có nhiều khoản nợ |
-| `debts` → `payments` | 1:N | Một khoản nợ có nhiều lần thanh toán thực tế |
-| `users` → `refresh_token` | 1:1 | Mỗi user có tối đa một refresh token hiện hành |
-| `users` → `saved_plans` | 1:1 | Mỗi user lưu tối đa một kế hoạch trả nợ tại một thời điểm |
-| `saved_plans` → `plan_monthly_schedules` | 1:N | Một kế hoạch có nhiều tháng thanh toán dự kiến |
-| `plan_monthly_schedules` → `plan_debt_payments` | 1:N | Mỗi tháng có phân bổ thanh toán chi tiết cho từng khoản nợ |
-| `debts` → `plan_debt_payments` | 1:N | Một khoản nợ có thể xuất hiện trong nhiều tháng của kế hoạch |
+### 2.1 Bảng `users`
+Lưu trữ thông tin tài khoản và thông tin cá nhân của người dùng.
 
----
-
-## Mô tả chi tiết từng bảng
-
-### 1. `users`
-
-Lưu thông tin tài khoản và tài chính của người dùng.
-
-| Cột | Kiểu | Ràng buộc | Mô tả |
-|-----|------|-----------|-------|
+| Cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
+|---|---|---|---|
 | `id` | BIGINT | PK, AUTO_INCREMENT | Khóa chính |
 | `username` | VARCHAR(50) | NOT NULL, UNIQUE | Tên đăng nhập |
-| `email` | VARCHAR(100) | UNIQUE, nullable | Email người dùng |
-| `password` | VARCHAR | NOT NULL | Mật khẩu đã được BCrypt hash |
-| `full_name` | VARCHAR(100) | NOT NULL | Họ và tên |
-| `monthly_income` | DECIMAL(15,2) | nullable, default 0 | Thu nhập hàng tháng |
-| `monthly_expense` | DECIMAL(15,2) | nullable, default 0 | Chi tiêu cố định hàng tháng |
-| `created_at` | TIMESTAMP | NOT NULL, immutable | Thời điểm tạo tài khoản |
+| `email` | VARCHAR(100) | UNIQUE, NULLABLE | Địa chỉ email |
+| `password` | VARCHAR | NOT NULL | Mật khẩu đã băm (BCrypt Hash) |
+| `full_name` | VARCHAR(100) | NOT NULL | Họ và tên đầy đủ |
+| `created_at` | TIMESTAMP | NOT NULL, Updatable=false | Thời điểm tạo tài khoản |
 | `updated_at` | TIMESTAMP | NOT NULL | Thời điểm cập nhật gần nhất |
 
 ---
 
-### 2. `debts`
+### 2.2 Bảng `finance_profiles`
+Lưu trữ hồ sơ tài chính cơ bản gồm thu nhập và chi tiêu thiết yếu phục vụ cho phân tích DTI và tính toán ngân sách mô phỏng.
 
-Lưu thông tin từng khoản nợ. Các trường tài chính cốt lõi (`totalPrincipal`, `termMonths`, `interestRate`) không thể thay đổi sau khi tạo, chỉ `lenderName` được phép update.
+| Cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
+|---|---|---|---|
+| `id` | BIGINT | PK, AUTO_INCREMENT | Khóa chính |
+| `user_id` | BIGINT | NOT NULL, UNIQUE, FK → `users.id` | Khóa ngoại trỏ đến người dùng (1:1) |
+| `monthly_income` | DECIMAL(15,2) | NOT NULL, DEFAULT 0.00 | Thu nhập cố định hàng tháng |
+| `monthly_essential_expenses` | DECIMAL(15,2) | NOT NULL, DEFAULT 0.00 | Chi phí sinh hoạt thiết yếu hàng tháng |
+| `created_at` | TIMESTAMP | NOT NULL, Updatable=false | Thời điểm khởi tạo |
+| `updated_at` | TIMESTAMP | NOT NULL | Thời điểm cập nhật gần nhất |
 
-| Cột | Kiểu | Ràng buộc | Mô tả |
-|-----|------|-----------|-------|
+---
+
+### 2.3 Bảng `refresh_token`
+Quản lý refresh token cho cơ chế JWT Token Rotation.
+
+| Cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
+|---|---|---|---|
+| `id` | BIGINT | PK, AUTO_INCREMENT | Khóa chính |
+| `token` | VARCHAR | NOT NULL, UNIQUE | Chuỗi JWT Refresh Token ngẫu nhiên |
+| `user_id` | BIGINT | NOT NULL, FK → `users.id` | Người dùng sở hữu token |
+| `expiry_date` | TIMESTAMP | NOT NULL | Thời điểm hết hạn của token |
+
+---
+
+### 2.4 Bảng `debts`
+Lưu trữ thông tin chi tiết từng khoản nợ. Cấu hình lãi suất (`InterestSettings`) được nhúng trực tiếp bằng cơ chế `@Embeddable`.
+
+| Cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
+|---|---|---|---|
 | `id` | BIGINT | PK, AUTO_INCREMENT | Khóa chính |
 | `user_id` | BIGINT | NOT NULL, FK → `users.id` | Chủ sở hữu khoản nợ |
-| `lender_name` | VARCHAR | NOT NULL | Tên bên cho vay |
+| `lender_name` | VARCHAR | NOT NULL | Tên ngân hàng / bên cho vay |
 | `total_principal` | DECIMAL(15,2) | NOT NULL | Nợ gốc ban đầu |
-| `remaining_principal` | DECIMAL(15,2) | NOT NULL | Nợ gốc còn lại, default = `total_principal` |
-| `expected_monthly_payment` | DECIMAL(15,2) | NOT NULL | Số tiền phải trả tối thiểu mỗi tháng (tính theo công thức khi tạo) |
+| `remaining_principal` | DECIMAL(15,2) | NOT NULL | Nợ gốc còn lại hiện tại |
+| `expected_monthly_payment` | DECIMAL(15,2) | NOT NULL, DEFAULT 0.00 | Số tiền thanh toán tối thiểu dự kiến mỗi tháng |
 | `term_months` | INTEGER | NOT NULL | Kỳ hạn vay (tháng) |
 | `start_date` | DATE | NOT NULL | Ngày bắt đầu khoản nợ |
-| `due_day` | INTEGER | NOT NULL | Ngày đến hạn thanh toán trong tháng (1–31) |
+| `due_day` | INTEGER | NOT NULL | Ngày đến hạn trong tháng (1–31) |
 | `next_due_date` | DATE | NOT NULL | Ngày đến hạn thanh toán tiếp theo |
-| `last_payment_date` | DATE | nullable | Ngày thanh toán thực tế gần nhất |
-| `last_interest_accrued_date` | DATE | NOT NULL | Ngày cuối đã tính lãi, dùng cho accrual hàng ngày |
-| `accrued_interest` | DECIMAL(15,2) | NOT NULL, default 0 | Lãi đã phát sinh nhưng chưa thanh toán |
-| `status` | VARCHAR | NOT NULL | Trạng thái: `ACTIVE` / `OVERDUE` / `PAID_OFF` |
-| `debt_type` | VARCHAR | NOT NULL | Loại nợ: `BANKING` / `PERSONAL_LOAN` / `CREDIT` |
-| `deleted` | BOOLEAN | NOT NULL, default false | Soft-delete flag |
-| `paid_off_at` | TIMESTAMP | nullable | Thời điểm tất toán khoản nợ |
-| `created_at` | TIMESTAMP | NOT NULL, immutable | Thời điểm tạo |
+| `last_payment_date` | DATE | NULLABLE | Ngày thanh toán thực tế gần nhất |
+| `last_interest_accrued_date` | DATE | NOT NULL | Ngày cuối cùng đã cộng dồn lãi suất |
+| `accrued_interest` | DECIMAL(15,2) | NOT NULL, DEFAULT 0.00 | Lãi phát sinh tích lũy chưa thanh toán |
+| `status` | VARCHAR(20) | NOT NULL | Trạng thái: `ACTIVE`, `OVERDUE`, `PAID_OFF` |
+| `debt_type` | VARCHAR(20) | NOT NULL | Loại nợ: `BANKING`, `PERSONAL_LOAN`, `CREDIT` |
+| `interest_calculation_method` | VARCHAR(20) | NOT NULL (Embedded) | Phương pháp tính lãi: `FLAT`, `REDUCING_BALANCE` |
+| `interest_frequency` | VARCHAR(20) | NOT NULL (Embedded) | Tần suất tính lãi: `DAILY`, `MONTHLY`, `ANNUALLY` |
+| `interest_rate` | DECIMAL(8,2) | NOT NULL (Embedded) | Lãi suất năm (% ví dụ 12.0 = 12%/năm) |
+| `deleted` | BOOLEAN | NOT NULL, DEFAULT false | Cờ xóa mềm (Soft delete) |
+| `paid_off_at` | TIMESTAMP | NULLABLE | Thời điểm tất toán khoản nợ |
+| `created_at` | TIMESTAMP | NOT NULL, Updatable=false | Thời điểm tạo bản ghi |
 | `updated_at` | TIMESTAMP | NOT NULL | Thời điểm cập nhật gần nhất |
-| `interest_calculation_method` | VARCHAR | NOT NULL (embedded) | Phương pháp tính lãi: `FLAT` / `REDUCING_BALANCE` |
-| `interest_frequency` | VARCHAR | NOT NULL (embedded) | Tần suất tính lãi: `DAILY` / `MONTHLY` / `ANNUALLY` |
-| `interest_rate` | DECIMAL(8,2) | NOT NULL (embedded) | Lãi suất năm (%, ví dụ: 12.0 = 12%/năm) |
-
-> **Lưu ý:** `interest_calculation_method`, `interest_frequency`, `interest_rate` là các cột của `InterestSettings` được nhúng trực tiếp vào bảng `debts` qua `@Embeddable` — không tạo bảng riêng.
 
 ---
 
-### 3. `payments`
+### 2.5 Bảng `payments`
+Lưu trữ lịch sử các giao dịch thanh toán thực tế cho từng khoản nợ.
 
-Lưu lịch sử các lần thanh toán thực tế của người dùng cho từng khoản nợ.
-
-| Cột | Kiểu | Ràng buộc | Mô tả |
-|-----|------|-----------|-------|
+| Cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
+|---|---|---|---|
 | `id` | BIGINT | PK, AUTO_INCREMENT | Khóa chính |
 | `debt_id` | BIGINT | NOT NULL, FK → `debts.id` | Khoản nợ được thanh toán |
 | `payment_date` | DATE | NOT NULL | Ngày thực hiện thanh toán |
-| `amount` | DECIMAL(15,2) | NOT NULL | Tổng số tiền thanh toán |
-| `principal_paid` | DECIMAL(15,2) | NOT NULL, default 0 | Phần trả vào nợ gốc |
-| `interest_paid` | DECIMAL(15,2) | NOT NULL, default 0 | Phần trả vào lãi (interest-first) |
-| `payment_method` | VARCHAR | NOT NULL | Phương thức: `CASH` / `BANK_TRANSFER` / `E_WALLET` / `CREDIT_CARD` |
-| `note` | VARCHAR(255) | nullable | Ghi chú của người dùng |
-| `created_at` | TIMESTAMP | NOT NULL, immutable | Thời điểm ghi nhận |
-| `updated_at` | TIMESTAMP | NOT NULL | Thời điểm cập nhật gần nhất |
-
-> **Soft-update / Soft-delete:** Hiện tại hệ thống **CHƯA hỗ trợ** cập nhật hoặc xóa payment. Tính năng update (cho phép sửa `note` và `paymentDate`) và delete (soft-delete) được lên kế hoạch trong phiên bản tương lai. Để sửa payment, hiện tại phải xóa và tạo mới.
+| `amount` | DECIMAL(15,2) | NOT NULL | Tổng số tiền thanh toán thực tế |
+| `principal_paid` | DECIMAL(15,2) | NOT NULL, DEFAULT 0.00 | Số tiền phân bổ vào giảm trừ nợ gốc |
+| `interest_paid` | DECIMAL(15,2) | NOT NULL, DEFAULT 0.00 | Số tiền phân bổ vào thanh toán lãi (Interest-first) |
+| `payment_method` | VARCHAR(20) | NOT NULL | Phương thức: `CASH`, `BANK_TRANSFER`, `E_WALLET`, `CREDIT_CARD` |
+| `note` | VARCHAR(255) | NULLABLE | Ghi chú thêm của người dùng |
+| `created_at` | TIMESTAMP | NOT NULL, Updatable=false | Thời điểm ghi nhận giao dịch |
+| `updated_at` | TIMESTAMP | NOT NULL | Thời điểm cập nhật |
 
 ---
 
-### 4. `refresh_token`
+### 2.6 Bảng `notifications`
+Lưu trữ thông báo trong ứng dụng (In-app Notifications) và quản lý trạng thái đọc.
 
-Lưu refresh token cho cơ chế JWT token rotation. Mỗi user chỉ có một token hiện hành — khi refresh, token cũ bị xóa và thay bằng token mới.
-
-| Cột | Kiểu | Ràng buộc | Mô tả |
-|-----|------|-----------|-------|
+| Cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
+|---|---|---|---|
 | `id` | BIGINT | PK, AUTO_INCREMENT | Khóa chính |
-| `token` | VARCHAR | NOT NULL, UNIQUE | Giá trị refresh token |
-| `user_id` | BIGINT | FK → `users.id` | User sở hữu token (1:1) |
-| `expiry_date` | TIMESTAMP | NOT NULL | Thời điểm hết hạn token |
+| `user_id` | BIGINT | NOT NULL, FK → `users.id` | Người dùng nhận thông báo |
+| `title` | VARCHAR(255) | NOT NULL | Tiêu đề thông báo |
+| `message` | VARCHAR(500) | NOT NULL | Nội dung chi tiết thông báo |
+| `type` | VARCHAR(50) | NOT NULL | Loại thông báo: `PAYMENT_REMINDER`, `PAYMENT_COMPLETED`, v.v. |
+| `is_read` | BOOLEAN | NOT NULL, DEFAULT false | Trạng thái đã đọc |
+| `reference_key` | VARCHAR(255) | UNIQUE, NULLABLE | Khóa định danh chống lặp thông báo (Idempotency Key) |
+| `deleted` | BOOLEAN | NOT NULL, DEFAULT false | Cờ xóa mềm |
+| `created_at` | TIMESTAMP | NOT NULL, Updatable=false | Thời điểm phát sinh thông báo |
 
 ---
 
-### 5. `saved_plans`
+### 2.7 Bảng `saved_plans`
+Lưu trữ thông tin tổng quan kế hoạch trả nợ mà người dùng đã chọn sau khi so sánh.
 
-Lưu kế hoạch trả nợ mà user đã chọn sau khi so sánh. Mỗi user chỉ có tối đa một kế hoạch — save plan mới sẽ replace plan cũ.
-
-| Cột | Kiểu | Ràng buộc | Mô tả |
-|-----|------|-----------|-------|
+| Cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
+|---|---|---|---|
 | `id` | BIGINT | PK, AUTO_INCREMENT | Khóa chính |
-| `user_id` | BIGINT | NOT NULL, UNIQUE, FK → `users.id` | User sở hữu kế hoạch (1:1) |
-| `strategy` | VARCHAR | NOT NULL | Chiến lược: `MINIMIZE_INTEREST` / `IMPROVE_CASHFLOW` |
-| `plan_name` | VARCHAR | NOT NULL | Tên hiển thị của chiến lược |
-| `monthly_extra_payment` | DECIMAL(15,2) | NOT NULL | Số tiền trả thêm hàng tháng ngoài minimum |
-| `total_interest_paid` | DECIMAL(15,2) | NOT NULL | Tổng lãi dự kiến phải trả theo kế hoạch |
-| `payoff_duration_months` | INTEGER | NOT NULL | Số tháng dự kiến để trả hết toàn bộ nợ |
-| `saved_at` | TIMESTAMP | NOT NULL, immutable | Thời điểm lưu kế hoạch |
+| `user_id` | BIGINT | NOT NULL, UNIQUE, FK → `users.id` | Người dùng sở hữu kế hoạch (1:1) |
+| `strategy` | VARCHAR(50) | NOT NULL | Chiến lược: `MINIMIZE_INTEREST`, `IMPROVE_CASHFLOW` |
+| `plan_name` | VARCHAR(100) | NOT NULL | Tên hiển thị của chiến lược |
+| `monthly_extra_payment` | DECIMAL(15,2) | NOT NULL | Số tiền trả thêm cố định mỗi tháng |
+| `total_interest_paid` | DECIMAL(15,2) | NOT NULL | Tổng tiền lãi dự kiến trong toàn bộ kế hoạch |
+| `payoff_duration_months` | INTEGER | NOT NULL | Tổng số tháng dự kiến để hoàn tất sạch nợ |
+| `saved_at` | TIMESTAMP | NOT NULL, Updatable=false | Thời điểm lưu kế hoạch |
 
 ---
 
-### 6. `plan_monthly_schedules`
+### 2.8 Bảng `plan_monthly_schedules`
+Lưu trữ thông tin tổng hợp của từng tháng thanh toán trong kế hoạch trả nợ đã lưu.
 
-Lưu lịch thanh toán dự kiến theo từng tháng của kế hoạch.
-
-| Cột | Kiểu | Ràng buộc | Mô tả |
-|-----|------|-----------|-------|
+| Cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
+|---|---|---|---|
 | `id` | BIGINT | PK, AUTO_INCREMENT | Khóa chính |
-| `saved_plan_id` | BIGINT | NOT NULL, FK → `saved_plans.id` | Kế hoạch sở hữu tháng này |
-| `month_index` | INTEGER | NOT NULL | Thứ tự tháng trong kế hoạch (bắt đầu từ 1) |
-| `date` | DATE | NOT NULL | Ngày dự kiến thanh toán của tháng |
-| `total_payment` | DECIMAL(15,2) | NOT NULL | Tổng số tiền thanh toán trong tháng |
-| `extra_payment_used` | DECIMAL(15,2) | NOT NULL | Phần extra payment đã dùng trong tháng |
-| `cashflow_released` | DECIMAL(15,2) | NOT NULL | Tiền giải phóng từ khoản nợ đã tất toán trong tháng |
+| `saved_plan_id` | BIGINT | NOT NULL, FK → `saved_plans.id` | Kế hoạch cha chứa tháng này |
+| `month_index` | INTEGER | NOT NULL | Thứ tự tháng trong kế hoạch (1, 2, 3,...) |
+| `date` | DATE | NOT NULL | Ngày dự kiến thanh toán trong tháng |
+| `total_payment` | DECIMAL(15,2) | NOT NULL | Tổng số tiền thanh toán trong tháng này |
+| `extra_payment_used` | DECIMAL(15,2) | NOT NULL | Số tiền Extra Payment đã sử dụng trong tháng |
+| `cashflow_released` | DECIMAL(15,2) | NOT NULL | Dòng tiền được giải phóng từ các nợ đã tất toán trong tháng |
 
 ---
 
-### 7. `plan_debt_payments`
+### 2.9 Bảng `plan_debt_payments`
+Lưu trữ chi tiết phân bổ thanh toán cho từng khoản nợ trong mỗi tháng của kế hoạch.
 
-Lưu chi tiết phân bổ thanh toán cho từng khoản nợ trong mỗi tháng của kế hoạch.
-
-| Cột | Kiểu | Ràng buộc | Mô tả |
-|-----|------|-----------|-------|
+| Cột | Kiểu dữ liệu | Ràng buộc | Mô tả |
+|---|---|---|---|
 | `id` | BIGINT | PK, AUTO_INCREMENT | Khóa chính |
-| `schedule_id` | BIGINT | NOT NULL, FK → `plan_monthly_schedules.id` | Tháng chứa bản ghi này |
-| `debt_id` | BIGINT | NOT NULL, FK → `debts.id` | Khoản nợ được phân bổ (tham chiếu trực tiếp qua `@ManyToOne`) |
-| `debt_name` | VARCHAR | NOT NULL | Tên khoản nợ được chép lại tại thời điểm lưu kế hoạch |
-| `minimum_paid` | DECIMAL(15,2) | NOT NULL | Phần thanh toán tối thiểu |
-| `extra_paid` | DECIMAL(15,2) | NOT NULL | Phần thanh toán thêm vào khoản nợ này |
-| `principal_paid` | DECIMAL(15,2) | NOT NULL | Phần trả vào gốc |
-| `interest_paid` | DECIMAL(15,2) | NOT NULL | Phần trả vào lãi |
-| `remaining_balance` | DECIMAL(15,2) | NOT NULL | Dư nợ còn lại sau tháng này |
-| `paid_off` | BOOLEAN | NOT NULL | Khoản nợ này được tất toán trong tháng này hay không |
-
-> **Lưu ý thiết kế:** `debt_name` được chép trực tiếp từ `lenderName` tại thời điểm lưu kế hoạch và không thay đổi theo sau đó. Điều này đảm bảo kế hoạch hiển thị đúng tên khoản nợ như lúc user lập kế hoạch, dù user có đổi tên khoản nợ về sau.
->
-> `debt_id` là FK duy nhất cho `debts.id`, được map qua quan hệ `@ManyToOne` — không có thêm cột `Long debtId` riêng lẻ trong entity.
+| `schedule_id` | BIGINT | NOT NULL, FK → `plan_monthly_schedules.id` | Tháng thanh toán tương ứng |
+| `debt_id` | BIGINT | NOT NULL, FK → `debts.id` | Khoản nợ gốc được phân bổ |
+| `debt_name` | VARCHAR(100) | NOT NULL | Bản sao tên khoản nợ tại thời điểm lưu kế hoạch |
+| `minimum_paid` | DECIMAL(15,2) | NOT NULL | Số tiền trả mức tối thiểu cho khoản nợ này |
+| `extra_paid` | DECIMAL(15,2) | NOT NULL | Số tiền trả thêm (extra) được dồn vào khoản nợ này |
+| `principal_paid` | DECIMAL(15,2) | NOT NULL | Tổng tiền trả vào nợ gốc |
+| `interest_paid` | DECIMAL(15,2) | NOT NULL | Tổng tiền trả vào lãi phát sinh |
+| `remaining_balance` | DECIMAL(15,2) | NOT NULL | Dư nợ còn lại sau khi thanh toán tháng này |
+| `paid_off` | BOOLEAN | NOT NULL | Đánh dấu khoản nợ đã dứt điểm trong tháng này hay chưa |
 
 ---
 
-## Cascade & Xóa dữ liệu
+## 3. Chính sách Xóa Dữ liệu (Deletion & Cascade Policies)
 
-| Hành động | Cascade |
-|-----------|---------|
-| Xóa `saved_plans` | Cascade xóa toàn bộ `plan_monthly_schedules` liên quan |
-| Xóa `plan_monthly_schedules` | Cascade xóa toàn bộ `plan_debt_payments` liên quan |
-| Xóa `debts` | Soft-delete (`deleted = true`), không xóa vật lý |
-| Xóa `payments` | Soft-delete (`deleted = true`), không xóa vật lý |
-
-> saved_plans và các bảng con dùng hard-delete vì chúng là simulation data — không có giá trị lịch sử cần giữ lại.
+| Thực thể | Cơ chế xóa | Hành vi Cascade | Lý do thiết kế |
+|---|---|---|---|
+| `saved_plans` | **Hard Delete** | Cascade xóa `plan_monthly_schedules` và `plan_debt_payments` | Dữ liệu kế hoạch là dữ liệu mô phỏng dự kiến, không có giá trị lịch sử kiểm toán sau khi người dùng đổi kế hoạch mới hoặc xóa bỏ. |
+| `debts` | **Soft Delete** (`deleted = true`) | Không cascade xóa vật lý | Bảo toàn lịch sử thanh toán và dữ liệu đối soát tài chính của các giao dịch trước đó. |
+| `payments` | **Soft Delete** / Immutable | Không xóa vật lý | Đảm bảo tính toàn vẹn sổ cái thanh toán (Ledger Integrity). |
+| `notifications` | **Soft Delete** (`deleted = true`) | - | Ẩn thông báo khỏi giao diện người dùng nhưng lưu vết hệ thống. |

@@ -1,124 +1,123 @@
 # DebtWizard
 
-DebtWizard là nền tảng quản lý nợ cá nhân, hỗ trợ người dùng theo dõi lịch sử thanh toán, tính lãi tự động và xây dựng kế hoạch trả nợ tối ưu dựa trên phân tích tình hình tài chính thực tế.
+DebtWizard là nền tảng quản lý nợ cá nhân và hỗ trợ ra quyết định tài chính (Financial Decision Support System), giúp người dùng theo dõi tập trung các khoản nợ, tính toán lãi suất tự động, đánh giá sức khỏe tài chính và xây dựng kế hoạch trả nợ tối ưu dựa trên thu nhập và ngân sách thực tế.
 
-## Features
+---
 
-- **Quản lý khoản nợ**: tạo, cập nhật và theo dõi nhiều khoản nợ (BANKING, PERSONAL_LOAN, CREDIT).
-- **Theo dõi thanh toán**: ghi nhận các khoản thanh toán, cập nhật tiến độ trả nợ và xử lý phân bổ thanh toán ưu tiên phần lãi trước phần gốc.
-- **Tính lãi tự động**: hỗ trợ 2 phương pháp FLAT và REDUCING_BALANCE, tự động accrual hàng ngày thông qua Scheduler.
-- **Dashboard**: tổng hợp thông tin tài chính gồm danh sách khoản nợ, dư nợ gốc, lãi phát sinh và tổng số tiền phải trả.
-- **Phân tích tài chính**: đánh giá sức khỏe tài chính qua 4 chỉ số định lượng — DTI, tỷ lệ gánh nặng lãi vay, tỷ lệ nợ quá hạn và thời gian dự kiến trả hết nợ.
-- **Lập kế hoạch trả nợ**: mô phỏng và so sánh 2 chiến lược (Minimize Interest / Improve Cashflow), lưu kế hoạch đã chọn cùng lịch thanh toán chi tiết.
+## Tính năng chính (Core Features)
 
-## Tech Stack
+- **Quản lý khoản nợ (`debt`):** Khởi tạo, cập nhật và theo dõi nhiều loại khoản nợ (`BANKING`, `PERSONAL_LOAN`, `CREDIT`), hỗ trợ xóa mềm (soft-delete).
+- **Tính lãi tự động (`interest`):** Hỗ trợ 2 phương pháp tính lãi chuẩn (`FLAT` và `REDUCING_BALANCE`), tự động cộng dồn lãi phát sinh hàng ngày thông qua `DebtScheduler`.
+- **Quản lý thanh toán (`payment`):** Ghi nhận thanh toán thực tế, áp dụng nguyên tắc phân bổ ưu tiên trả lãi trước gốc sau (Interest-First Allocation) và tự động cập nhật trạng thái nợ (`PAID_OFF`, `OVERDUE`, `ACTIVE`).
+- **Mô phỏng & Lập kế hoạch trả nợ (`planning`):** Động cơ mô phỏng in-memory 600 tháng so sánh 2 chiến lược (`MINIMIZE_INTEREST` - Avalanche vs `IMPROVE_CASHFLOW`), áp dụng cơ chế giải phóng dòng tiền (Snowball bonus) và lưu trữ kế hoạch chi tiết từng tháng.
+- **Phân tích sức khỏe tài chính (`analysis`):** Đánh giá định lượng qua 4 chỉ số tài chính — DTI (Debt-to-Income), tỷ lệ gánh nặng lãi vay, tỷ lệ nợ quá hạn và thời gian dự kiến sạch nợ.
+- **Hồ sơ tài chính (`financeprofile`):** Quản lý thu nhập và chi phí thiết yếu hàng tháng làm cơ sở xác thực ngân sách trả thêm tối đa.
+- **Bảng điều khiển tổng quan (`dashboard`):** Tổng hợp dữ liệu thời gian thực gồm tổng dư nợ gốc, lãi lũy kế, tổng nghĩa vụ nợ hàng tháng và danh sách nợ sắp đến hạn.
+- **Thông báo & Nhắc nợ (`notification` & `event`):** Kiến trúc hướng sự kiện (Event-Driven) tự động tạo thông báo xác nhận thanh toán và nhắc nợ trước 3 ngày.
 
-| Layer | Technology |
+---
+
+## Công nghệ sử dụng (Tech Stack)
+
+| Thành phần | Công nghệ |
 |---|---|
-| Backend | Spring Boot 3.2.4 |
-| Language | Java 17 |
-| Database | PostgreSQL |
-| ORM | Spring Data JPA / Hibernate |
-| Authentication | JWT (JJWT 0.12.5) |
-| Authorization | Spring Security |
-| API Docs | SpringDoc OpenAPI 2.5.0 (Swagger UI) |
-| Build Tool | Maven |
-| Cloud | AWS EC2, Amazon RDS, VPC |
+| **Backend Framework** | Spring Boot 3.2.4 |
+| **Ngôn ngữ** | Java 17 |
+| **Cơ sở dữ liệu** | PostgreSQL 14+ |
+| **ORM / Data Access** | Spring Data JPA / Hibernate ORM |
+| **Xác thực & Bảo mật** | Spring Security, JJWT 0.12.5 (Access Token + Refresh Token Rotation), BCrypt |
+| **Tài liệu API** | SpringDoc OpenAPI 2.5.0 (Swagger UI) |
+| **Build Tool** | Apache Maven |
+| **Hạ tầng Cloud** | AWS EC2 (Ubuntu), Amazon RDS PostgreSQL (Multi-AZ DB Subnets), VPC |
 
-## Prerequisites
+---
 
+## Cấu trúc Mã nguồn (Project Structure)
+
+```text
+src/main/java/com/tuan/debtwizard/
+├── config/              # Security, OpenAPI Swagger, Web config
+├── dto/                 # Generic ApiResponse<T>, Global shared DTOs
+├── exception/           # Global exception handler & Business error codes
+└── features/
+    ├── auth/            # Authentication, JWT generation, Refresh token rotation
+    ├── user/            # User profile management & Password change
+    ├── financeprofile/  # Monthly income & Essential expenses profile
+    ├── debt/            # Debt management, Interest engines (Flat/Reducing), Scheduler
+    ├── payment/         # Payment tracking & Interest-first allocation
+    ├── planning/        # SimulationEngine, Repayment strategies, Plan persistence
+    ├── analysis/        # 4 Financial health indicators & Classification
+    ├── dashboard/       # Financial overview metrics aggregation
+    ├── notification/    # In-app notifications & Payment reminder scheduler
+    └── event/           # Event Publisher & Domain Events (PaymentCompleted, PaymentReminder)
+```
+
+---
+
+## Hướng dẫn Cài đặt & Chạy ứng dụng (Getting Started)
+
+### 1. Yêu cầu hệ thống (Prerequisites)
 - Git
-- Java 17+
-- Maven 3.8+
+- Java 17 (JDK)
+- Apache Maven 3.8+
 - PostgreSQL 14+
 
-## Getting Started
-
-### 1. Clone Repository
-
+### 2. Clone mã nguồn
 ```bash
 git clone https://github.com/Qt159/DebtWizard.git
 cd DebtWizard
 ```
 
-### 2. Create Database
-```bash
+### 3. Khởi tạo Cơ sở dữ liệu
+```sql
 CREATE DATABASE debtwizard;
 ```
 
-### 3. Configure Environment Variables
-Tạo file .env tại thư mục gốc:
-```bash
-# Database Configuration 
-DB_PASSWORD=your_postgres_password
-
-# JWT Configuration
-JWT_SECRET=your_jwt_secret_key_at_least_32_chars
-
+### 4. Cấu hình Biến môi trường
+Tạo file `.env` tại thư mục gốc của dự án:
+```properties
 # Database Configuration
 DB_HOST=localhost                # Default: localhost
 DB_PORT=5432                     # Default: 5432
-DB_NAME=debtwizard              # Default: debtwizard
-DB_USERNAME=postgres            # Default: postgres
+DB_NAME=debtwizard               # Default: debtwizard
+DB_USERNAME=postgres             # Default: postgres
+DB_PASSWORD=your_postgres_password
 
 # JWT Configuration
-JWT_ACCESS_EXPIRATION=900000     # Default: 900000 (15 phút)
-JWT_REFRESH_EXPIRATION=604800000 # Default: 604800000 (7 ngày)
+JWT_SECRET=your_jwt_secret_key_at_least_32_chars_long_123456
+JWT_ACCESS_EXPIRATION=900000     # Default: 15 phút (900.000 ms)
+JWT_REFRESH_EXPIRATION=604800000 # Default: 7 ngày (604.800.000 ms)
 ```
 
-**Lưu ý:**
-- `DB_PASSWORD` và `JWT_SECRET` **bắt buộc** phải cấu hình
-- Các biến còn lại có giá trị mặc định, chỉ thay đổi khi cần
-- Trong production: `JWT_SECRET` phải là chuỗi ngẫu nhiên mạnh (>32 ký tự)
-- Database credentials phải khớp với cấu hình PostgreSQL của bạn
-### 4. Run Application
+### 5. Chạy ứng dụng
 ```bash
 mvn spring-boot:run
 ```
-Application chạy tại:
-http://localhost:8080
+Ứng dụng sẽ khởi chạy tại: `http://localhost:8080`
 
-## API Documentation
-Swagger UI: http://13.212.48.231:8080/swagger-ui/index.html
-Authentication flow:
-Gọi POST /api/auth/login để lấy access token.
-Nhấn Authorize trên Swagger UI.
-Nhập: Bearer <access-token>
+---
 
-## Project Structure
-src/main/java/com/tuan/debtwizard/
-├── config/          # Security, OpenAPI, application configuration
-├── dto/             # Shared DTOs
-├── exception/       # Global exception handling
-└── features/
-├── auth/        # Authentication, JWT, refresh token
-├── user/        # User management
-├── debt/        # Debt management and interest calculation
-├── payment/     # Payment tracking
-├── planning/    # Repayment simulation and planning
-├── analysis/    # Financial analysis
-└── dashboard/   # Financial overview
+## Tài liệu API & Kiểm thử (API Documentation & Testing)
 
-## Environment Variables
-| Variable      | Description                | Required |
-| ------------- | -------------------------- | -------- |
-| `DB_PASSWORD` | PostgreSQL password        | Yes      |
-| `JWT_SECRET`  | Secret key for signing JWT | Yes      |
+- **Swagger UI:** `http://localhost:8080/swagger-ui/index.html`
+- **Quy trình xác thực trên Swagger:**
+  1. Gửi request `POST /api/auth/login` để nhận `accessToken`.
+  2. Nhấn nút **Authorize** tại góc trên bên phải Swagger UI.
+  3. Nhập giá trị: `Bearer <access-token>` và nhấn Xác nhận.
+- **Postman Collections:** Dự án cung cấp sẵn collection và environment mẫu tại thư mục `postman/`:
+  - `postman/DebtWizard.postman_collection.json`
+  - `postman/DebtWizard.postman_environment.json`
 
-## Testing the API
-Dự án cung cấp Postman Collection trong package postman:
-- DebtWizard.postman_collection.json
-- DebtWizard.postman_environment.json
+---
 
-Import hai file trên vào Postman để kiểm thử API.
-## Documentation
+## Hệ thống Tài liệu Dự án (Project Documentation)
 
-| Tài liệu | Mô tả |
-|----------|-------|
-| [Solution Architecture](docs/solution_architecture.md) | Kiến trúc hệ thống, module, data flow, API endpoints |
-| [Database Design](docs/database_design.md) | Schema, quan hệ bảng, mô tả cột |
-| [Business Rules](docs/business_rules.md) | Các quy tắc nghiệp vụ |
-| [Validation Rules](docs/validation_rules.md) | Quy tắc validate đầu vào |
-| [Algorithm](docs/algorithm.md) | Thuật toán simulation, accrual, chiến lược trả nợ |
-| [Deployment Guide](docs/deployment.md) | Hướng dẫn triển khai AWS |
+Bộ tài liệu kiến trúc và thiết kế của dự án được chuẩn hóa và quản lý tại thư mục `docs/`:
 
+| Tài liệu | Mô tả chi tiết |
+|---|---|
+| [**SRS (Software Requirements Specification)**](docs/SRS.md) | Đặc tả toàn diện yêu cầu chức năng, yêu cầu phi chức năng, quy tắc nghiệp vụ (BR01–BR09), kiểm thực dữ liệu (VR01–VR31) và bảng mã lỗi hệ thống. |
+| [**SAD (Software Architecture Document)**](docs/SAD.md) | Kiến trúc hệ thống tổng thể, mô hình Feature-based, thiết kế Event-driven (Spring Events & AWS SQS/Lambda), bảo mật JWT Token Rotation, Design Patterns và REST API Catalog. |
+| [**Database Design**](docs/DATABASE_DESIGN.md) | Sơ đồ quan hệ thực thể (ERD), cấu trúc chi tiết 9 bảng dữ liệu, ràng buộc khóa ngoại, cơ chế Embedded `InterestSettings`, chỉ mục và chính sách Cascade / Soft delete. |
+| [**Deployment Guide**](docs/DEPLOYMENT.md) | Hướng dẫn chi tiết thiết lập hạ tầng AWS (VPC, Public/Private Subnets, EC2, Amazon RDS PostgreSQL Multi-AZ), cấu hình biến môi trường, quản lý dịch vụ nền bằng Linux `systemd` và CI/CD. |
+| [**Planning & Simulation Engine**](docs/PLANNING_SIMULATION.md) | Tài liệu chuyên sâu về động cơ mô phỏng: chiến lược `MINIMIZE_INTEREST` vs `IMPROVE_CASHFLOW`, thuật toán vòng lặp hàng tháng, công thức tính lãi Flat/Amortization, ngân sách Extra Payment và cơ chế Snowball bonus. |
