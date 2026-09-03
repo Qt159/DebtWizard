@@ -1,123 +1,459 @@
 # DebtWizard
 
-DebtWizard là nền tảng quản lý nợ cá nhân và hỗ trợ ra quyết định tài chính (Financial Decision Support System), giúp người dùng theo dõi tập trung các khoản nợ, tính toán lãi suất tự động, đánh giá sức khỏe tài chính và xây dựng kế hoạch trả nợ tối ưu dựa trên thu nhập và ngân sách thực tế.
+**DebtWizard** là nền tảng quản lý nợ cá nhân và hỗ trợ ra quyết định tài chính (Financial Decision Support System).
+
+Hệ thống giúp người dùng tập trung quản lý các khoản nợ, tự động tính lãi, ghi nhận thanh toán, đánh giá sức khỏe tài chính và mô phỏng các chiến lược trả nợ dựa trên thu nhập và ngân sách thực tế.
+
+> **Mục tiêu của project:** xây dựng một backend có business logic thực tế, tập trung vào thiết kế hệ thống, xử lý dữ liệu tài chính, tối ưu truy vấn và khả năng mở rộng thay vì chỉ tập trung vào CRUD.
 
 ---
 
-## Tính năng chính (Core Features)
+## Tổng quan
 
-- **Quản lý khoản nợ (`debt`):** Khởi tạo, cập nhật và theo dõi nhiều loại khoản nợ (`BANKING`, `PERSONAL_LOAN`, `CREDIT`), hỗ trợ xóa mềm (soft-delete).
-- **Tính lãi tự động (`interest`):** Hỗ trợ 2 phương pháp tính lãi chuẩn (`FLAT` và `REDUCING_BALANCE`), tự động cộng dồn lãi phát sinh hàng ngày thông qua `DebtScheduler`.
-- **Quản lý thanh toán (`payment`):** Ghi nhận thanh toán thực tế, áp dụng nguyên tắc phân bổ ưu tiên trả lãi trước gốc sau (Interest-First Allocation) và tự động cập nhật trạng thái nợ (`PAID_OFF`, `OVERDUE`, `ACTIVE`).
-- **Mô phỏng & Lập kế hoạch trả nợ (`planning`):** Động cơ mô phỏng in-memory 600 tháng so sánh 2 chiến lược (`MINIMIZE_INTEREST` - Avalanche vs `IMPROVE_CASHFLOW`), áp dụng cơ chế giải phóng dòng tiền (Snowball bonus) và lưu trữ kế hoạch chi tiết từng tháng.
-- **Phân tích sức khỏe tài chính (`analysis`):** Đánh giá định lượng qua 4 chỉ số tài chính — DTI (Debt-to-Income), tỷ lệ gánh nặng lãi vay, tỷ lệ nợ quá hạn và thời gian dự kiến sạch nợ.
-- **Hồ sơ tài chính (`financeprofile`):** Quản lý thu nhập và chi phí thiết yếu hàng tháng làm cơ sở xác thực ngân sách trả thêm tối đa.
-- **Bảng điều khiển tổng quan (`dashboard`):** Tổng hợp dữ liệu thời gian thực gồm tổng dư nợ gốc, lãi lũy kế, tổng nghĩa vụ nợ hàng tháng và danh sách nợ sắp đến hạn.
-- **Thông báo & Nhắc nợ (`notification` & `event`):** Kiến trúc hướng sự kiện (Event-Driven) tự động tạo thông báo xác nhận thanh toán và nhắc nợ trước 3 ngày.
+DebtWizard được xây dựng theo hướng **backend-first**, sử dụng Java và Spring Boot.
 
----
+Các bài toán chính của hệ thống:
 
-## Công nghệ sử dụng (Tech Stack)
-
-| Thành phần | Công nghệ |
-|---|---|
-| **Backend Framework** | Spring Boot 3.2.4 |
-| **Ngôn ngữ** | Java 17 |
-| **Cơ sở dữ liệu** | PostgreSQL 14+ |
-| **ORM / Data Access** | Spring Data JPA / Hibernate ORM |
-| **Xác thực & Bảo mật** | Spring Security, JJWT 0.12.5 (Access Token + Refresh Token Rotation), BCrypt |
-| **Tài liệu API** | SpringDoc OpenAPI 2.5.0 (Swagger UI) |
-| **Build Tool** | Apache Maven |
-| **Hạ tầng Cloud** | AWS EC2 (Ubuntu), Amazon RDS PostgreSQL (Multi-AZ DB Subnets), VPC |
+* Quản lý vòng đời khoản nợ.
+* Tính và cộng dồn lãi suất theo thời gian.
+* Xử lý giao dịch thanh toán và phân bổ tiền trả.
+* Mô phỏng nhiều chiến lược trả nợ.
+* Phân tích sức khỏe tài chính.
+* Xây dựng kế hoạch trả nợ dựa trên ngân sách.
+* Xử lý notification theo hướng event-driven.
+* Triển khai backend trên AWS.
 
 ---
 
-## Cấu trúc Mã nguồn (Project Structure)
+## Kiến trúc
+
+DebtWizard sử dụng **Feature-based Architecture**, trong đó mỗi feature chịu trách nhiệm cho một nhóm business capability riêng.
 
 ```text
 src/main/java/com/tuan/debtwizard/
-├── config/              # Security, OpenAPI Swagger, Web config
-├── dto/                 # Generic ApiResponse<T>, Global shared DTOs
-├── exception/           # Global exception handler & Business error codes
+
+├── config/
+├── dto/
+├── exception/
+│
 └── features/
-    ├── auth/            # Authentication, JWT generation, Refresh token rotation
-    ├── user/            # User profile management & Password change
-    ├── financeprofile/  # Monthly income & Essential expenses profile
-    ├── debt/            # Debt management, Interest engines (Flat/Reducing), Scheduler
-    ├── payment/         # Payment tracking & Interest-first allocation
-    ├── planning/        # SimulationEngine, Repayment strategies, Plan persistence
-    ├── analysis/        # 4 Financial health indicators & Classification
-    ├── dashboard/       # Financial overview metrics aggregation
-    ├── notification/    # In-app notifications & Payment reminder scheduler
-    └── event/           # Event Publisher & Domain Events (PaymentCompleted, PaymentReminder)
+    ├── auth/
+    ├── user/
+    ├── financeprofile/
+    ├── debt/
+    ├── payment/
+    ├── planning/
+    ├── analysis/
+    ├── dashboard/
+    ├── notification/
+    └── event/
+```
+
+Luồng xử lý chính:
+
+```text
+Client
+   │
+   ▼
+REST API
+   │
+   ▼
+Spring Boot
+   │
+   ├── Auth
+   ├── Debt
+   ├── Payment
+   ├── Planning
+   ├── Analysis
+   ├── Dashboard
+   └── Notification
+   │
+   ▼
+PostgreSQL / Amazon RDS
+```
+
+Các domain event được sử dụng để tách notification khỏi business flow chính.
+
+---
+
+## Tính năng chính
+
+| Module              | Chức năng                                                         |
+| ------------------- | ----------------------------------------------------------------- |
+| **Auth**            | Đăng nhập, JWT Access Token, Refresh Token Rotation               |
+| **User**            | Quản lý hồ sơ người dùng và thay đổi mật khẩu                     |
+| **Finance Profile** | Quản lý thu nhập và chi phí thiết yếu hàng tháng                  |
+| **Debt**            | Quản lý nhiều khoản nợ, soft-delete và cấu hình lãi suất          |
+| **Interest**        | Tính lãi theo `FLAT` và `REDUCING_BALANCE`                        |
+| **Payment**         | Ghi nhận thanh toán và phân bổ tiền trả theo Interest-First       |
+| **Planning**        | Mô phỏng và xây dựng kế hoạch trả nợ                              |
+| **Analysis**        | Phân tích DTI, gánh nặng lãi vay, nợ quá hạn và thời gian sạch nợ |
+| **Dashboard**       | Tổng hợp các chỉ số tài chính quan trọng                          |
+| **Notification**    | Thông báo thanh toán và nhắc nợ                                   |
+| **Event**           | Domain events phục vụ kiến trúc event-driven                      |
+
+---
+
+## Điểm nổi bật về kỹ thuật
+
+### 1. Planning & Simulation Engine
+
+DebtWizard có một simulation engine chạy **in-memory** để mô phỏng quá trình trả nợ theo từng tháng.
+
+Hệ thống hỗ trợ hai chiến lược:
+
+* `MINIMIZE_INTEREST`: ưu tiên khoản nợ có chi phí lãi cao hơn.
+* `IMPROVE_CASHFLOW`: ưu tiên cải thiện dòng tiền và giải phóng ngân sách trả nợ.
+
+Simulation engine xử lý:
+
+* Tính lãi hàng tháng.
+* Phân bổ tiền trả.
+* Extra payment.
+* Giải phóng dòng tiền sau khi khoản nợ được tất toán.
+* So sánh kết quả giữa các chiến lược.
+* Lưu kế hoạch trả nợ chi tiết.
+
+Việc sử dụng Strategy Pattern giúp các thuật toán trả nợ có thể được mở rộng mà không cần thay đổi simulation engine.
+
+Xem chi tiết: [Planning & Simulation Engine](docs/PLANNING_SIMULATION.md)
+
+---
+
+### 2. Payment & Transaction Processing
+
+Payment module xử lý các nghiệp vụ liên quan đến giao dịch thanh toán:
+
+```text
+Payment
+   │
+   ├── Allocate to accrued interest
+   │
+   ├── Remaining amount → Principal
+   │
+   └── Update debt status
+```
+
+Hệ thống áp dụng nguyên tắc **Interest-First Allocation**, đảm bảo tiền thanh toán được phân bổ cho phần lãi phát sinh trước khi giảm dư nợ gốc.
+
+Sau giao dịch, trạng thái khoản nợ được cập nhật dựa trên tình trạng thực tế:
+
+* `ACTIVE`
+* `OVERDUE`
+* `PAID_OFF`
+
+---
+
+### 3. Database & SQL Optimization
+
+PostgreSQL được sử dụng làm database chính vì dữ liệu tài chính yêu cầu tính nhất quán và quan hệ rõ ràng giữa các entity.
+
+Database được thiết kế với:
+
+* Foreign key constraints.
+* Index cho các truy vấn thường xuyên.
+* Soft-delete.
+* Embedded `InterestSettings`.
+* Cascade policies phù hợp với vòng đời dữ liệu.
+
+Các truy vấn quan trọng được phân tích bằng:
+
+```sql
+EXPLAIN ANALYZE
+```
+
+để đánh giá execution plan và tác động của index.
+
+Xem chi tiết: [Database Design](docs/DATABASE_DESIGN.md)
+
+---
+
+### 4. Interest Calculation
+
+Hệ thống hỗ trợ nhiều phương pháp tính lãi:
+
+* `FLAT`
+* `REDUCING_BALANCE`
+
+Logic tính lãi được tách thông qua **Strategy Pattern**, giúp business logic dễ mở rộng khi bổ sung thêm phương pháp tính lãi.
+
+Ngoài ra, `DebtScheduler` chịu trách nhiệm xử lý việc cộng dồn lãi phát sinh theo thời gian.
+
+---
+
+### 5. Authentication & Security
+
+Hệ thống sử dụng:
+
+* Spring Security.
+* JWT Access Token.
+* Refresh Token.
+* Refresh Token Rotation.
+* BCrypt password hashing.
+* Authentication và authorization ở API layer.
+
+Refresh token rotation giúp giảm rủi ro khi refresh token bị lộ hoặc bị sử dụng lại.
+
+---
+
+### 6. Event-Driven Notification
+
+Các sự kiện liên quan đến payment được tách khỏi notification flow.
+
+Ví dụ:
+
+```text
+PaymentCompleted
+       │
+       ▼
+ Domain Event
+       │
+       ▼
+ Notification Processing
+```
+
+Kiến trúc này giúp business logic của Payment không bị phụ thuộc trực tiếp vào cách notification được xử lý.
+
+Hệ thống được thiết kế để có thể mở rộng sang asynchronous processing với AWS SQS/Lambda.
+
+---
+
+## Engineering Decisions
+
+| Quyết định                     | Lý do                                                                 |
+| ------------------------------ | --------------------------------------------------------------------- |
+| **Feature-based Architecture** | Tách business capability và giảm coupling giữa các module             |
+| **Strategy Pattern**           | Cho phép mở rộng các thuật toán tính lãi và trả nợ                    |
+| **PostgreSQL**                 | Phù hợp với dữ liệu tài chính có quan hệ và yêu cầu consistency       |
+| **In-memory Simulation**       | Tránh ghi dữ liệu trung gian không cần thiết trong quá trình mô phỏng |
+| **Database Indexing**          | Tối ưu các truy vấn payment/debt thường xuyên                         |
+| **Domain Events**              | Tách notification khỏi payment business flow                          |
+| **Soft Delete**                | Giữ lại lịch sử dữ liệu tài chính thay vì xóa vật lý                  |
+
+---
+
+## Công nghệ sử dụng
+
+| Thành phần                | Công nghệ                           |
+| ------------------------- | ----------------------------------- |
+| **Ngôn ngữ**              | Java 17                             |
+| **Backend Framework**     | Spring Boot 3.2.4                   |
+| **Security**              | Spring Security 6                   |
+| **Authentication**        | JJWT 0.12.5, JWT                    |
+| **Database**              | PostgreSQL 14+                      |
+| **ORM / Data Access**     | Spring Data JPA / Hibernate         |
+| **API Documentation**     | SpringDoc OpenAPI 2.5.0             |
+| **Build Tool**            | Apache Maven                        |
+| **Cloud**                 | AWS EC2, Amazon RDS, VPC            |
+| **Database Optimization** | PostgreSQL Index, `EXPLAIN ANALYZE` |
+
+---
+
+## Cấu trúc mã nguồn
+
+```text
+src/main/java/com/tuan/debtwizard/
+
+├── config/
+│   └── Security, OpenAPI, Web configuration
+│
+├── dto/
+│   └── Shared DTOs, ApiResponse<T>
+│
+├── exception/
+│   └── Global exception handling & business error codes
+│
+└── features/
+    ├── auth/
+    │   └── Authentication, JWT, Refresh Token
+    │
+    ├── user/
+    │   └── User profile & password management
+    │
+    ├── financeprofile/
+    │   └── Income & essential expenses
+    │
+    ├── debt/
+    │   └── Debt management & interest calculation
+    │
+    ├── payment/
+    │   └── Payment processing & allocation
+    │
+    ├── planning/
+    │   └── SimulationEngine & repayment strategies
+    │
+    ├── analysis/
+    │   └── Financial health analysis
+    │
+    ├── dashboard/
+    │   └── Financial overview aggregation
+    │
+    ├── notification/
+    │   └── In-app notifications & reminders
+    │
+    └── event/
+        └── Domain events & event publishing
 ```
 
 ---
 
-## Hướng dẫn Cài đặt & Chạy ứng dụng (Getting Started)
+## Database Design
 
-### 1. Yêu cầu hệ thống (Prerequisites)
-- Git
-- Java 17 (JDK)
-- Apache Maven 3.8+
-- PostgreSQL 14+
+Database sử dụng PostgreSQL với các entity chính phục vụ:
 
-### 2. Clone mã nguồn
+* Users.
+* Debts.
+* Payments.
+* Interest configuration.
+* Financial profiles.
+* Planning và simulation results.
+* Notification.
+
+Sơ đồ ERD và database design chi tiết:
+
+[Database Design](docs/DATABASE_DESIGN.md)
+
+---
+
+## API Documentation
+
+API được document bằng **Swagger / OpenAPI**.
+
+Sau khi chạy ứng dụng:
+
+```text
+http://localhost:8080/swagger-ui/index.html
+```
+
+Quy trình authentication:
+
+```text
+POST /api/auth/login
+        │
+        ▼
+   accessToken
+        │
+        ▼
+Swagger → Authorize
+        │
+        ▼
+Bearer <access-token>
+```
+
+Project cũng cung cấp Postman collection và environment mẫu:
+
+```text
+postman/
+├── DebtWizard.postman_collection.json
+└── DebtWizard.postman_environment.json
+```
+
+---
+
+## Getting Started
+
+### Yêu cầu
+
+* Git
+* Java 17 JDK
+* Apache Maven 3.8+
+* PostgreSQL 14+
+
+### 1. Clone project
+
 ```bash
 git clone https://github.com/Qt159/DebtWizard.git
 cd DebtWizard
 ```
 
-### 3. Khởi tạo Cơ sở dữ liệu
+### 2. Tạo database
+
 ```sql
 CREATE DATABASE debtwizard;
 ```
 
-### 4. Cấu hình Biến môi trường
-Tạo file `.env` tại thư mục gốc của dự án:
+### 3. Cấu hình environment variables
+
+Tạo file `.env` tại thư mục gốc:
+
 ```properties
-# Database Configuration
-DB_HOST=localhost                # Default: localhost
-DB_PORT=5432                     # Default: 5432
-DB_NAME=debtwizard               # Default: debtwizard
-DB_USERNAME=postgres             # Default: postgres
+DB_HOST=localhost
+DB_PORT=5432
+DB_NAME=debtwizard
+DB_USERNAME=postgres
 DB_PASSWORD=your_postgres_password
 
-# JWT Configuration
-JWT_SECRET=your_jwt_secret_key_at_least_32_chars_long_123456
-JWT_ACCESS_EXPIRATION=900000     # Default: 15 phút (900.000 ms)
-JWT_REFRESH_EXPIRATION=604800000 # Default: 7 ngày (604.800.000 ms)
+JWT_SECRET=your_jwt_secret_key
+JWT_ACCESS_EXPIRATION=900000
+JWT_REFRESH_EXPIRATION=604800000
 ```
 
-### 5. Chạy ứng dụng
+### 4. Chạy ứng dụng
+
 ```bash
 mvn spring-boot:run
 ```
-Ứng dụng sẽ khởi chạy tại: `http://localhost:8080`
+
+Backend chạy mặc định tại:
+
+```text
+http://localhost:8080
+```
 
 ---
 
-## Tài liệu API & Kiểm thử (API Documentation & Testing)
+## Deployment
 
-- **Swagger UI:** `http://localhost:8080/swagger-ui/index.html`
-- **Quy trình xác thực trên Swagger:**
-  1. Gửi request `POST /api/auth/login` để nhận `accessToken`.
-  2. Nhấn nút **Authorize** tại góc trên bên phải Swagger UI.
-  3. Nhập giá trị: `Bearer <access-token>` và nhấn Xác nhận.
-- **Postman Collections:** Dự án cung cấp sẵn collection và environment mẫu tại thư mục `postman/`:
-  - `postman/DebtWizard.postman_collection.json`
-  - `postman/DebtWizard.postman_environment.json`
+Backend được triển khai trên AWS với kiến trúc:
+
+```text
+Internet
+   │
+   ▼
+AWS EC2
+   │
+   │ Private connection
+   ▼
+Amazon RDS PostgreSQL
+```
+
+Infrastructure sử dụng:
+
+* Amazon EC2.
+* Amazon RDS PostgreSQL.
+* VPC.
+* Subnets.
+* Security Groups.
+* Linux `systemd`.
+
+Chi tiết deployment:
+
+[Deployment Guide](docs/DEPLOYMENT.md)
 
 ---
 
-## Hệ thống Tài liệu Dự án (Project Documentation)
+## Project Documentation
 
-Bộ tài liệu kiến trúc và thiết kế của dự án được chuẩn hóa và quản lý tại thư mục `docs/`:
+| Tài liệu                                                        | Nội dung                                                                                   |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
+| [**SRS**](docs/SRS.md)                                          | Functional requirements, non-functional requirements, business rules và validation rules   |
+| [**SAD**](docs/SAD.md)                                          | Architecture, feature-based design, event-driven architecture, security và design patterns |
+| [**Database Design**](docs/DATABASE_DESIGN.md)                  | ERD, database schema, constraints, indexes và data lifecycle                               |
+| [**Deployment Guide**](docs/DEPLOYMENT.md)                      | AWS infrastructure và deployment process                                                   |
+| [**Planning & Simulation Engine**](docs/PLANNING_SIMULATION.md) | Simulation algorithm, repayment strategies và financial calculation                        |
 
-| Tài liệu | Mô tả chi tiết |
-|---|---|
-| [**SRS (Software Requirements Specification)**](docs/SRS.md) | Đặc tả toàn diện yêu cầu chức năng, yêu cầu phi chức năng, quy tắc nghiệp vụ (BR01–BR09), kiểm thực dữ liệu (VR01–VR31) và bảng mã lỗi hệ thống. |
-| [**SAD (Software Architecture Document)**](docs/SAD.md) | Kiến trúc hệ thống tổng thể, mô hình Feature-based, thiết kế Event-driven (Spring Events & AWS SQS/Lambda), bảo mật JWT Token Rotation, Design Patterns và REST API Catalog. |
-| [**Database Design**](docs/DATABASE_DESIGN.md) | Sơ đồ quan hệ thực thể (ERD), cấu trúc chi tiết 9 bảng dữ liệu, ràng buộc khóa ngoại, cơ chế Embedded `InterestSettings`, chỉ mục và chính sách Cascade / Soft delete. |
-| [**Deployment Guide**](docs/DEPLOYMENT.md) | Hướng dẫn chi tiết thiết lập hạ tầng AWS (VPC, Public/Private Subnets, EC2, Amazon RDS PostgreSQL Multi-AZ), cấu hình biến môi trường, quản lý dịch vụ nền bằng Linux `systemd` và CI/CD. |
-| [**Planning & Simulation Engine**](docs/PLANNING_SIMULATION.md) | Tài liệu chuyên sâu về động cơ mô phỏng: chiến lược `MINIMIZE_INTEREST` vs `IMPROVE_CASHFLOW`, thuật toán vòng lặp hàng tháng, công thức tính lãi Flat/Amortization, ngân sách Extra Payment và cơ chế Snowball bonus. |
+---
+
+## Roadmap
+
+Một số hướng phát triển tiếp theo:
+
+* [ ] Hoàn thiện database query optimization và benchmark.
+* [ ] Bổ sung integration testing cho các transaction flow quan trọng.
+* [ ] Cải thiện observability và structured logging.
+* [ ] Caching cho các dữ liệu được truy cập thường xuyên.
+* [ ] Hoàn thiện asynchronous notification processing.
+* [ ] CI/CD pipeline.
+* [ ] Containerization.
+
+---

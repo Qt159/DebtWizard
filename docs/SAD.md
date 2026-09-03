@@ -109,25 +109,25 @@ com.tuan.debtwizard
 ### 4.2 Service Layer & Core Business Logic
 - **Transaction Management:** Sử dụng `@Transactional` trên các thao tác ghi và `@Transactional(readOnly = true)` trên các tác vụ truy vấn để tối ưu hiệu năng và đảm bảo tính toàn vẹn ACID.
 - **Interest Calculation Engine (Strategy Pattern):**
-  - Giao diện `InterestCalculationStrategy` định nghĩa 2 phương thức:
-    1. `calculateMonthlyPayment(principal, termMonths, annualRate)`: Tính số tiền trả cố định hàng tháng khi tạo khoản nợ.
-    2. `calculateInterest(debt, fromDate, toDate)`: Tính lãi phát sinh hàng ngày trong khoảng thời gian xác định.
-  - `FlatInterestCalculationStrategy`: Tính lãi đều trên dư nợ gốc ban đầu (`totalPrincipal`).
-  - `ReducingBalanceInterestCalculationStrategy`: Tính lãi trên dư nợ gốc còn lại (`remainingPrincipal`) theo công thức Amortization chuẩn.
-  - `InterestCalculationStrategyFactory`: Khởi tạo và cung cấp chiến lược tương ứng theo cấu hình `InterestCalculationMethod`.
+    - Giao diện `InterestCalculationStrategy` định nghĩa 2 phương thức:
+        1. `calculateMonthlyPayment(principal, termMonths, annualRate)`: Tính số tiền trả cố định hàng tháng khi tạo khoản nợ.
+        2. `calculateInterest(debt, fromDate, toDate)`: Tính lãi phát sinh hàng ngày trong khoảng thời gian xác định.
+    - `FlatInterestCalculationStrategy`: Tính lãi đều trên dư nợ gốc ban đầu (`totalPrincipal`).
+    - `ReducingBalanceInterestCalculationStrategy`: Tính lãi trên dư nợ gốc còn lại (`remainingPrincipal`) theo công thức Amortization chuẩn.
+    - `InterestCalculationStrategyFactory`: Khởi tạo và cung cấp chiến lược tương ứng theo cấu hình `InterestCalculationMethod`.
 - **Planning & Simulation Engine:**
-  - `PlanningService`: Xác thực quyền sở hữu, tính `maxAllowedExtraPayment`, sao chép snapshot và điều phối mô phỏng.
-  - `SimulationEngine`: Thực thi vòng lặp mô phỏng hàng tháng in-memory, áp dụng chiến lược lựa chọn nợ ưu tiên (`MinimizeInterestStrategy` hoặc `ImproveCashflowStrategy`), tính toán cashflow giải phóng và `snowballBonus`.
+    - `PlanningService`: Xác thực quyền sở hữu, tính `maxAllowedExtraPayment`, sao chép snapshot và điều phối mô phỏng.
+    - `SimulationEngine`: Thực thi vòng lặp mô phỏng hàng tháng in-memory, áp dụng chiến lược lựa chọn nợ ưu tiên (`MinimizeInterestStrategy` hoặc `ImproveCashflowStrategy`), tính toán cashflow giải phóng và `snowballBonus`.
 - **Debt State & Scheduler:**
-  - `DebtScheduler`: Chạy vào `00:00` hàng ngày, lấy các khoản nợ chưa tất toán theo lô (Batch 100) để cộng dồn lãi phát sinh và làm mới trạng thái (`ACTIVE`, `OVERDUE`, `PAID_OFF`).
-  - `PaymentReminderScheduler`: Quét các khoản nợ có ngày đến hạn sau 3 ngày và phát `PaymentReminderEvent`.
+    - `DebtScheduler`: Chạy vào `00:00` hàng ngày, lấy các khoản nợ chưa tất toán theo lô (Batch 100) để cộng dồn lãi phát sinh và làm mới trạng thái (`ACTIVE`, `OVERDUE`, `PAID_OFF`).
+    - `PaymentReminderScheduler`: Quét các khoản nợ có ngày đến hạn sau 3 ngày và phát `PaymentReminderEvent`.
 
 ### 4.3 Repository Layer (Spring Data JPA)
 - Cung cấp các thao tác CRUD tiêu chuẩn.
 - Tối ưu hóa truy vấn bằng custom JPQL:
-  - Sử dụng `JOIN FETCH` (ví dụ `findAllByIdWithUser`) để loại trừ hiện tượng N+1 Query.
-  - Thực hiện các truy vấn tổng hợp (`SUM(expectedMonthlyPayment)`, `SUM(remainingPrincipal)`, `SUM(accruedInterest)`) trực tiếp tại database engine.
-  - Hỗ trợ phân trang và sắp xếp thông qua `Pageable`, `Page<T>`.
+    - Sử dụng `JOIN FETCH` (ví dụ `findAllByIdWithUser`) để loại trừ hiện tượng N+1 Query.
+    - Thực hiện các truy vấn tổng hợp (`SUM(expectedMonthlyPayment)`, `SUM(remainingPrincipal)`, `SUM(accruedInterest)`) trực tiếp tại database engine.
+    - Hỗ trợ phân trang và sắp xếp thông qua `Pageable`, `Page<T>`.
 
 ---
 
@@ -177,9 +177,9 @@ Khi mở rộng hệ thống lên nhiều phiên bản (Multi-instance EC2), ki�
 ```
 
 - **Lợi ích:**
-  - Hoàn toàn phi đồng bộ, không làm tăng thời gian phản hồi của API thanh toán.
-  - Tự động thử lại (Retry) và đưa vào Dead-Letter Queue (DLQ) nếu dịch vụ gửi email hoặc database tạm thời gián đoạn.
-  - Chuyển `PaymentReminderScheduler` sang **Amazon EventBridge Scheduler** để tránh hiện tượng chạy lặp trên nhiều EC2 instance.
+    - Hoàn toàn phi đồng bộ, không làm tăng thời gian phản hồi của API thanh toán.
+    - Tự động thử lại (Retry) và đưa vào Dead-Letter Queue (DLQ) nếu dịch vụ gửi email hoặc database tạm thời gián đoạn.
+    - Chuyển `PaymentReminderScheduler` sang **Amazon EventBridge Scheduler** để tránh hiện tượng chạy lặp trên nhiều EC2 instance.
 
 ---
 
@@ -202,9 +202,9 @@ Khi mở rộng hệ thống lên nhiều phiên bản (Multi-instance EC2), ki�
 
 - **Stateless Authentication:** Sử dụng JSON Web Token (JJWT 0.12.5), không lưu session trên server backend.
 - **Token Rotation:**
-  - `accessToken`: Hiệu lực 15 phút (`900000ms`), dùng cho các request API.
-  - `refreshToken`: Hiệu lực 7 ngày (`604800000ms`), lưu trong bảng `refresh_token` (quan hệ 1:1 với `users`).
-  - Khi gọi `/api/auth/refresh`, refresh token cũ bị thu hồi/xóa và thay thế bằng refresh token mới.
+    - `accessToken`: Hiệu lực 15 phút (`900000ms`), dùng cho các request API.
+    - `refreshToken`: Hiệu lực 7 ngày (`604800000ms`), lưu trong bảng `refresh_token` (quan hệ 1:1 với `users`).
+    - Khi gọi `/api/auth/refresh`, refresh token cũ bị thu hồi/xóa và thay thế bằng refresh token mới.
 - **Mã hóa Mật khẩu:** Sử dụng `BCryptPasswordEncoder` với salt ngẫu nhiên.
 - **Kiểm soát Quyền sở hữu (Ownership Enforcement):** Trong mọi Service (`DebtService`, `PaymentService`, `PlanningService`), hệ thống luôn đối chiếu `userId` của tài nguyên với `userId` của người dùng đã xác thực.
 
