@@ -5,6 +5,7 @@ import com.tuan.debtwizard.exception.ErrorCode;
 import com.tuan.debtwizard.features.user.dto.ChangePasswordRequest;
 import com.tuan.debtwizard.features.user.dto.UpdateUserRequest;
 import com.tuan.debtwizard.features.user.dto.UserResponse;
+import com.tuan.debtwizard.features.auth.repository.RefreshTokenRepository;
 import com.tuan.debtwizard.features.user.model.User;
 import com.tuan.debtwizard.features.user.repository.UserRepository;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -12,15 +13,20 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+
+
 @Service
 
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    private final RefreshTokenRepository refreshTokenRepository;
+    public UserService(UserRepository userRepository, 
+                        PasswordEncoder passwordEncoder,
+                        RefreshTokenRepository refreshTokenRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.refreshTokenRepository = refreshTokenRepository;
     }
 
     public UserResponse getProfile(String username) {
@@ -54,6 +60,7 @@ public class UserService {
             throw new AppException(ErrorCode.NEW_PASSWORD_SAME_AS_OLD);
         }
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
+        refreshTokenRepository.deleteByUser(user);
     }
 
     private UserResponse mapToResponse(User user) {

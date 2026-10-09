@@ -83,17 +83,21 @@ public class AuthService {
         RefreshToken tokenEntity = refreshTokenRepository.findByToken(request.getRefreshToken())
                 .orElseThrow(() -> new AppException(ErrorCode.INVALID_TOKEN));
 
+        if (!tokenEntity.getExpiryDate().isAfter(Instant.now())) {
+            throw new AppException(ErrorCode.TOKEN_EXPIRED);}
+            
         User user = tokenEntity.getUser();
 
-        // Kiểm tra hết hạn
-        if (tokenEntity.getExpiryDate().isBefore(Instant.now())) {
-            refreshTokenRepository.deleteByUser(user);
-            throw new AppException(ErrorCode.TOKEN_EXPIRED);
+        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
+        
+        if(jwtService.isTokenValid(request.getRefreshToken(), userDetails, "refresh") == false){
+            throw new AppException(ErrorCode.INVALID_TOKEN);
         }
 
-        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getUsername());
         String newAccessToken = jwtService.generateAccessToken(userDetails);
         String newRefreshToken = jwtService.generateRefreshToken(userDetails);
+
+
 
         // Xóa cũ, lưu mới
         refreshTokenRepository.deleteByUser(user);
